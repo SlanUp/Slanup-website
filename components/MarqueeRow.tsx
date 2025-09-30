@@ -13,10 +13,10 @@ interface MarqueeRowProps {
 export default function MarqueeRow({ plans, direction }: MarqueeRowProps) {
   const animationVariants = {
     left: {
-      x: ["0%", "-50%"],
+      x: ["0%", "-100%"],
     },
     right: {
-      x: ["-50%", "0%"],
+      x: ["-100%", "0%"],
     },
   };
 
@@ -31,7 +31,7 @@ export default function MarqueeRow({ plans, direction }: MarqueeRowProps) {
           ease: "linear",
         }}
       >
-        {[...plans, ...plans].map((plan, index) => (
+        {[...plans, ...plans, ...plans].map((plan, index) => (
           <div key={`${plan.id}-${index}`} className="px-2">
             <PlanCard plan={plan} />
           </div>
