@@ -65,7 +65,7 @@ export default function EventPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-black text-white relative overflow-hidden">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {isClient && [...Array(30)].map((_, i) => (
@@ -97,10 +97,15 @@ export default function EventPage() {
           transition={{ duration: 0.8 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 bg-clip-text text-transparent">
-            Slanup's Diwali Party
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300">Diwali 2025 🪔</p>
+          <div className="flex flex-col items-center">
+            <p className="text-2xl md:text-3xl text-white mb-1" style={{ fontFamily: "'Dancing Script', cursive" }}>
+              Slanup's
+            </p>
+            <h1 className="text-6xl md:text-8xl font-bold mb-2 text-white" style={{ fontFamily: "'Black Ops One', cursive", letterSpacing: "0.05em", textShadow: "3px 3px 0px rgba(255,200,0,0.3), 6px 6px 0px rgba(255,100,0,0.2)" }}>
+              Diwali Party
+            </h1>
+          </div>
+          <p className="text-xl md:text-2xl text-gray-300 mt-4">Diwali 2025 🪔</p>
         </motion.div>
 
         {/* Invite Code Section - Always on top */}
@@ -177,7 +182,7 @@ export default function EventPage() {
               transition={{ type: "spring", duration: 0.6 }}
               className="text-center mb-16"
             >
-              <button className="bg-gradient-to-r from-yellow-500 via-orange-500 to-pink-500 text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-110 shadow-2xl hover:shadow-orange-500/50">
+              <button className="bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-110 shadow-2xl hover:shadow-amber-500/50 border-2 border-amber-400/30">
                 🎟️ Book Your Tickets Now
               </button>
             </motion.div>

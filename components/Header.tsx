@@ -19,7 +19,7 @@ export default function Header() {
       </Link>
       <Link href="/event">
         <button className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-2 px-5 md:px-6 rounded-full text-sm md:text-base transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50 hover:scale-105 transform">
-          Slanup&apos;s tropical Lau
+          Slanup&apos;s Diwali Party
         </button>
       </Link>
     </header>
