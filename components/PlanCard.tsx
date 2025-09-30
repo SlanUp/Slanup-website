@@ -12,7 +12,7 @@ interface PlanCardProps {
 
 export default function PlanCard({ plan }: PlanCardProps) {
   return (
-    <div className="w-[340px] flex-shrink-0 bg-white rounded-2xl shadow-lg overflow-hidden mx-2 hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
+    <div className="w-[340px] flex-shrink-0 bg-white rounded-2xl shadow-lg overflow-hidden mx-2 hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] text-left">
       {/* Profile Section */}
       <div className="flex items-center justify-between p-3 bg-white">
         <div className="flex items-center">
@@ -57,9 +57,9 @@ export default function PlanCard({ plan }: PlanCardProps) {
       </div>
 
       {/* Event Details */}
-      <div className="p-3 bg-white">
+      <div className="p-3 bg-white text-left">
         {/* Date Badge */}
-        <div className="inline-flex flex-col items-center justify-center px-3 py-2 bg-gray-100 rounded-lg -mt-8 mb-2 relative z-10 shadow-md">
+        <div className="flex flex-col items-center justify-center px-3 py-2 bg-gray-100 rounded-lg -mt-8 mb-0 relative z-10 shadow-md w-fit">
           <span className="text-lg font-bold">{plan.eventDate.getDate()}</span>
           <span className="text-xs font-bold text-red-500" suppressHydrationWarning>
             {plan.eventDate.toLocaleString("default", { month: "short" })}
@@ -67,7 +67,7 @@ export default function PlanCard({ plan }: PlanCardProps) {
         </div>
 
         {/* Event Info */}
-        <div className="mt-2">
+        <div className="mt-1 text-left">
           <h3 className="text-base font-bold text-gray-900">{plan.planTitle}</h3>
           <p className="text-sm text-gray-600 mt-1">Venue: {plan.venue}</p>
         </div>

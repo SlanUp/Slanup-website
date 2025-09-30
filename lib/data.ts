@@ -16,7 +16,7 @@ export const SAMPLE_PLANS: Plan[] = [
   {
     id: '1',
     creatorName: 'Priya Sharma',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=1',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/female/74.jpg',
     planTitle: 'Sunset Beach Trek',
     venue: 'Muzhappilangad Beach, Kerala',
     eventDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -24,17 +24,17 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     slotsLeft: 3,
     participantImages: [
-      'https://i.pravatar.cc/150?img=5',
-      'https://i.pravatar.cc/150?img=8',
-      'https://i.pravatar.cc/150?img=12',
-      'https://i.pravatar.cc/150?img=15'
+      'https://xsgames.co/randomusers/assets/avatars/female/65.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/62.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/73.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/67.jpg'
     ],
     totalParticipants: 7,
   },
   {
     id: '2',
     creatorName: 'Arjun Patel',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=13',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/male/51.jpg',
     planTitle: 'Mountain Biking Adventure',
     venue: 'Nandi Hills, Bangalore',
     eventDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
@@ -42,16 +42,16 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     slotsLeft: 2,
     participantImages: [
-      'https://i.pravatar.cc/150?img=16',
-      'https://i.pravatar.cc/150?img=18',
-      'https://i.pravatar.cc/150?img=20'
+      'https://xsgames.co/randomusers/assets/avatars/male/64.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/55.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/70.jpg'
     ],
     totalParticipants: 3,
   },
   {
     id: '3',
     creatorName: 'Meera Reddy',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=9',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/female/71.jpg',
     planTitle: 'Rooftop Movie Night',
     venue: 'Sky Lounge, Mumbai',
     eventDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
@@ -59,17 +59,17 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
     slotsLeft: 5,
     participantImages: [
-      'https://i.pravatar.cc/150?img=22',
-      'https://i.pravatar.cc/150?img=25',
-      'https://i.pravatar.cc/150?img=28',
-      'https://i.pravatar.cc/150?img=30'
+      'https://xsgames.co/randomusers/assets/avatars/male/74.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/60.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/65.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/69.jpg'
     ],
     totalParticipants: 10,
   },
   {
     id: '4',
     creatorName: 'Rahul Kumar',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=33',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/male/56.jpg',
     planTitle: 'Surfing Session',
     venue: 'Kovalam Beach, Kerala',
     eventDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
@@ -77,17 +77,17 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
     slotsLeft: 1,
     participantImages: [
-      'https://i.pravatar.cc/150?img=35',
-      'https://i.pravatar.cc/150?img=38',
-      'https://i.pravatar.cc/150?img=40',
-      'https://i.pravatar.cc/150?img=42'
+      'https://xsgames.co/randomusers/assets/avatars/male/66.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/64.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/69.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/72.jpg'
     ],
     totalParticipants: 4,
   },
   {
     id: '5',
     creatorName: 'Ananya Das',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=5',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/female/65.jpg',
     planTitle: 'House Party Vibes',
     venue: 'Koramangala, Bangalore',
     eventDate: new Date(Date.now() + 0.5 * 24 * 60 * 60 * 1000),
@@ -95,15 +95,15 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
     slotsLeft: 8,
     participantImages: [
-      'https://i.pravatar.cc/150?img=44',
-      'https://i.pravatar.cc/150?img=47'
+      'https://xsgames.co/randomusers/assets/avatars/male/67.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/68.jpg'
     ],
     totalParticipants: 2,
   },
   {
     id: '6',
     creatorName: 'Vikram Singh',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=12',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/male/73.jpg',
     planTitle: 'Campfire & Stargazing',
     venue: 'Coorg, Karnataka',
     eventDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -111,17 +111,17 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     slotsLeft: 4,
     participantImages: [
-      'https://i.pravatar.cc/150?img=50',
-      'https://i.pravatar.cc/150?img=52',
-      'https://i.pravatar.cc/150?img=55',
-      'https://i.pravatar.cc/150?img=58'
+      'https://xsgames.co/randomusers/assets/avatars/male/52.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/58.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/61.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/75.jpg'
     ],
     totalParticipants: 6,
   },
   {
     id: '7',
     creatorName: 'Sneha Iyer',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=10',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/female/66.jpg',
     planTitle: 'Cafe Hopping Tour',
     venue: 'Bandra, Mumbai',
     eventDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
@@ -129,16 +129,16 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     slotsLeft: 3,
     participantImages: [
-      'https://i.pravatar.cc/150?img=60',
-      'https://i.pravatar.cc/150?img=62',
-      'https://i.pravatar.cc/150?img=65'
+      'https://xsgames.co/randomusers/assets/avatars/male/60.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/61.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/68.jpg'
     ],
     totalParticipants: 3,
   },
   {
     id: '8',
     creatorName: 'Karthik Menon',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=14',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/male/62.jpg',
     planTitle: 'Waterfall Trekking',
     venue: 'Athirapally Falls, Kerala',
     eventDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
@@ -146,17 +146,17 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
     slotsLeft: 2,
     participantImages: [
-      'https://i.pravatar.cc/150?img=68',
-      'https://i.pravatar.cc/150?img=70',
-      'https://i.pravatar.cc/150?img=11',
-      'https://i.pravatar.cc/150?img=19'
+      'https://xsgames.co/randomusers/assets/avatars/male/72.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/70.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/male/59.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/63.jpg'
     ],
     totalParticipants: 8,
   },
   {
     id: '9',
     creatorName: 'Diya Kapoor',
-    creatorProfileImage: 'https://i.pravatar.cc/150?img=26',
+    creatorProfileImage: 'https://xsgames.co/randomusers/assets/avatars/female/73.jpg',
     planTitle: 'Pottery Workshop',
     venue: 'Indiranagar, Bangalore',
     eventDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
@@ -164,8 +164,8 @@ export const SAMPLE_PLANS: Plan[] = [
     postedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     slotsLeft: 6,
     participantImages: [
-      'https://i.pravatar.cc/150?img=23',
-      'https://i.pravatar.cc/150?img=27'
+      'https://xsgames.co/randomusers/assets/avatars/male/57.jpg',
+      'https://xsgames.co/randomusers/assets/avatars/female/59.jpg'
     ],
     totalParticipants: 2,
   },
