@@ -99,7 +99,7 @@ export default function EventPage() {
         >
           <div className="flex flex-col items-center">
             <p className="text-2xl md:text-3xl text-white mb-1" style={{ fontFamily: "'Dancing Script', cursive" }}>
-              Slanup's
+              Slanup&#39;s
             </p>
             <h1 className="text-6xl md:text-8xl font-bold mb-2 text-white" style={{ fontFamily: "'Black Ops One', cursive", letterSpacing: "0.05em", textShadow: "3px 3px 0px rgba(255,200,0,0.3), 6px 6px 0px rgba(255,100,0,0.2)" }}>
               Diwali Party
@@ -167,7 +167,7 @@ export default function EventPage() {
 
             {!isValidated && (
               <p className="text-xs text-gray-500 text-center mt-6">
-                Don't have a code? Contact us for an exclusive invite!
+                Don&#39;t have a code? Contact us for an exclusive invite!
               </p>
             )}
           </div>
@@ -199,7 +199,7 @@ export default function EventPage() {
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-4">
               <Sparkles className="w-8 h-8 text-yellow-400 mr-2" />
-              <h3 className="text-4xl font-bold">From Our Last Year's</h3>
+              <h3 className="text-4xl font-bold">From Our Last Year&#39;s</h3>
               <Sparkles className="w-8 h-8 text-yellow-400 ml-2" />
             </div>
             <p className="text-gray-400 text-lg">Relive the magic of Diwali Party 2024</p>
