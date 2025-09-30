@@ -1,28 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Lock } from "lucide-react";
+import { Sparkles, Lock, Play } from "lucide-react";
 import Image from "next/image";
 
 // Mock invite codes - replace with your actual codes
 const VALID_INVITE_CODES = ["SLANUP2025", "DIWALI24", "TROPICALLAU"];
 
-// Placeholder gallery items - replace with your actual media
+// Real gallery items from Diwali Party 2024
 const GALLERY_ITEMS = [
-  { type: "image", url: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800", title: "Last Year's Celebration" },
-  { type: "image", url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800", title: "Epic Moments" },
-  { type: "image", url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800", title: "Dance Floor" },
-  { type: "image", url: "https://images.unsplash.com/photo-1470229538611-16a7c00becd4?w=800", title: "Live Performance" },
-  { type: "image", url: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800", title: "Lights & Energy" },
-  { type: "image", url: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800", title: "Crowd Vibes" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3260_Original.jpg", title: "Party Vibes" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3408_Original.jpg", title: "Good Times" },
+  { type: "video", url: "/Gallery/diwali-party24/IMG_3396.mov", title: "Dance Floor" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3388_Original.jpg", title: "Epic Moments" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3379_Original.jpg", title: "Celebration" },
+  { type: "video", url: "/Gallery/diwali-party24/IMG_3382.mov", title: "Party Energy" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_2027_Original.jpg", title: "Friends" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3368_Original.jpg", title: "Night Out" },
+  { type: "video", url: "/Gallery/diwali-party24/IMG_3375.mov", title: "Live Action" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3360_Original.jpg", title: "Memories" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3354_Original.jpg", title: "Group Photo" },
+  { type: "video", url: "/Gallery/diwali-party24/IMG_3373.mov", title: "Dance Moves" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3343_Original.jpg", title: "Fun Times" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3337_Original.jpg", title: "Squad Goals" },
+  { type: "video", url: "/Gallery/diwali-party24/IMG_3340.mov", title: "Party Mode" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3333_Original.jpg", title: "Night Life" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3330_Original.jpg", title: "Cheers" },
+  { type: "video", url: "/Gallery/diwali-party24/IMG_3369.mov", title: "Moments" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3323_Original.jpg", title: "Together" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3311_Original.jpg", title: "Smiles" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3310_Original.jpg", title: "Laughter" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3306_Original.jpg", title: "Pure Joy" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3302_Original.jpg", title: "Crew" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3301_Original.jpg", title: "Good Vibes" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3300_Original.jpg", title: "Diwali Magic" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3297_Original.jpg", title: "Party People" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_7889_Original.jpg", title: "Unforgettable" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3281_Original.jpg", title: "Best Night" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3272_Original.jpg", title: "Friends Forever" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3267_Original.jpg", title: "Party Time" },
+  { type: "image", url: "/Gallery/diwali-party24/IMG_3265_Original.jpg", title: "Last Year's Magic" },
 ];
 
 export default function EventPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [isValidated, setIsValidated] = useState(false);
   const [error, setError] = useState("");
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleValidateCode = () => {
     const code = inviteCode.trim().toUpperCase();
@@ -38,7 +68,7 @@ export default function EventPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white relative overflow-hidden">
       {/* Animated background particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(30)].map((_, i) => (
+        {isClient && [...Array(30)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-yellow-400 rounded-full opacity-20"
@@ -177,37 +207,46 @@ export default function EventPage() {
                 key={index}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
+                transition={{ delay: 0.4 + index * 0.05 }}
                 whileHover={{ scale: 1.05, zIndex: 10 }}
-                onClick={() => setSelectedImage(index)}
+                onClick={() => setSelectedMedia(index)}
                 className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group"
               >
-                <Image
-                  src={item.url}
-                  alt={item.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-4 left-4">
-                    <p className="text-white font-semibold">{item.title}</p>
-                  </div>
-                </div>
+                {item.type === "image" ? (
+                  <Image
+                    src={item.url}
+                    alt={item.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                ) : (
+                  <>
+                    <video
+                      src={item.url}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Play className="w-16 h-16 text-white opacity-80" />
+                    </div>
+                  </>
+                )}
               </motion.div>
             ))}
           </div>
         </motion.div>
       </div>
 
-      {/* Image Lightbox */}
+      {/* Media Lightbox */}
       <AnimatePresence>
-        {selectedImage !== null && (
+        {selectedMedia !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
+            onClick={() => setSelectedMedia(null)}
             className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 cursor-pointer"
           >
             <motion.div
@@ -215,15 +254,31 @@ export default function EventPage() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               className="relative w-full max-w-4xl aspect-video"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Image
-                src={GALLERY_ITEMS[selectedImage].url}
-                alt={GALLERY_ITEMS[selectedImage].title}
-                fill
-                className="object-contain"
-                sizes="100vw"
-              />
+              {GALLERY_ITEMS[selectedMedia].type === "image" ? (
+                <Image
+                  src={GALLERY_ITEMS[selectedMedia].url}
+                  alt={GALLERY_ITEMS[selectedMedia].title}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                />
+              ) : (
+                <video
+                  src={GALLERY_ITEMS[selectedMedia].url}
+                  className="w-full h-full object-contain"
+                  controls
+                  autoPlay
+                />
+              )}
             </motion.div>
+            <button
+              onClick={() => setSelectedMedia(null)}
+              className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300"
+            >
+              ×
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
