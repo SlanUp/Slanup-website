@@ -17,7 +17,7 @@ export default function Home() {
   const row3 = SAMPLE_PLANS.slice(plansPerRow * 2);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-neutral-800 relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-[#0f0f0f] text-neutral-800 dark:text-neutral-200 relative overflow-x-hidden transition-colors">
       <Header />
 
       <main className="flex-grow flex flex-col items-center justify-center px-4 pt-8 pb-12 md:pb-16 text-center relative w-full">
@@ -25,7 +25,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="text-2xl md:text-3xl font-semibold text-neutral-700 mb-1 md:mb-2"
+          className="text-2xl md:text-3xl font-semibold text-neutral-700 dark:text-neutral-300 mb-1 md:mb-2"
         >
           explore nearby
         </motion.p>
@@ -62,7 +62,7 @@ export default function Home() {
       </main>
 
       {/* Bottom gradient blur */}
-      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none z-10"></div>
+      <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-[#0f0f0f] via-white/80 dark:via-[#0f0f0f]/80 to-transparent pointer-events-none z-10"></div>
 
       <WaitlistForm
         isOpen={isWaitlistOpen}

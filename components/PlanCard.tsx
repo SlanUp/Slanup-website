@@ -12,9 +12,9 @@ interface PlanCardProps {
 
 export default function PlanCard({ plan }: PlanCardProps) {
   return (
-    <div className="w-[340px] flex-shrink-0 bg-white rounded-2xl shadow-lg overflow-hidden mx-2 hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] text-left">
+    <div className="w-[340px] flex-shrink-0 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-lg overflow-hidden mx-2 hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] text-left">
       {/* Profile Section */}
-      <div className="flex items-center justify-between p-3 bg-white">
+      <div className="flex items-center justify-between p-3 bg-white dark:bg-[#1a1a1a]">
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center overflow-hidden relative">
             {plan.creatorProfileImage ? (
@@ -37,16 +37,16 @@ export default function PlanCard({ plan }: PlanCardProps) {
               <span className="mx-1">shared</span>
               <span className="font-bold">a Plan</span>
             </div>
-            <p className="text-xs text-gray-500" suppressHydrationWarning>{formatDate(plan.postedAt)}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400" suppressHydrationWarning>{formatDate(plan.postedAt)}</p>
           </div>
         </div>
-        <div className="text-gray-400">
+        <div className="text-gray-400 dark:text-gray-500">
           <ChevronDown size={20} />
         </div>
       </div>
 
       {/* Plan Image */}
-      <div className="w-full h-48 bg-gray-900 overflow-hidden relative">
+      <div className="w-full h-48 bg-gray-900 dark:bg-black overflow-hidden relative">
         <Image
           src={plan.planImageUrl}
           alt={plan.planTitle}
@@ -57,10 +57,10 @@ export default function PlanCard({ plan }: PlanCardProps) {
       </div>
 
       {/* Event Details */}
-      <div className="p-3 bg-white text-left">
+      <div className="p-3 bg-white dark:bg-[#1a1a1a] text-left">
         {/* Date Badge */}
-        <div className="flex flex-col items-center justify-center px-3 py-2 bg-gray-100 rounded-lg -mt-8 mb-0 relative z-10 shadow-md w-fit">
-          <span className="text-lg font-bold">{plan.eventDate.getDate()}</span>
+        <div className="flex flex-col items-center justify-center px-3 py-2 bg-gray-100 dark:bg-[#252525] rounded-lg -mt-8 mb-0 relative z-10 shadow-md w-fit">
+          <span className="text-lg font-bold dark:text-gray-100">{plan.eventDate.getDate()}</span>
           <span className="text-xs font-bold text-red-500" suppressHydrationWarning>
             {plan.eventDate.toLocaleString("default", { month: "short" })}
           </span>
@@ -68,8 +68,8 @@ export default function PlanCard({ plan }: PlanCardProps) {
 
         {/* Event Info */}
         <div className="mt-1 text-left">
-          <h3 className="text-base font-bold text-gray-900">{plan.planTitle}</h3>
-          <p className="text-sm text-gray-600 mt-1">Venue: {plan.venue}</p>
+          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{plan.planTitle}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Venue: {plan.venue}</p>
         </div>
 
         {/* Participants and Slots */}
@@ -100,7 +100,7 @@ export default function PlanCard({ plan }: PlanCardProps) {
               ))}
             </div>
             {plan.totalParticipants > 4 && (
-              <span className="ml-2 text-sm text-gray-700">
+              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                 +{plan.totalParticipants - 4}
               </span>
             )}
@@ -110,7 +110,7 @@ export default function PlanCard({ plan }: PlanCardProps) {
             <span className="text-sm text-red-500 font-medium">
               {plan.slotsLeft} slot{plan.slotsLeft !== 1 ? "s" : ""} left!
             </span>
-            <button className="text-gray-400 hover:text-[var(--brand-green)] transition-colors">
+            <button className="text-gray-400 dark:text-gray-500 hover:text-[var(--brand-green)] transition-colors">
               <Heart size={20} />
             </button>
           </div>
