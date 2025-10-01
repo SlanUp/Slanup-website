@@ -14,7 +14,7 @@ export default function MarqueeRow({ plans, direction }: MarqueeRowProps) {
   const x = useMotionValue(direction === "right" ? -1500 : 0);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<any>(null);
+  const animationRef = useRef<ReturnType<typeof animate> | null>(null);
 
   useEffect(() => {
     if (!isDragging) {
