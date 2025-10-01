@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState, useEffect } from "react";
+import { motion, useMotionValue, useAnimationControls } from "framer-motion";
 import PlanCard from "./PlanCard";
 import { Plan } from "@/lib/data";
 
@@ -11,6 +11,10 @@ interface MarqueeRowProps {
 }
 
 export default function MarqueeRow({ plans, direction }: MarqueeRowProps) {
+  const controls = useAnimationControls();
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const animationVariants = {
     left: {
       x: ["0%", "-100%"],
@@ -20,15 +24,30 @@ export default function MarqueeRow({ plans, direction }: MarqueeRowProps) {
     },
   };
 
+  useEffect(() => {
+    if (!isDragging) {
+      controls.start(animationVariants[direction], {
+        duration: 60,
+        repeat: Infinity,
+        ease: "linear",
+      });
+    }
+  }, [isDragging, direction, controls]);
+
   return (
-    <div className="w-full overflow-hidden marquee-row mb-6 sm:mb-8 py-4">
+    <div 
+      ref={containerRef}
+      className="w-full overflow-hidden marquee-row mb-6 sm:mb-8 py-4 cursor-grab active:cursor-grabbing"
+    >
       <motion.div
         className="flex marquee-content"
-        animate={animationVariants[direction]}
-        transition={{
-          duration: 60,
-          repeat: Infinity,
-          ease: "linear",
+        animate={controls}
+        drag="x"
+        dragConstraints={{ left: -2000, right: 0 }}
+        dragElastic={0.1}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={() => {
+          setIsDragging(false);
         }}
       >
         {[...plans, ...plans, ...plans].map((plan, index) => (
