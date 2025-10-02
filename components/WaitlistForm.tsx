@@ -177,7 +177,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                   onChange={handleChange}
                   placeholder="Your Name *"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 text-sm sm:text-base"
                 />
               </div>
 
@@ -189,7 +189,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                   onChange={handleChange}
                   placeholder="Email *"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 text-sm sm:text-base"
                 />
               </div>
 
@@ -201,7 +201,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                   onChange={handleChange}
                   placeholder="Instagram Username *"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 text-sm sm:text-base"
                 />
               </div>
 
@@ -213,7 +213,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                   onChange={handleChange}
                   placeholder="Cities you're generally in *"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 text-sm sm:text-base"
                 />
               </div>
 
@@ -238,7 +238,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                     onChange={handleChange}
                     placeholder="phone - only if comfortable"
                     maxLength={countryCodes.find(c => c.code === formData.countryCode)?.maxLength}
-                    className={`flex-1 min-w-0 px-4 py-3 border ${errors.contact ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900`}
+                    className={`flex-1 min-w-0 px-4 py-3 border ${errors.contact ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 text-sm sm:text-base`}
                   />
                 </div>
                 {errors.contact && (
@@ -253,7 +253,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                   onChange={handleChange}
                   placeholder="Any features you'd love to see? (optional)"
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 resize-none text-sm sm:text-base"
                 />
               </div>
 
