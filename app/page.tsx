@@ -27,7 +27,7 @@ export default function Home() {
           transition={{ duration: 0.7 }}
           className="text-2xl md:text-3xl font-semibold text-neutral-700  mb-1 md:mb-2"
         >
-          explore nearby
+          create/join nearby
         </motion.p>
 
         <motion.h2
