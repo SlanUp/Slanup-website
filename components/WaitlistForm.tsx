@@ -236,7 +236,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
                     name="contact"
                     value={formData.contact}
                     onChange={handleChange}
-                    placeholder="phone - only if comfortable"
+                    placeholder="phone - if comfortable"
                     maxLength={countryCodes.find(c => c.code === formData.countryCode)?.maxLength}
                     className={`flex-1 min-w-0 px-4 py-3 border ${errors.contact ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] bg-white text-gray-900 text-sm sm:text-base`}
                   />
