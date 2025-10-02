@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DIWALI_EVENT_CONFIG, TicketType } from '@/lib/types';
-import { formatCurrency } from '@/lib/payuIntegration';
+import { formatCurrency } from '@/lib/cashfreeIntegration';
 
 interface TicketBookingProps {
   inviteCode: string;
@@ -72,24 +72,34 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
         return;
       }
 
-      // Create PayU payment form and submit
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = data.payuUrl;
+      // Save the complete booking to localStorage (client-side)
+      const bookingsData = localStorage.getItem('diwali_bookings');
+      const existingBookings = bookingsData ? JSON.parse(bookingsData) : [];
+      const updatedBookings = [...existingBookings.filter((b: any) => b.id !== data.booking.id), data.booking];
+      localStorage.setItem('diwali_bookings', JSON.stringify(updatedBookings));
+      console.log('[Client] Booking saved to localStorage:', data.booking.id);
+
+      // Store booking information in localStorage before redirect
+      localStorage.setItem('pendingBookingId', data.booking.id);
+      localStorage.setItem('pendingOrderId', data.cashfreeOrder.order_id);
       
-      // Add all payment data as hidden fields
-      Object.entries(data.paymentData).forEach(([key, value]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = value as string || '';
-        form.appendChild(input);
+      // Initialize Cashfree Drop-in checkout
+      const cashfree = await (window as any).Cashfree({
+        mode: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
       });
+
+      // Configure checkout options - append order_id to return URL
+      const checkoutOptions = {
+        paymentSessionId: data.paymentSessionId,
+        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/diwali/payment/success?order_id=${data.cashfreeOrder.order_id}`,
+        redirectTarget: '_self'
+      };
+
+      console.log('Opening Cashfree checkout with session:', data.paymentSessionId);
+      console.log('Order ID:', data.cashfreeOrder.order_id);
       
-      // Submit to PayU
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      // Open Cashfree checkout
+      cashfree.checkout(checkoutOptions);
 
     } catch (error) {
       console.error('Error creating booking:', error);

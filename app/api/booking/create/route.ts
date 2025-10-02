@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createBooking, getInviteCodeStatus } from '@/lib/bookingManager';
-import { generatePayUHash } from '@/lib/payuIntegration';
+import { createCashfreePaymentSession } from '@/lib/cashfreeIntegration';
 import { DIWALI_EVENT_CONFIG } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if invite code is valid and not used
-    const inviteStatus = getInviteCodeStatus(inviteCode);
+    const inviteStatus = await getInviteCodeStatus(inviteCode);
     
     if (!inviteStatus.isValid) {
       return NextResponse.json(
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const totalAmount = ticketTypeConfig.price * ticketCount;
 
     // Create booking
-    const booking = createBooking({
+    const booking = await createBooking({
       inviteCode,
       customerName,
       customerEmail,
@@ -72,36 +72,24 @@ export async function POST(request: NextRequest) {
       eventDate: DIWALI_EVENT_CONFIG.date
     });
 
-    // Generate PayU hash for payment
-    const payuData = {
-      key: process.env.NEXT_PUBLIC_PAYU_MERCHANT_KEY || 'YOUR_MERCHANT_KEY',
-      txnid: booking.id,
-      amount: totalAmount.toFixed(2),
-      productinfo: `${DIWALI_EVENT_CONFIG.name} - ${ticketTypeConfig.name} x${ticketCount}`,
-      firstname: customerName,
-      email: customerEmail,
-      salt: process.env.PAYU_SALT || 'YOUR_SALT',
-      udf1: inviteCode,
-      udf2: booking.id
-    };
+    // Create Cashfree payment session
+    const cashfreeOrder = await createCashfreePaymentSession({
+      orderId: booking.id,
+      amount: totalAmount,
+      customerName,
+      customerEmail,
+      customerPhone,
+      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/diwali/payment/success`
+    });
 
-    const hash = generatePayUHash(payuData);
-
-    const paymentData = {
-      ...payuData,
-      hash,
-      phone: customerPhone,
-      surl: `${process.env.NEXT_PUBLIC_BASE_URL}/diwali/payment/success`,
-      furl: `${process.env.NEXT_PUBLIC_BASE_URL}/diwali/payment/failure`
-    };
+    // Debug: Log the Cashfree response
+    console.log('Cashfree API Response:', JSON.stringify(cashfreeOrder, null, 2));
 
     return NextResponse.json({
       success: true,
       booking,
-      paymentData,
-      payuUrl: process.env.NODE_ENV === 'production' 
-        ? 'https://secure.payu.in/_payment' 
-        : 'https://test.payu.in/_payment'
+      cashfreeOrder,
+      paymentSessionId: cashfreeOrder.payment_session_id
     });
   } catch (error) {
     console.error('Error creating booking:', error);

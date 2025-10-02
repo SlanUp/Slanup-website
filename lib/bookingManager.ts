@@ -1,11 +1,22 @@
 import { Booking, InviteCodeStatus } from './types';
+import * as db from './db';
 
 // Valid invite codes - you can expand this list
-const VALID_INVITE_CODES = ["SLANUP2025", "DIWALI24", "TROPICALLAU"];
-
-// Local storage keys
-const BOOKINGS_STORAGE_KEY = 'diwali_bookings';
-const BOOKING_COUNTER_KEY = 'booking_counter';
+const VALID_INVITE_CODES = [
+  "SLANUP2025", 
+  "DIWALI24", 
+  "TROPICALLAU",
+  "TEST1",
+  "TEST2",
+  "TEST3",
+  "TEST4",
+  "TEST5",
+  "TEST6",
+  "TEST7",
+  "TEST8",
+  "TEST9",
+  "TEST10"
+];
 
 // Generate unique reference number
 export function generateReferenceNumber(): string {
@@ -21,39 +32,9 @@ export function generateTransactionId(): string {
   return `TXN${timestamp}${random}`;
 }
 
-// Get all bookings from localStorage
-export function getAllBookings(): Booking[] {
-  if (typeof window === 'undefined') return [];
-  
-  try {
-    const bookingsData = localStorage.getItem(BOOKINGS_STORAGE_KEY);
-    if (!bookingsData) return [];
-    
-    const bookings = JSON.parse(bookingsData);
-    // Convert date strings back to Date objects
-    return bookings.map((booking: Booking) => ({
-      ...booking,
-      createdAt: new Date(booking.createdAt),
-      updatedAt: new Date(booking.updatedAt),
-      eventDate: new Date(booking.eventDate)
-    }));
-  } catch (error) {
-    console.error('Error loading bookings:', error);
-    return [];
-  }
-}
-
-// Save booking to localStorage
-export function saveBooking(booking: Booking): void {
-  if (typeof window === 'undefined') return;
-  
-  try {
-    const existingBookings = getAllBookings();
-    const updatedBookings = [...existingBookings.filter(b => b.id !== booking.id), booking];
-    localStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(updatedBookings));
-  } catch (error) {
-    console.error('Error saving booking:', error);
-  }
+// Get all bookings
+export async function getAllBookings(): Promise<Booking[]> {
+  return await db.getAllBookings();
 }
 
 // Check if invite code is valid
@@ -62,7 +43,7 @@ export function isValidInviteCode(code: string): boolean {
 }
 
 // Get booking status for an invite code
-export function getInviteCodeStatus(code: string): InviteCodeStatus {
+export async function getInviteCodeStatus(code: string): Promise<InviteCodeStatus> {
   const normalizedCode = code.trim().toUpperCase();
   const isValid = isValidInviteCode(normalizedCode);
   
@@ -74,22 +55,18 @@ export function getInviteCodeStatus(code: string): InviteCodeStatus {
     };
   }
   
-  const bookings = getAllBookings();
-  const existingBooking = bookings.find(b => 
-    b.inviteCode === normalizedCode && 
-    (b.paymentStatus === 'completed' || b.paymentStatus === 'pending')
-  );
+  const existingBooking = await db.getBookingByInviteCode(normalizedCode);
   
   return {
     code: normalizedCode,
     isValid: true,
     isUsed: !!existingBooking,
-    booking: existingBooking
+    booking: existingBooking || undefined
   };
 }
 
 // Create a new booking
-export function createBooking(data: {
+export async function createBooking(data: {
   inviteCode: string;
   customerName: string;
   customerEmail: string;
@@ -99,7 +76,7 @@ export function createBooking(data: {
   totalAmount: number;
   eventName: string;
   eventDate: Date;
-}): Booking {
+}): Promise<Booking> {
   const booking: Booking = {
     id: generateTransactionId(),
     inviteCode: data.inviteCode.trim().toUpperCase(),
@@ -110,7 +87,7 @@ export function createBooking(data: {
     ticketCount: data.ticketCount,
     totalAmount: data.totalAmount,
     paymentStatus: 'pending',
-    paymentMethod: 'payu',
+    paymentMethod: 'cashfree',
     referenceNumber: generateReferenceNumber(),
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -118,58 +95,28 @@ export function createBooking(data: {
     eventName: data.eventName
   };
   
-  saveBooking(booking);
+  console.log('[BookingManager] Creating booking:', booking.id);
+  await db.insertBooking(booking);
+  console.log('[BookingManager] Booking saved to database');
+  
   return booking;
 }
 
 // Update booking payment status
-export function updateBookingPaymentStatus(
+export async function updateBookingPaymentStatus(
   bookingId: string, 
   status: 'pending' | 'completed' | 'failed' | 'refunded',
-  payuData?: {
-    transactionId: string;
+  cashfreeData?: {
+    orderId?: string;
     paymentId?: string;
   }
-): Booking | null {
-  const bookings = getAllBookings();
-  const booking = bookings.find(b => b.id === bookingId);
-  
-  if (!booking) return null;
-  
-  const updatedBooking: Booking = {
-    ...booking,
-    paymentStatus: status,
-    updatedAt: new Date(),
-    ...(payuData && {
-      payuTransactionId: payuData.transactionId,
-      payuPaymentId: payuData.paymentId
-    })
-  };
-  
-  saveBooking(updatedBooking);
-  return updatedBooking;
+): Promise<Booking | null> {
+  return await db.updateBookingPaymentStatus(bookingId, status, cashfreeData);
 }
 
 // Get booking by ID
-export function getBookingById(id: string): Booking | null {
-  const bookings = getAllBookings();
-  return bookings.find(b => b.id === id) || null;
+export async function getBookingById(id: string): Promise<Booking | null> {
+  console.log('[BookingManager] getBookingById called with ID:', id);
+  return await db.getBookingById(id);
 }
 
-// Get booking by transaction ID
-export function getBookingByTransactionId(txnId: string): Booking | null {
-  const bookings = getAllBookings();
-  return bookings.find(b => b.payuTransactionId === txnId) || null;
-}
-
-// Clear all bookings (for testing purposes)
-export function clearAllBookings(): void {
-  if (typeof window === 'undefined') return;
-  localStorage.removeItem(BOOKINGS_STORAGE_KEY);
-}
-
-// Export booking data as JSON (for backup)
-export function exportBookings(): string {
-  const bookings = getAllBookings();
-  return JSON.stringify(bookings, null, 2);
-}

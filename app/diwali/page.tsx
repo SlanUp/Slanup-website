@@ -6,7 +6,6 @@ import { Sparkles, Lock, Play } from "lucide-react";
 import Image from "next/image";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
-import { getInviteCodeStatus } from "@/lib/bookingManager";
 import { InviteCodeStatus } from "@/lib/types";
 
 // Mock invite codes - replace with your actual codes
@@ -65,6 +64,12 @@ export default function EventPage() {
     link.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Black+Ops+One&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
+
+    // Load Cashfree SDK
+    const cashfreeScript = document.createElement('script');
+    cashfreeScript.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+    cashfreeScript.async = true;
+    document.head.appendChild(cashfreeScript);
   }, []);
 
   const handleValidateCode = async () => {
@@ -72,8 +77,14 @@ export default function EventPage() {
     setIsCheckingStatus(true);
     
     try {
-      // Check booking status for this invite code
-      const status = getInviteCodeStatus(code);
+      // Check booking status for this invite code via API
+      const response = await fetch('/api/invite/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode: code })
+      });
+      
+      const status = await response.json();
       setInviteCodeStatus(status);
       
       if (status.isValid) {

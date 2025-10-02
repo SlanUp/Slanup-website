@@ -4,8 +4,6 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, Loader2, ArrowLeft } from 'lucide-react';
-import { updateBookingPaymentStatus } from '@/lib/bookingManager';
-import { parsePayUResponse } from '@/lib/payuIntegration';
 import BookingReference from '@/components/BookingReference';
 import { Booking } from '@/lib/types';
 
@@ -19,30 +17,95 @@ function PaymentSuccessContent() {
   useEffect(() => {
     const processPaymentSuccess = async () => {
       try {
-        // Parse PayU response from URL parameters
-        const payuResponse = parsePayUResponse(searchParams);
+        // Debug: Log all URL parameters
+        const allParams: Record<string, string> = {};
+        searchParams.forEach((value, key) => {
+          allParams[key] = value;
+        });
+        console.log('All URL Parameters:', allParams);
         
-        if (payuResponse.status !== 'success') {
-          setError('Payment was not successful');
+        // Get Cashfree response parameters (try multiple possible parameter names)
+        let orderId = searchParams.get('order_id') || searchParams.get('orderId');
+        
+        // Fallback: Check localStorage if order_id not in URL
+        if (!orderId) {
+          orderId = localStorage.getItem('pendingOrderId');
+          console.log('Order ID from localStorage:', orderId);
+        }
+        
+        const orderToken = searchParams.get('order_token');
+        const cfPaymentId = searchParams.get('cf_payment_id');
+        
+        console.log('Final Order ID:', orderId);
+        
+        if (!orderId) {
+          setError('Missing order information');
           return;
         }
+        
+        // Clear localStorage after retrieving
+        localStorage.removeItem('pendingOrderId');
+        localStorage.removeItem('pendingBookingId');
 
-        // Update booking status
-        const updatedBooking = updateBookingPaymentStatus(
-          payuResponse.udf2 || '', // booking ID stored in udf2
-          'completed',
-          {
-            transactionId: payuResponse.txnid,
-            paymentId: payuResponse.mihpayid
+        // Get booking by order ID via API
+        console.log('[Success Page] Looking up booking with Order ID:', orderId);
+        
+        // Verify payment status with Cashfree
+        try {
+          const verifyResponse = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId })
+          });
+          const verifyData = await verifyResponse.json();
+          console.log('[Success Page] Payment verification result:', verifyData);
+          
+          // If payment failed or still pending, redirect to failure page
+          if (verifyData.status === 'failed' || verifyData.status === 'pending') {
+            router.push(`/diwali/payment/failure?order_id=${orderId}`);
+            return;
           }
-        );
-
-        if (!updatedBooking) {
+        } catch (error) {
+          console.error('[Success Page] Failed to verify payment:', error);
+        }
+        
+        const response = await fetch(`/api/booking/get?id=${orderId}`);
+        const existingBooking = response.ok ? await response.json() : null;
+        console.log('[Success Page] Booking found:', existingBooking ? 'Yes' : 'No');
+        
+        if (!existingBooking) {
+          console.error('[Success Page] Booking not found for order ID:', orderId);
           setError('Booking not found');
           return;
         }
+        
+        console.log('[Success Page] Booking details:', JSON.stringify(existingBooking, null, 2));
 
-        setBooking(updatedBooking);
+        // Check if payment is already confirmed via webhook
+        if (existingBooking.paymentStatus === 'completed') {
+          setBooking(existingBooking);
+          return;
+        }
+
+        // If not confirmed yet, show pending status
+        // (Webhook should update this shortly)
+        setBooking(existingBooking);
+        
+        // Poll for payment confirmation
+        const pollInterval = setInterval(async () => {
+          const pollResponse = await fetch(`/api/booking/get?id=${orderId}`);
+          if (pollResponse.ok) {
+            const updatedBooking = await pollResponse.json();
+            if (updatedBooking && updatedBooking.paymentStatus === 'completed') {
+              setBooking(updatedBooking);
+              clearInterval(pollInterval);
+            }
+          }
+        }, 2000);
+
+        // Clear interval after 30 seconds
+        setTimeout(() => clearInterval(pollInterval), 30000);
+        
       } catch (error) {
         console.error('Error processing payment success:', error);
         setError('Failed to process payment confirmation');

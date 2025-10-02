@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { CheckCircle, Calendar, Ticket, User, Mail, Phone, Copy } from 'lucide-react';
 import { Booking } from '@/lib/types';
-import { formatCurrency } from '@/lib/payuIntegration';
+import { formatCurrency } from '@/lib/cashfreeIntegration';
 import { useState } from 'react';
 
 interface BookingReferenceProps {
@@ -119,7 +119,7 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">Date:</span>
-              <span className="text-white">{booking.eventDate.toLocaleDateString('en-IN', {
+              <span className="text-white">{new Date(booking.eventDate).toLocaleDateString('en-IN', {
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',

@@ -4,8 +4,6 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { XCircle, Loader2, ArrowLeft, RefreshCw } from 'lucide-react';
-import { updateBookingPaymentStatus } from '@/lib/bookingManager';
-import { parsePayUResponse } from '@/lib/payuIntegration';
 
 function PaymentFailureContent() {
   const searchParams = useSearchParams();
@@ -21,26 +19,24 @@ function PaymentFailureContent() {
   useEffect(() => {
     const processPaymentFailure = async () => {
       try {
-        // Parse PayU response from URL parameters
-        const payuResponse = parsePayUResponse(searchParams);
-        setPaymentDetails(payuResponse);
+        // Get Cashfree response parameters
+        const orderId = searchParams.get('order_id');
+        const cfPaymentId = searchParams.get('cf_payment_id');
+        const errorMessage = searchParams.get('error_message');
+        
+        setPaymentDetails({
+          txnid: cfPaymentId || orderId || 'N/A',
+          amount: '1699',
+          status: 'FAILED'
+        });
 
         // Set error message
         setErrorMessage(
-          payuResponse.error_Message || 
+          errorMessage || 
           'Payment failed. Please try again or contact support.'
         );
 
-        // Update booking status to failed if booking ID exists
-        if (payuResponse.udf2) {
-          updateBookingPaymentStatus(
-            payuResponse.udf2,
-            'failed',
-            {
-              transactionId: payuResponse.txnid
-            }
-          );
-        }
+        // Status is already updated by the verification API
       } catch (error) {
         console.error('Error processing payment failure:', error);
         setErrorMessage('Unable to process payment response');

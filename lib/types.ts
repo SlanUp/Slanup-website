@@ -10,9 +10,11 @@ export interface Booking {
   ticketCount: number;
   totalAmount: number;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
-  paymentMethod: 'payu' | 'cash';
+  paymentMethod: 'cashfree' | 'payu' | 'cash';
   payuTransactionId?: string;
   payuPaymentId?: string;
+  cashfreeOrderId?: string;
+  cashfreePaymentId?: string;
   referenceNumber: string;
   createdAt: Date;
   updatedAt: Date;
