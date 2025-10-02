@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     siteName: "Slanup",
     images: [
       {
-        url: 'https://slanup.com/Thumbnail.png',
+        url: 'https://slanup.com/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Slanup - Squad Your Plans Up',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Slanup - Squad Your Plans Up",
     description: "Create/join nearby plans and connect with people for amazing experiences",
-    images: ['https://slanup.com/Thumbnail.png'],
+    images: ['https://slanup.com/og-image.jpg'],
   },
 };
 
