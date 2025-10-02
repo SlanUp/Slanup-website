@@ -33,8 +33,9 @@ function PaymentSuccessContent() {
           console.log('Order ID from localStorage:', orderId);
         }
         
-        const orderToken = searchParams.get('order_token');
-        const cfPaymentId = searchParams.get('cf_payment_id');
+        // Payment parameters from Cashfree (if needed for future use)
+        // const orderToken = searchParams.get('order_token');
+        // const cfPaymentId = searchParams.get('cf_payment_id');
         
         console.log('Final Order ID:', orderId);
         
@@ -115,7 +116,7 @@ function PaymentSuccessContent() {
     };
 
     processPaymentSuccess();
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleBackToDiwali = () => {
     router.push('/diwali');

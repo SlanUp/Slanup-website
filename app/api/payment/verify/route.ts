@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateBookingPaymentStatus } from '@/lib/bookingManager';
-import { sql } from '@vercel/postgres';
 
 export async function POST(request: NextRequest) {
   try {

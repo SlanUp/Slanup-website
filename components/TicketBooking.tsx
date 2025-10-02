@@ -75,7 +75,7 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
       // Save the complete booking to localStorage (client-side)
       const bookingsData = localStorage.getItem('diwali_bookings');
       const existingBookings = bookingsData ? JSON.parse(bookingsData) : [];
-      const updatedBookings = [...existingBookings.filter((b: any) => b.id !== data.booking.id), data.booking];
+      const updatedBookings = [...existingBookings.filter((b: { id: string }) => b.id !== data.booking.id), data.booking];
       localStorage.setItem('diwali_bookings', JSON.stringify(updatedBookings));
       console.log('[Client] Booking saved to localStorage:', data.booking.id);
 
@@ -84,6 +84,7 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
       localStorage.setItem('pendingOrderId', data.cashfreeOrder.order_id);
       
       // Initialize Cashfree Drop-in checkout
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cashfree = await (window as any).Cashfree({
         mode: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
       });
