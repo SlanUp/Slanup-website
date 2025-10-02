@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/crypto-js": "^4.2.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
