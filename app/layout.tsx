@@ -4,6 +4,32 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Slanup - Squad Your Plans Up",
   description: "Create/join nearby plans and connect with people for amazing experiences",
+  icons: {
+    icon: '/maingreeb.png',
+    apple: '/maingreeb.png',
+  },
+  openGraph: {
+    title: "Slanup - Squad Your Plans Up",
+    description: "Create/join nearby plans and connect with people for amazing experiences",
+    url: "https://slanup.com",
+    siteName: "Slanup",
+    images: [
+      {
+        url: '/Thumbnail.png',
+        width: 1200,
+        height: 630,
+        alt: 'Slanup - Squad Your Plans Up',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Slanup - Squad Your Plans Up",
+    description: "Create/join nearby plans and connect with people for amazing experiences",
+    images: ['/Thumbnail.png'],
+  },
 };
 
 export default function RootLayout({
