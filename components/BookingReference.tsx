@@ -25,8 +25,8 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
 
   const getTicketTypeDisplay = (type: string) => {
     switch (type) {
-      case 'ultimate': return 'ULTIMATE PARTY EXPERIENCE 🔥';
-      default: return 'ULTIMATE PARTY EXPERIENCE 🔥';
+      case 'ultimate': return 'Diwali Party Entry';
+      default: return 'Diwali Party Entry';
     }
   };
 
@@ -74,7 +74,7 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
         <div className="text-center">
           <p className="text-gray-300 text-sm mb-2">Reference Number</p>
           <div className="flex items-center justify-center space-x-3">
-            <span className="text-2xl font-bold text-[var(--brand-green)] font-mono">
+            <span className="text-2xl font-bold text-amber-400 font-mono">
               {booking.referenceNumber}
             </span>
             <button
@@ -146,7 +146,7 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
             </div>
             <div className="flex justify-between font-semibold">
               <span className="text-gray-300">Total Amount:</span>
-              <span className="text-[var(--brand-green)]">{formatCurrency(booking.totalAmount)}</span>
+              <span className="text-amber-400">{formatCurrency(booking.totalAmount)}</span>
             </div>
           </div>
         </div>

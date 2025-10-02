@@ -224,7 +224,7 @@ export default function EventPage() {
                 // Show book tickets button if not booked yet
                 <button 
                   onClick={handleBookTickets}
-                  className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-110 shadow-2xl hover:shadow-pink-500/50 border-2 border-pink-400/30 animate-pulse"
+                  className="bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-110 shadow-2xl hover:shadow-amber-500/50 border-2 border-amber-400/30 animate-pulse"
                 >
                   🔥 GET YOUR SPOT - LET&apos;S PARTYYYYYYYYY! 🎉
                 </button>

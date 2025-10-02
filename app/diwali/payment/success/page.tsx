@@ -83,7 +83,7 @@ function PaymentSuccessContent() {
           </p>
           <button
             onClick={handleBackToDiwali}
-            className="bg-gradient-to-r from-[var(--brand-green)] to-green-600 text-white font-bold py-3 px-6 rounded-xl hover:from-green-600 hover:to-[var(--brand-green)] transition-all"
+            className="bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold py-3 px-6 rounded-xl hover:from-amber-500 hover:to-yellow-600 transition-all shadow-lg"
           >
             Back to Diwali Page
           </button>

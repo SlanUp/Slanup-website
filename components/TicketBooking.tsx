@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap } from 'lucide-react';
 import { DIWALI_EVENT_CONFIG, TicketType } from '@/lib/types';
 import { formatCurrency } from '@/lib/payuIntegration';
 
@@ -31,17 +30,11 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
     ticketCount: 1
   });
 
-  const getTicketIcon = (ticketType: string) => {
-    switch (ticketType) {
-      case 'ultimate': return <Zap className="w-8 h-8" />;
-      default: return <Zap className="w-8 h-8" />;
-    }
-  };
 
   const getTicketColor = (ticketType: string) => {
     switch (ticketType) {
-      case 'ultimate': return 'from-orange-500 via-pink-500 to-purple-600';
-      default: return 'from-orange-500 via-pink-500 to-purple-600';
+      case 'ultimate': return 'from-slate-800 via-slate-700 to-slate-900';
+      default: return 'from-slate-800 via-slate-700 to-slate-900';
     }
   };
 
@@ -125,9 +118,9 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <Zap className="w-8 h-8 text-yellow-400 mr-2" />
-              <h2 className="text-3xl font-bold text-white">GET READY TO PARTY! 🔥</h2>
-              <Zap className="w-8 h-8 text-yellow-400 ml-2" />
+              <span className="text-2xl mr-2">🔥</span>
+              <h2 className="text-3xl font-bold text-white">GET READY TO PARTY!</h2>
+              <span className="text-2xl ml-2">🔥</span>
             </div>
             <p className="text-gray-300">The most INSANE Diwali experience awaits you!</p>
             <p className="text-yellow-400 font-bold mt-2">LET&apos;S PARTYYYYYYYYY! 🎉</p>
@@ -139,27 +132,17 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
               <motion.div
                 key={ticket.id}
                 whileHover={{ scale: 1.02 }}
-                className={`relative bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-8 cursor-pointer border-2 border-transparent hover:border-white/20 transition-all shadow-2xl`}
+                className={`relative bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-8 cursor-pointer border-2 border-amber-400/30 hover:border-amber-400/60 transition-all shadow-2xl hover:shadow-amber-500/20`}
                 onClick={() => handleTicketSelect(ticket)}
               >
-                {/* Ticket Icon */}
-                <div className="flex items-center justify-center mb-6 text-white">
-                  <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-                    {getTicketIcon(ticket.id)}
-                  </div>
-                </div>
 
-                {/* Ticket Name */}
-                <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-4">
-                  {ticket.name}
-                </h3>
 
                 {/* Price */}
                 <div className="text-center mb-6">
-                  <span className="text-4xl md:text-5xl font-bold text-white">
+                  <span className="text-4xl md:text-5xl font-bold text-amber-400">
                     {formatCurrency(ticket.price)}
                   </span>
-                  <span className="text-white/70 text-lg block mt-1">One Epic Experience</span>
+                  <span className="text-white/80 text-lg block mt-1">One Epic Experience</span>
                 </div>
 
                 {/* Description */}
@@ -179,8 +162,8 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
 
                 {/* CTA Button */}
                 <div className="text-center mt-8">
-                  <div className="bg-white/10 rounded-xl px-4 py-2 inline-block">
-                    <span className="text-white font-bold text-lg">🎟️ Click to Book Your Spot!</span>
+                  <div className="bg-gradient-to-r from-amber-400 to-yellow-500 rounded-xl px-6 py-3 inline-block shadow-lg hover:shadow-amber-500/30 transition-all">
+                    <span className="text-slate-900 font-bold text-lg">🎟️ Click to Book Your Spot!</span>
                   </div>
                 </div>
               </motion.div>
@@ -218,20 +201,14 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
       >
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="flex items-center justify-center mb-2">
-            {getTicketIcon(selectedTicket?.id || '')}
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-2">
-            {selectedTicket?.name}
-          </h3>
-          <p className="text-gray-300">{selectedTicket?.description}</p>
+          <p className="text-gray-300 text-lg">{selectedTicket?.description}</p>
         </div>
 
         {/* Price Display */}
         <div className="text-center mb-6">
-          <div className="bg-white/10 rounded-2xl p-4">
+          <div className="bg-slate-800/50 rounded-2xl p-4 border border-amber-400/30">
             <p className="text-white/80 text-sm mb-2">Your Total</p>
-            <span className="text-3xl font-bold text-[var(--brand-green)]">
+            <span className="text-3xl font-bold text-amber-400">
               {formatCurrency(selectedTicket?.price || 0)}
             </span>
             <p className="text-white/60 text-sm mt-1">One incredible experience 🔥</p>
@@ -288,7 +265,7 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--brand-green)] to-green-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-[var(--brand-green)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold rounded-xl hover:from-amber-500 hover:to-yellow-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
             >
               {isLoading ? 'Processing...' : 'Proceed to Payment'}
             </button>
