@@ -20,8 +20,24 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
       from: EMAIL_CONFIG.from,
       to: [booking.customerEmail],
       replyTo: EMAIL_CONFIG.replyTo,
-      subject: `🎉 YOUR DIWALI PARTY TICKET IS HERE! - ${booking.referenceNumber}`,
+      subject: `Your Diwali Party Ticket - ${booking.referenceNumber}`,
       html: emailHtml,
+      headers: {
+        'X-Entity-Ref-ID': booking.referenceNumber,
+        'X-Priority': '3',
+        'X-MSMail-Priority': 'Normal',
+        'Importance': 'Normal'
+      },
+      tags: [
+        {
+          name: 'category',
+          value: 'ticket-confirmation'
+        },
+        {
+          name: 'event',
+          value: 'diwali-party-2025'
+        }
+      ]
     });
 
     if (error) {
@@ -323,8 +339,8 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
       
       <!-- Header -->
       <div class="header">
-        <h1 class="header-title">YOU'RE OFFICIALLY IN!</h1>
-        <p class="header-subtitle">Get ready for the most INSANE Diwali party ever!</p>
+        <h1 class="header-title">You're Officially In!</h1>
+        <p class="header-subtitle">Get ready for an amazing Diwali party experience!</p>
       </div>
       
       <!-- Content -->
@@ -395,15 +411,15 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
         
         <!-- Important Information -->
         <div class="important-info">
-          <h3>🚨 PARTY ESSENTIALS - READ THIS! 🚨</h3>
+          <h3>🎉 Party Essentials - Important Information</h3>
           <ul>
-            <li><strong>Bring Valid Photo ID</strong> + your party energy 🔥</li>
+            <li><strong>Bring Valid Photo ID</strong> and your party energy</li>
             <li><strong>Show this email</strong> or QR code at entrance</li>
-            <li><strong>BYOB</strong> - Bring your favorite booze! 🍾</li>
-            <li><strong>All mixers & sides provided</strong> by us 🥤</li>
-            <li><strong>UNLIMITED food & beverages</strong> included 🍽️</li>
-            <li><strong>Crazy games & DJ</strong> all night long 🎯</li>
-            <li><strong>Instagram-worthy moments</strong> guaranteed! 📸</li>
+            <li><strong>BYOB</strong> - Bring your own booze</li>
+            <li><strong>All mixers and sides provided</strong> by us</li>
+            <li><strong>Unlimited food and beverages</strong> included</li>
+            <li><strong>Games and DJ</strong> all night long</li>
+            <li><strong>Photo setups</strong> available</li>
           </ul>
         </div>
         
@@ -411,7 +427,7 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
       
       <!-- Footer -->
       <div class="footer">
-        <p class="party-text">🎉 LET'S PARTYYYYYYYYY! 🎉</p>
+        <p class="party-text">🎉 See you at the party!</p>
         <p>Need help? Reply to this email or contact us</p>
         <p>© 2025 Slanup. All rights reserved.</p>
       </div>
