@@ -28,7 +28,17 @@ const VALID_INVITE_CODES = [
   "TEST17",
   "TEST18",
   "TEST19",
-  "TEST20"
+  "TEST20",
+  "TEST21",
+  "TEST22",
+  "TEST23",
+  "TEST24",
+  "TEST25",
+  "TEST26",
+  "TEST27",
+  "TEST28",
+  "TEST29",
+  "TEST30"
 ];
 
 // Generate unique reference number
