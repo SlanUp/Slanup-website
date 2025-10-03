@@ -6,8 +6,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration
 const EMAIL_CONFIG = {
-  from: 'Slanup Team <tickets@slanup.com>', // Now using your verified domain!
-  replyTo: 'support@slanup.com'
+  from: 'Slanup Events <tickets@mail.slanup.com>', // Clean subdomain separation
+  replyTo: 'support@slanup.com' // Business email for replies
 };
 
 export async function sendTicketEmail(booking: Booking): Promise<boolean> {
