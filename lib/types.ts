@@ -20,6 +20,7 @@ export interface Booking {
   updatedAt: Date;
   eventDate: Date;
   eventName: string;
+  expiresAt?: Date; // When pending booking expires (30 minutes from creation)
 }
 
 export interface TicketType {

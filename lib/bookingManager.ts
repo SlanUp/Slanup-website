@@ -1,6 +1,9 @@
 import { Booking, InviteCodeStatus } from './types';
 import * as db from './db';
 
+// Booking expiry time in minutes
+const BOOKING_EXPIRY_MINUTES = 7;
+
 // Valid invite codes - you can expand this list
 const VALID_INVITE_CODES = [
   "SLANUP2025", 
@@ -42,6 +45,19 @@ export function isValidInviteCode(code: string): boolean {
   return VALID_INVITE_CODES.includes(code.trim().toUpperCase());
 }
 
+// Check if booking has expired (pending bookings older than 30 minutes)
+export function isBookingExpired(booking: Booking): boolean {
+  if (booking.paymentStatus !== 'pending') {
+    return false; // Only pending bookings can expire
+  }
+  
+  const createdAt = new Date(booking.createdAt);
+  const now = new Date();
+  const diffInMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+  
+  return diffInMinutes > BOOKING_EXPIRY_MINUTES;
+}
+
 // Get booking status for an invite code
 export async function getInviteCodeStatus(code: string): Promise<InviteCodeStatus> {
   const normalizedCode = code.trim().toUpperCase();
@@ -56,6 +72,17 @@ export async function getInviteCodeStatus(code: string): Promise<InviteCodeStatu
   }
   
   const existingBooking = await db.getBookingByInviteCode(normalizedCode);
+  
+  // If booking exists but is expired and pending, treat as available
+  if (existingBooking && isBookingExpired(existingBooking)) {
+    console.log(`⏰ Booking ${existingBooking.id} has expired, invite code available`);
+    return {
+      code: normalizedCode,
+      isValid: true,
+      isUsed: false, // Expired pending bookings free up the code
+      booking: undefined
+    };
+  }
   
   return {
     code: normalizedCode,
@@ -77,6 +104,16 @@ export async function createBooking(data: {
   eventName: string;
   eventDate: Date;
 }): Promise<Booking> {
+  // Check for existing expired bookings and clean them up
+  const existingBooking = await db.getBookingByInviteCode(data.inviteCode.trim().toUpperCase());
+  if (existingBooking && isBookingExpired(existingBooking)) {
+    console.log(`🗑️ Deleting expired booking ${existingBooking.id} for invite code ${data.inviteCode}`);
+    await db.deleteBooking(existingBooking.id);
+  }
+  
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + BOOKING_EXPIRY_MINUTES * 60 * 1000);
+  
   const booking: Booking = {
     id: generateTransactionId(),
     inviteCode: data.inviteCode.trim().toUpperCase(),
@@ -89,13 +126,14 @@ export async function createBooking(data: {
     paymentStatus: 'pending',
     paymentMethod: 'cashfree',
     referenceNumber: generateReferenceNumber(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     eventDate: data.eventDate,
-    eventName: data.eventName
+    eventName: data.eventName,
+    expiresAt // Set expiry time
   };
   
-  console.log('[BookingManager] Creating booking:', booking.id);
+  console.log(`[BookingManager] Creating booking: ${booking.id} (expires at ${expiresAt.toISOString()})`);
   await db.insertBooking(booking);
   console.log('[BookingManager] Booking saved to database');
   

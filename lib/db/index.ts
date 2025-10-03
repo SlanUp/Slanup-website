@@ -45,7 +45,7 @@ export async function insertBooking(booking: Booking) {
         id, invite_code, customer_name, customer_email, customer_phone,
         ticket_type, ticket_count, total_amount, payment_status, payment_method,
         reference_number, cashfree_order_id, event_name, event_date,
-        created_at, updated_at
+        created_at, updated_at, expires_at
       ) VALUES (
         ${booking.id}, ${booking.inviteCode}, ${booking.customerName}, 
         ${booking.customerEmail}, ${booking.customerPhone},
@@ -53,7 +53,8 @@ export async function insertBooking(booking: Booking) {
         ${booking.paymentStatus}, ${booking.paymentMethod},
         ${booking.referenceNumber}, ${booking.id}, ${booking.eventName},
         ${booking.eventDate.toISOString()}, ${booking.createdAt.toISOString()},
-        ${booking.updatedAt.toISOString()}
+        ${booking.updatedAt.toISOString()},
+        ${booking.expiresAt ? booking.expiresAt.toISOString() : null}
       )
     `;
     console.log('[Database] Booking inserted:', booking.id);
@@ -106,10 +107,11 @@ export async function getBookingById(id: string): Promise<Booking | null> {
   }
 }
 
-// Get booking by invite code
+// Get booking by invite code (checks both completed and pending)
 export async function getBookingByInviteCode(inviteCode: string): Promise<Booking | null> {
   try {
-    const result = await sql`
+    // First check for completed bookings
+    const completedResult = await sql`
       SELECT * FROM bookings 
       WHERE invite_code = ${inviteCode} 
       AND payment_status = 'completed'
@@ -117,9 +119,42 @@ export async function getBookingByInviteCode(inviteCode: string): Promise<Bookin
       LIMIT 1
     `;
     
-    if (result.rows.length === 0) return null;
+    if (completedResult.rows.length > 0) {
+      const row = completedResult.rows[0];
+      return {
+        id: row.id,
+        inviteCode: row.invite_code,
+        customerName: row.customer_name,
+        customerEmail: row.customer_email,
+        customerPhone: row.customer_phone,
+        ticketType: row.ticket_type as 'regular' | 'premium' | 'vip',
+        ticketCount: row.ticket_count,
+        totalAmount: parseFloat(row.total_amount),
+        paymentStatus: row.payment_status,
+        paymentMethod: row.payment_method,
+        referenceNumber: row.reference_number,
+        cashfreeOrderId: row.cashfree_order_id,
+        cashfreePaymentId: row.cashfree_payment_id,
+        eventName: row.event_name,
+        eventDate: new Date(row.event_date),
+        createdAt: new Date(row.created_at),
+        updatedAt: new Date(row.updated_at),
+        expiresAt: row.expires_at ? new Date(row.expires_at) : undefined
+      };
+    }
     
-    const row = result.rows[0];
+    // If no completed booking, check for pending bookings (for expiry logic)
+    const pendingResult = await sql`
+      SELECT * FROM bookings 
+      WHERE invite_code = ${inviteCode} 
+      AND payment_status = 'pending'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+    
+    if (pendingResult.rows.length === 0) return null;
+    
+    const row = pendingResult.rows[0];
     return {
       id: row.id,
       inviteCode: row.invite_code,
@@ -137,10 +172,24 @@ export async function getBookingByInviteCode(inviteCode: string): Promise<Bookin
       eventName: row.event_name,
       eventDate: new Date(row.event_date),
       createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
+      updatedAt: new Date(row.updated_at),
+      expiresAt: row.expires_at ? new Date(row.expires_at) : undefined
     };
   } catch (error) {
     console.error('[Database] Error fetching booking by invite code:', error);
+    throw error;
+  }
+}
+
+// Delete booking (for expired bookings cleanup)
+export async function deleteBooking(bookingId: string): Promise<void> {
+  try {
+    await sql`
+      DELETE FROM bookings WHERE id = ${bookingId}
+    `;
+    console.log('[Database] Booking deleted:', bookingId);
+  } catch (error) {
+    console.error('[Database] Error deleting booking:', error);
     throw error;
   }
 }
