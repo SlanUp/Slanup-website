@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+// Simple email test script
+console.log('🧪 EMAIL AUTOMATION TEST GUIDE');
+console.log('================================');
+console.log('');
+console.log('📧 **SETUP STEPS:**');
+console.log('1. Go to https://resend.com and create account');
+console.log('2. Get API key from dashboard');
+console.log('3. Add API key to .env.local as RESEND_API_KEY=re_your_key');
+console.log('4. Restart development server: npm run dev');
+console.log('');
+console.log('🚀 **TEST METHODS:**');
+console.log('');
+console.log('**Method 1: Test API Endpoint**');
+console.log('POST http://localhost:3000/api/email/test');
+console.log('Body: {"email": "your@email.com", "name": "Your Name"}');
+console.log('');
+console.log('**Method 2: cURL Command**');
+console.log(`curl -X POST http://localhost:3000/api/email/test \\`);
+console.log(`  -H "Content-Type: application/json" \\`);
+console.log(`  -d '{"email": "your@email.com", "name": "Test User"}'`);
+console.log('');
+console.log('**Method 3: Complete Payment Flow**');
+console.log('1. Go to http://localhost:3000/diwali');
+console.log('2. Use test invite code (TEST1-TEST20)');
+console.log('3. Complete booking with test payment');
+console.log('4. Check email after webhook processes');
+console.log('');
+console.log('📝 **EMAIL FEATURES:**');
+console.log('✅ Beautiful HTML design with Slanup branding');
+console.log('✅ Event details with correct date (Oct 18, 2025)');
+console.log('✅ Reference number and QR code placeholder');
+console.log('✅ Party essentials and instructions');
+console.log('✅ Automatic sending on payment success');
+console.log('✅ Failed payment notifications');
+console.log('');
+console.log('🔧 **TROUBLESHOOTING:**');
+console.log('- Check .env.local has correct RESEND_API_KEY');
+console.log('- Verify API key is valid at https://resend.com');
+console.log('- Check console logs for error messages');
+console.log('- Ensure development server is restarted');
+console.log('');
+console.log('Ready to test! 🚀');

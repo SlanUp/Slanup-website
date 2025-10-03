@@ -3,6 +3,7 @@ import { updateBookingPaymentStatus } from '@/lib/bookingManager';
 import { verifyCashfreeSignature } from '@/lib/cashfreeIntegration';
 import { validateCashfreeWebhook } from '@/lib/validation';
 import { isWebhookProcessed, markWebhookProcessed } from '@/lib/webhookIdempotency';
+import { sendTicketEmail, sendPaymentFailedEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -89,6 +90,19 @@ export async function POST(request: NextRequest) {
       if (updatedBooking) {
         console.log('✅ Booking updated successfully:', orderId);
         
+        // Send ticket email asynchronously
+        sendTicketEmail(updatedBooking)
+          .then(sent => {
+            if (sent) {
+              console.log('✅ Ticket email sent successfully for booking:', orderId);
+            } else {
+              console.error('❌ Failed to send ticket email for booking:', orderId);
+            }
+          })
+          .catch(error => {
+            console.error('❌ Error sending ticket email:', error);
+          });
+        
         // Mark webhook as processed
         await markWebhookProcessed(
           webhookId,
@@ -121,6 +135,21 @@ export async function POST(request: NextRequest) {
       );
 
       console.log('❌ Payment failed for order:', orderId);
+      
+      // Send payment failed email asynchronously
+      if (updatedBooking) {
+        sendPaymentFailedEmail(updatedBooking)
+          .then(sent => {
+            if (sent) {
+              console.log('✅ Payment failed email sent for booking:', orderId);
+            } else {
+              console.error('❌ Failed to send payment failed email for booking:', orderId);
+            }
+          })
+          .catch(error => {
+            console.error('❌ Error sending payment failed email:', error);
+          });
+      }
       
       // Mark webhook as processed even for failures
       await markWebhookProcessed(

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateBookingPaymentStatus } from '@/lib/bookingManager';
+import { sendTicketEmail, sendPaymentFailedEmail } from '@/lib/emailService';
 import { z } from 'zod';
 
 const orderIdSchema = z.string().min(1, 'Order ID cannot be empty').trim();
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     // Update booking based on Cashfree order status
     if (orderData.order_status === 'PAID') {
-      await updateBookingPaymentStatus(
+      const updatedBooking = await updateBookingPaymentStatus(
         orderId,
         'completed',
         {
@@ -61,6 +62,22 @@ export async function POST(request: NextRequest) {
           paymentId: orderData.cf_order_id
         }
       );
+
+      // Send ticket email for local testing (webhook won't work locally)
+      if (updatedBooking) {
+        console.log('📧 Payment verified as PAID, sending ticket email...');
+        sendTicketEmail(updatedBooking)
+          .then(sent => {
+            if (sent) {
+              console.log('✅ Ticket email sent successfully via payment verification');
+            } else {
+              console.error('❌ Failed to send ticket email via payment verification');
+            }
+          })
+          .catch(error => {
+            console.error('❌ Error sending ticket email:', error);
+          });
+      }
 
       return NextResponse.json({
         success: true,
@@ -74,13 +91,29 @@ export async function POST(request: NextRequest) {
         message: 'Payment still pending'
       });
     } else {
-      await updateBookingPaymentStatus(
+      const updatedBooking = await updateBookingPaymentStatus(
         orderId,
         'failed',
         {
           orderId: orderData.cf_order_id
         }
       );
+
+      // Send payment failed email for local testing
+      if (updatedBooking) {
+        console.log('📧 Payment failed, sending failure email...');
+        sendPaymentFailedEmail(updatedBooking)
+          .then(sent => {
+            if (sent) {
+              console.log('✅ Payment failed email sent successfully');
+            } else {
+              console.error('❌ Failed to send payment failed email');
+            }
+          })
+          .catch(error => {
+            console.error('❌ Error sending payment failed email:', error);
+          });
+      }
 
       return NextResponse.json({
         success: true,
