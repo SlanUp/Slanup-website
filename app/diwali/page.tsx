@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lock, Play } from "lucide-react";
 import Image from "next/image";
+import TicketBooking from "@/components/TicketBooking";
+import BookingReference from "@/components/BookingReference";
+import { InviteCodeStatus } from "@/lib/types";
 
 // Mock invite codes - replace with your actual codes
 const VALID_INVITE_CODES = ["SLANUP2025", "DIWALI24", "TROPICALLAU"];
@@ -49,6 +52,9 @@ export default function EventPage() {
   const [error, setError] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<number | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [showTicketBooking, setShowTicketBooking] = useState(false);
+  const [inviteCodeStatus, setInviteCodeStatus] = useState<InviteCodeStatus | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -58,16 +64,49 @@ export default function EventPage() {
     link.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Black+Ops+One&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
+
+    // Load Cashfree SDK
+    const cashfreeScript = document.createElement('script');
+    cashfreeScript.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+    cashfreeScript.async = true;
+    document.head.appendChild(cashfreeScript);
   }, []);
 
-  const handleValidateCode = () => {
+  const handleValidateCode = async () => {
     const code = inviteCode.trim().toUpperCase();
-    if (VALID_INVITE_CODES.includes(code)) {
-      setIsValidated(true);
-      setError("");
-    } else {
-      setError("Invalid invite code. Please try again.");
+    setIsCheckingStatus(true);
+    
+    try {
+      // Check booking status for this invite code via API
+      const response = await fetch('/api/invite/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode: code })
+      });
+      
+      const status = await response.json();
+      setInviteCodeStatus(status);
+      
+      if (status.isValid) {
+        setIsValidated(true);
+        setError("");
+      } else {
+        setError("Invalid invite code. Please try again.");
+      }
+    } catch (error) {
+      console.error('Error validating code:', error);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsCheckingStatus(false);
     }
+  };
+  
+  const handleBookTickets = () => {
+    if (inviteCodeStatus?.isUsed) {
+      // Code already used - this shouldn't happen due to UI state
+      return;
+    }
+    setShowTicketBooking(true);
   };
 
   return (
@@ -156,9 +195,10 @@ export default function EventPage() {
               {!isValidated ? (
                 <button
                   onClick={handleValidateCode}
-                  className="w-full bg-gradient-to-r from-[var(--brand-green)] to-green-600 hover:from-green-600 hover:to-[var(--brand-green)] text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  disabled={isCheckingStatus}
+                  className="w-full bg-gradient-to-r from-[var(--brand-green)] to-green-600 hover:from-green-600 hover:to-[var(--brand-green)] text-white font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Unlock Experience
+                  {isCheckingStatus ? 'Checking...' : 'Unlock Experience'}
                 </button>
               ) : (
                 <motion.div
@@ -179,7 +219,7 @@ export default function EventPage() {
           </div>
         </motion.div>
 
-        {/* Book Tickets Button - Shows only after validation */}
+        {/* Booking Section - Shows after validation */}
         <AnimatePresence>
           {isValidated && (
             <motion.div
@@ -188,9 +228,18 @@ export default function EventPage() {
               transition={{ type: "spring", duration: 0.6 }}
               className="text-center mb-16"
             >
-              <button className="bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-110 shadow-2xl hover:shadow-amber-500/50 border-2 border-amber-400/30">
-                🎟️ Book Your Tickets Now
-              </button>
+              {inviteCodeStatus?.isUsed ? (
+                // Show booking reference if already booked
+                <BookingReference booking={inviteCodeStatus.booking!} />
+              ) : (
+                // Show book tickets button if not booked yet
+                <button 
+                  onClick={handleBookTickets}
+                  className="bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 transform hover:scale-110 shadow-2xl hover:shadow-amber-500/50 border-2 border-amber-400/30 animate-pulse"
+                >
+                  🔥 GET YOUR SPOT - LET&apos;S PARTYYYYYYYYY! 🎉
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -291,6 +340,16 @@ export default function EventPage() {
               ×
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Ticket Booking Modal */}
+      <AnimatePresence>
+        {showTicketBooking && (
+          <TicketBooking
+            inviteCode={inviteCode}
+            onClose={() => setShowTicketBooking(false)}
+          />
         )}
       </AnimatePresence>
     </div>
