@@ -54,7 +54,7 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
       animate={{ scale: 1, opacity: 1 }}
       className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl"
     >
-      {/* Success Header */}
+      {/* Header - Different for pending vs completed */}
       <div className="text-center mb-8">
         <motion.div
           initial={{ scale: 0 }}
@@ -62,40 +62,70 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
           transition={{ type: "spring", delay: 0.2 }}
           className="flex items-center justify-center mb-4"
         >
-          <CheckCircle className="w-16 h-16 text-green-400" />
+          {booking.paymentStatus === 'completed' ? (
+            <CheckCircle className="w-16 h-16 text-green-400" />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-yellow-400/20 flex items-center justify-center">
+              <span className="text-3xl">⏳</span>
+            </div>
+          )}
         </motion.div>
-        <h2 className="text-2xl font-bold text-white mb-2">YOU&apos;RE IN! 🔥</h2>
-        <p className="text-gray-300">Get ready for the most INSANE Diwali party ever!</p>
-        <p className="text-yellow-400 font-bold mt-1">LET&apos;S PARTYYYYYYYYY! 🎉</p>
+        
+        {booking.paymentStatus === 'completed' ? (
+          <>
+            <h2 className="text-2xl font-bold text-white mb-2">YOU&apos;RE IN! 🔥</h2>
+            <p className="text-gray-300">Get ready for the most INSANE Diwali party ever!</p>
+            <p className="text-yellow-400 font-bold mt-1">LET&apos;S PARTYYYYYYYYY! 🎉</p>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold text-yellow-400 mb-2">PAYMENT PENDING ⏳</h2>
+            <p className="text-gray-300">We&apos;re processing your payment...</p>
+            <p className="text-yellow-300 font-medium mt-1">You&apos;ll be confirmed shortly! 🎯</p>
+          </>
+        )}
       </div>
 
-      {/* Reference Number */}
-      <div className="bg-white/10 rounded-2xl p-6 mb-6">
-        <div className="text-center">
-          <p className="text-gray-300 text-sm mb-2">Reference Number</p>
-          <div className="flex items-center justify-center space-x-3">
-            <span className="text-2xl font-bold text-amber-400 font-mono">
-              {booking.referenceNumber}
-            </span>
-            <button
-              onClick={copyReferenceNumber}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-              title="Copy reference number"
-            >
-              <Copy className="w-4 h-4 text-white" />
-            </button>
+      {/* Reference Number - Only show when payment is completed */}
+      {booking.paymentStatus === 'completed' ? (
+        <div className="bg-white/10 rounded-2xl p-6 mb-6">
+          <div className="text-center">
+            <p className="text-gray-300 text-sm mb-2">🎫 Your Golden Ticket</p>
+            <div className="flex items-center justify-center space-x-3">
+              <span className="text-2xl font-bold text-amber-400 font-mono">
+                {booking.referenceNumber}
+              </span>
+              <button
+                onClick={copyReferenceNumber}
+                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                title="Copy reference number"
+              >
+                <Copy className="w-4 h-4 text-white" />
+              </button>
+            </div>
+            {copied && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-green-400 text-sm mt-2"
+              >
+                ✓ Copied to clipboard
+              </motion.p>
+            )}
+            <p className="text-amber-200 text-xs mt-2">Show this at the event entrance!</p>
           </div>
-          {copied && (
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-green-400 text-sm mt-2"
-            >
-              ✓ Copied to clipboard
-            </motion.p>
-          )}
         </div>
-      </div>
+      ) : (
+        <div className="bg-yellow-400/10 rounded-2xl p-6 mb-6 border border-yellow-400/20">
+          <div className="text-center">
+            <p className="text-yellow-400 text-sm mb-2">📦 Order Tracking</p>
+            <div className="text-lg font-bold text-yellow-300 font-mono mb-1">
+              Order #{booking.id.slice(-8).toUpperCase()}
+            </div>
+            <p className="text-yellow-200 text-xs">Your reference number will appear once payment is confirmed</p>
+          </div>
+        </div>
+      )}
 
       {/* Payment Status */}
       <div className="mb-6">
