@@ -6,9 +6,11 @@ export const metadata: Metadata = {
   title: "Slanup - Squad Your Plans Up",
   description: "Create/join nearby plans and connect with people for amazing experiences",
   icons: {
-    icon: '/maingreeb.png',
+    icon: ['/maingreeb.png', '/favicon.ico'],
     apple: '/maingreeb.png',
+    shortcut: '/favicon.ico',
   },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: "Slanup - Squad Your Plans Up",
     description: "Create/join nearby plans and connect with people for amazing experiences",

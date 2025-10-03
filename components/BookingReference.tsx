@@ -102,6 +102,18 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
         <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getPaymentStatusColor(booking.paymentStatus)}`}>
           {getPaymentStatusText(booking.paymentStatus)}
         </div>
+        
+        {/* Pending Payment Helper Text */}
+        {booking.paymentStatus === 'pending' && (
+          <div className="mt-4 p-4 bg-yellow-400/10 border border-yellow-400/20 rounded-xl">
+            <p className="text-yellow-200 text-sm mb-2">
+              <strong>Don&apos;t worry!</strong> If the payment went through, this will be auto-updated in 10 mins.
+            </p>
+            <p className="text-yellow-200 text-sm">
+              If it failed, you can use your invite code again in 10 mins.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Booking Details */}
@@ -181,7 +193,7 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
           <li>• Save this reference number - it&apos;s your GOLDEN TICKET!</li>
           <li>• Show this reference at entrance for VIP treatment</li>
           <li>• Bring valid photo ID + your party energy 🔥</li>
-          <li>• BYOB - Bring your favorite bottles 🍾</li>
+          <li>• BYOB - Bring your favorite booze 🍾</li>
           <li>• We provide all mixers & sides 🥤</li>
           <li>• Get ready for UNLIMITED food & drinks</li>
           <li>• Prepare for the craziest games ever!</li>

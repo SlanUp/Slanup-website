@@ -61,7 +61,7 @@ export interface InviteCodeStatus {
 // Event Configuration
 export const DIWALI_EVENT_CONFIG = {
   name: "Slanup's ULTIMATE Diwali Party 2025",
-  date: new Date('2025-11-01'), // Update with actual date
+  date: new Date('2025-10-18'), // 18th October 2025
   venue: "TBD", // Update with actual venue
   ticketTypes: [
     {
@@ -78,7 +78,7 @@ export const DIWALI_EVENT_CONFIG = {
         '🎧 Professional DJ All Night Long',
         '🎯 Exclusive Game Booths & Setups',
         '🍹 Complimentary Welcome Cocktail/Mocktail',
-        '🍾 BYOB - Bring Your Own Bottles',
+        '🍾 BYOB - Bring Your Own Booze',
         '🥤 All Sides & Mixers Provided',
         '📸 Instagram-Worthy Photo Opportunities',
         '🎊 Unforgettable Memories Guaranteed'
