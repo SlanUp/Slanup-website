@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateBookingPaymentStatus } from '@/lib/bookingManager';
 import { verifyCashfreeSignature } from '@/lib/cashfreeIntegration';
+import { validateCashfreeWebhook } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    // Validate webhook payload structure
+    const validation = validateCashfreeWebhook(body);
+    
+    if (!validation.success) {
+      console.error('Invalid webhook payload:', validation.errors);
+      return NextResponse.json(
+        { 
+          error: 'Invalid webhook payload', 
+          details: validation.errors 
+        },
+        { status: 400 }
+      );
+    }
     
     // Cashfree webhook data structure
     const {
@@ -16,7 +31,7 @@ export async function POST(request: NextRequest) {
       txMsg,
       txTime,
       signature
-    } = body.data;
+    } = validation.data.data;
 
     console.log('Cashfree webhook received:', {
       orderId,
@@ -29,12 +44,12 @@ export async function POST(request: NextRequest) {
     const isValidSignature = verifyCashfreeSignature({
       orderId,
       orderAmount,
-      referenceId,
+      referenceId: referenceId || '',
       txStatus,
-      paymentMode,
-      txMsg,
-      txTime,
-      signature
+      paymentMode: paymentMode || '',
+      txMsg: txMsg || '',
+      txTime: txTime || '',
+      signature: signature || ''
     });
 
     if (!isValidSignature) {
@@ -51,7 +66,7 @@ export async function POST(request: NextRequest) {
         orderId, // booking ID
         'completed',
         {
-          orderId: referenceId,
+          orderId: referenceId || orderId,
           paymentId: orderId
         }
       );
@@ -75,7 +90,7 @@ export async function POST(request: NextRequest) {
         orderId,
         'failed',
         {
-          orderId: referenceId,
+          orderId: referenceId || orderId,
           paymentId: orderId
         }
       );

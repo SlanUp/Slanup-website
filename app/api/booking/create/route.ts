@@ -2,9 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createBooking, getInviteCodeStatus } from '@/lib/bookingManager';
 import { createCashfreePaymentSession } from '@/lib/cashfreeIntegration';
 import { DIWALI_EVENT_CONFIG } from '@/lib/types';
+import { validateBookingData } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
+    const body = await request.json();
+
+    // Validate and sanitize input
+    const validation = validateBookingData(body);
+    
+    if (!validation.success) {
+      return NextResponse.json(
+        { 
+          error: 'Validation failed', 
+          details: validation.errors 
+        },
+        { status: 400 }
+      );
+    }
+    
     const {
       inviteCode,
       customerName,
@@ -12,15 +28,7 @@ export async function POST(request: NextRequest) {
       customerPhone,
       ticketType,
       ticketCount
-    } = await request.json();
-
-    // Validation
-    if (!inviteCode || !customerName || !customerEmail || !customerPhone || !ticketType || !ticketCount) {
-      return NextResponse.json(
-        { error: 'All fields are required' },
-        { status: 400 }
-      );
-    }
+    } = validation.data;
 
     // Check if invite code is valid and not used
     const inviteStatus = await getInviteCodeStatus(inviteCode);

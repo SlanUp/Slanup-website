@@ -18,6 +18,12 @@ interface BookingForm {
   ticketCount: number;
 }
 
+interface ValidationErrors {
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+}
+
 export default function TicketBooking({ inviteCode, onClose }: TicketBookingProps) {
   const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +35,8 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
     ticketType: '',
     ticketCount: 1
   });
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
 
   const getTicketColor = (ticketType: string) => {
@@ -36,6 +44,47 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
       case 'ultimate': return 'from-slate-800 via-slate-700 to-slate-900';
       default: return 'from-slate-800 via-slate-700 to-slate-900';
     }
+  };
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case 'customerName':
+        if (value.length < 2) return 'Name must be at least 2 characters';
+        if (value.length > 100) return 'Name is too long';
+        if (!/^[a-zA-Z\s.'-]+$/.test(value)) return 'Name can only contain letters, spaces, dots, hyphens, and apostrophes';
+        return undefined;
+      
+      case 'customerEmail':
+        if (!value) return 'Email is required';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
+        return undefined;
+      
+      case 'customerPhone':
+        if (!value) return 'Phone number is required';
+        if (!/^[0-9]{10}$/.test(value)) return 'Phone must be exactly 10 digits';
+        if (!/^[6-9]/.test(value)) return 'Phone must start with 6, 7, 8, or 9';
+        return undefined;
+      
+      default:
+        return undefined;
+    }
+  };
+
+  const handleFieldChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Validate on change if field has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setValidationErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  const handleFieldBlur = (name: string) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    const value = formData[name as keyof BookingForm] as string;
+    const error = validateField(name, value);
+    setValidationErrors(prev => ({ ...prev, [name]: error }));
   };
 
   const handleTicketSelect = (ticket: TicketType) => {
@@ -50,6 +99,27 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate all fields before submission
+    const errors: ValidationErrors = {
+      customerName: validateField('customerName', formData.customerName),
+      customerEmail: validateField('customerEmail', formData.customerEmail),
+      customerPhone: validateField('customerPhone', formData.customerPhone)
+    };
+    
+    // Mark all fields as touched
+    setTouched({
+      customerName: true,
+      customerEmail: true,
+      customerPhone: true
+    });
+    
+    // Check if there are any errors
+    if (Object.values(errors).some(error => error !== undefined)) {
+      setValidationErrors(errors);
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -234,10 +304,32 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
               type="text"
               required
               value={formData.customerName}
-              onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]"
-              placeholder="Enter your full name"
+              onChange={(e) => handleFieldChange('customerName', e.target.value)}
+              onBlur={() => handleFieldBlur('customerName')}
+              className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 transition-colors ${
+                validationErrors.customerName && touched.customerName
+                  ? 'border-red-400 focus:ring-red-400'
+                  : formData.customerName && !validationErrors.customerName && touched.customerName
+                  ? 'border-green-400 focus:ring-green-400'
+                  : 'border-white/20 focus:ring-[var(--brand-green)]'
+              }`}
+              placeholder="e.g., John Doe"
             />
+            {touched.customerName && validationErrors.customerName && (
+              <p className="text-red-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠️</span>
+                {validationErrors.customerName}
+              </p>
+            )}
+            {!touched.customerName && (
+              <p className="text-gray-400 text-xs mt-1">💡 Use letters, spaces, dots, hyphens only</p>
+            )}
+            {touched.customerName && formData.customerName && !validationErrors.customerName && (
+              <p className="text-green-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">✓</span>
+                Looks good!
+              </p>
+            )}
           </div>
 
           <div>
@@ -246,10 +338,32 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
               type="email"
               required
               value={formData.customerEmail}
-              onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]"
-              placeholder="Enter your email"
+              onChange={(e) => handleFieldChange('customerEmail', e.target.value)}
+              onBlur={() => handleFieldBlur('customerEmail')}
+              className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 transition-colors ${
+                validationErrors.customerEmail && touched.customerEmail
+                  ? 'border-red-400 focus:ring-red-400'
+                  : formData.customerEmail && !validationErrors.customerEmail && touched.customerEmail
+                  ? 'border-green-400 focus:ring-green-400'
+                  : 'border-white/20 focus:ring-[var(--brand-green)]'
+              }`}
+              placeholder="e.g., john@example.com"
             />
+            {touched.customerEmail && validationErrors.customerEmail && (
+              <p className="text-red-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠️</span>
+                {validationErrors.customerEmail}
+              </p>
+            )}
+            {!touched.customerEmail && (
+              <p className="text-gray-400 text-xs mt-1">💡 We&apos;ll send your ticket here</p>
+            )}
+            {touched.customerEmail && formData.customerEmail && !validationErrors.customerEmail && (
+              <p className="text-green-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">✓</span>
+                Valid email!
+              </p>
+            )}
           </div>
 
           <div>
@@ -258,10 +372,39 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
               type="tel"
               required
               value={formData.customerPhone}
-              onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]"
-              placeholder="Enter your phone number"
+              onChange={(e) => {
+                // Only allow digits
+                const value = e.target.value.replace(/\D/g, '');
+                if (value.length <= 10) {
+                  handleFieldChange('customerPhone', value);
+                }
+              }}
+              onBlur={() => handleFieldBlur('customerPhone')}
+              className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 transition-colors ${
+                validationErrors.customerPhone && touched.customerPhone
+                  ? 'border-red-400 focus:ring-red-400'
+                  : formData.customerPhone && !validationErrors.customerPhone && touched.customerPhone
+                  ? 'border-green-400 focus:ring-green-400'
+                  : 'border-white/20 focus:ring-[var(--brand-green)]'
+              }`}
+              placeholder="e.g., 9876543210"
+              maxLength={10}
             />
+            {touched.customerPhone && validationErrors.customerPhone && (
+              <p className="text-red-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠️</span>
+                {validationErrors.customerPhone}
+              </p>
+            )}
+            {!touched.customerPhone && (
+              <p className="text-gray-400 text-xs mt-1">💡 10 digits, starting with 6, 7, 8, or 9</p>
+            )}
+            {touched.customerPhone && formData.customerPhone && !validationErrors.customerPhone && (
+              <p className="text-green-400 text-sm mt-1 flex items-center">
+                <span className="mr-1">✓</span>
+                Valid phone number!
+              </p>
+            )}
           </div>
 
           {/* Buttons */}

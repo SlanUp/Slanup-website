@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateBookingPaymentStatus } from '@/lib/bookingManager';
+import { z } from 'zod';
+
+const orderIdSchema = z.string().min(1, 'Order ID cannot be empty').trim();
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderId } = await request.json();
+    const body = await request.json();
     
-    if (!orderId) {
+    // Validate order ID
+    const result = orderIdSchema.safeParse(body.orderId);
+    
+    if (!result.success) {
+      const errors = result.error.issues.map(issue => ({
+        field: issue.path.join('.') || 'orderId',
+        message: issue.message
+      }));
       return NextResponse.json(
-        { error: 'Order ID is required' },
+        { 
+          error: 'Invalid order ID', 
+          details: errors 
+        },
         { status: 400 }
       );
     }
+    
+    const orderId = result.data;
 
     // Verify payment with Cashfree API
     const cashfreeResponse = await fetch(

@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getInviteCodeStatus } from '@/lib/bookingManager';
+import { validateInviteCode } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const { inviteCode } = await request.json();
+    const body = await request.json();
 
-    if (!inviteCode) {
+    // Validate invite code
+    const validation = validateInviteCode(body.inviteCode);
+    
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invite code is required' },
+        { 
+          error: 'Invalid invite code', 
+          details: validation.errors 
+        },
         { status: 400 }
       );
     }
-
-    const status = getInviteCodeStatus(inviteCode);
+    
+    const inviteCode = validation.data;
+    const status = await getInviteCodeStatus(inviteCode);
 
     return NextResponse.json({
       success: true,
@@ -29,17 +37,25 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const inviteCode = searchParams.get('inviteCode');
+  const inviteCodeParam = searchParams.get('inviteCode');
 
-  if (!inviteCode) {
+  // Validate invite code
+  const validation = validateInviteCode(inviteCodeParam);
+  
+  if (!validation.success) {
     return NextResponse.json(
-      { error: 'Invite code is required' },
+      { 
+        error: 'Invalid invite code', 
+        details: validation.errors 
+      },
       { status: 400 }
     );
   }
+  
+  const inviteCode = validation.data;
 
   try {
-    const status = getInviteCodeStatus(inviteCode);
+    const status = await getInviteCodeStatus(inviteCode);
 
     return NextResponse.json({
       success: true,
