@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateBookingPaymentStatus } from '@/lib/bookingManager';
 import { verifyCashfreeSignature } from '@/lib/cashfreeIntegration';
 import { validateCashfreeWebhook } from '@/lib/validation';
+import { isWebhookProcessed, markWebhookProcessed } from '@/lib/webhookIdempotency';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,7 +41,19 @@ export async function POST(request: NextRequest) {
       paymentMode
     });
 
-    // Verify signature (simplified for now)
+    // Check idempotency - prevent duplicate processing
+    const webhookId = `${orderId}_${txTime || Date.now()}`;
+    const alreadyProcessed = await isWebhookProcessed(webhookId);
+    
+    if (alreadyProcessed) {
+      console.log(`⏭️ Webhook ${webhookId} already processed, skipping`);
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Webhook already processed' 
+      });
+    }
+
+    // Verify signature using HMAC-SHA256
     const isValidSignature = verifyCashfreeSignature({
       orderId,
       orderAmount,
@@ -53,10 +66,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!isValidSignature) {
-      console.error('Invalid Cashfree signature');
+      console.error('❌ Invalid Cashfree webhook signature - possible attack!');
+      console.error('Order ID:', orderId);
+      console.error('Signature:', signature);
       return NextResponse.json(
         { error: 'Invalid signature' },
-        { status: 400 }
+        { status: 401 }
       );
     }
 
@@ -72,7 +87,17 @@ export async function POST(request: NextRequest) {
       );
 
       if (updatedBooking) {
-        console.log('Booking updated successfully:', orderId);
+        console.log('✅ Booking updated successfully:', orderId);
+        
+        // Mark webhook as processed
+        await markWebhookProcessed(
+          webhookId,
+          'PAYMENT_SUCCESS',
+          orderId,
+          signature || '',
+          body
+        );
+        
         return NextResponse.json({ 
           success: true, 
           message: 'Payment confirmed' 
@@ -95,7 +120,17 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      console.log('Payment failed for order:', orderId);
+      console.log('❌ Payment failed for order:', orderId);
+      
+      // Mark webhook as processed even for failures
+      await markWebhookProcessed(
+        webhookId,
+        'PAYMENT_FAILED',
+        orderId,
+        signature || '',
+        body
+      );
+      
       return NextResponse.json({ 
         success: true, 
         message: 'Payment failed - booking updated' 

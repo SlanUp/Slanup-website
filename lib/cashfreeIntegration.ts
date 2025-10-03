@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 // Cashfree Configuration (Direct API Integration)
 export const CASHFREE_CONFIG = {
   APP_ID: process.env.NEXT_PUBLIC_CASHFREE_APP_ID || 'YOUR_APP_ID',
@@ -59,7 +61,7 @@ export async function createCashfreePaymentSession(data: {
   }
 }
 
-// Verify Cashfree payment signature
+// Verify Cashfree payment signature using HMAC-SHA256
 export function verifyCashfreeSignature(data: {
   orderId: string;
   orderAmount: string;
@@ -70,12 +72,40 @@ export function verifyCashfreeSignature(data: {
   txTime: string;
   signature: string;
 }): boolean {
-  // Cashfree signature verification
-  const signatureData = `${data.orderId}${data.orderAmount}${data.referenceId}${data.txStatus}${data.paymentMode}${data.txMsg}${data.txTime}`;
-  
-  // Note: In production, you'd verify this against Cashfree's signature
-  // For now, we'll trust the webhook endpoint verification
-  return true; // Simplified for demo
+  try {
+    // Cashfree v3 API signature verification
+    // The signature is computed as: base64(HMAC-SHA256(data, secret_key))
+    
+    // Build the signature data string according to Cashfree documentation
+    // Format: orderId|orderAmount|referenceId|txStatus|paymentMode|txMsg|txTime
+    const signatureData = `${data.orderId}${data.orderAmount}${data.referenceId}${data.txStatus}${data.paymentMode}${data.txMsg}${data.txTime}`;
+    
+    // Compute HMAC-SHA256 using the secret key
+    const expectedSignature = crypto
+      .createHmac('sha256', CASHFREE_CONFIG.SECRET_KEY)
+      .update(signatureData)
+      .digest('base64');
+    
+    // Compare signatures (constant-time comparison to prevent timing attacks)
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(data.signature)
+    );
+    
+    if (!isValid) {
+      console.error('❌ Webhook signature verification failed');
+      console.error('Expected:', expectedSignature);
+      console.error('Received:', data.signature);
+      console.error('Data string:', signatureData);
+    } else {
+      console.log('✅ Webhook signature verified successfully');
+    }
+    
+    return isValid;
+  } catch (error) {
+    console.error('Error verifying webhook signature:', error);
+    return false;
+  }
 }
 
 
