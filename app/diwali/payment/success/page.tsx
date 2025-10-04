@@ -187,12 +187,12 @@ function PaymentSuccessContent() {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-8"
+          className="text-center mb-6"
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 animate-bounce">
-            WUHUUUUU! 🎉🚀
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 animate-bounce">
+            WUHUUUUU! 🎉
           </h1>
-          <p className="text-2xl text-yellow-400 font-bold">Payment Successful! ✨</p>
+          <p className="text-lg sm:text-xl text-yellow-400 font-semibold">Payment Successful! ✨</p>
         </motion.div>
 
         {/* Booking Reference Component */}
