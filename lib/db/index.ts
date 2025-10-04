@@ -238,20 +238,27 @@ export async function updateBookingPaymentStatus(
     
     // Automatically send emails when payment status changes
     if (updatedBooking && status === 'completed') {
-      console.log('📧 Payment completed - triggering ticket email');
+      console.log('📧 Payment completed - triggering ticket email for:', bookingId);
       
-      // Send email asynchronously (don't block the response)
-      sendTicketEmail(updatedBooking)
-        .then(sent => {
-          if (sent) {
-            console.log('✅ Ticket email sent automatically for booking:', bookingId);
-          } else {
-            console.error('❌ Failed to send ticket email for booking:', bookingId);
-          }
-        })
-        .catch(error => {
-          console.error('❌ Error sending ticket email:', error);
-        });
+      try {
+        // Send email asynchronously (don't block the response)
+        sendTicketEmail(updatedBooking)
+          .then(sent => {
+            if (sent) {
+              console.log('✅ Ticket email sent automatically for booking:', bookingId);
+            } else {
+              console.error('❌ Failed to send ticket email for booking:', bookingId);
+            }
+          })
+          .catch(error => {
+            console.error('❌ Error in sendTicketEmail promise:', error);
+            console.error('❌ Error stack:', error.stack);
+          });
+      } catch (error) {
+        console.error('❌ Error calling sendTicketEmail:', error);
+        console.error('❌ Error type:', typeof error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      }
     }
     
     return updatedBooking;
