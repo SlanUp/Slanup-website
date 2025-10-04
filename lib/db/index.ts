@@ -1,6 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { Booking } from '../types';
 import { sendTicketEmail } from '../emailService';
+import { updateSheetAfterPayment } from '../googleSheetsUpdate';
 
 // Create bookings table (run this once)
 export async function createBookingsTable() {
@@ -256,6 +257,15 @@ export async function updateBookingPaymentStatus(
           .catch(error => {
             console.error('❌ Error in sendTicketEmail promise:', error);
             console.error('❌ Error stack:', error.stack);
+          });
+        
+        // Update Google Sheets asynchronously (don't block the response)
+        updateSheetAfterPayment(updatedBooking)
+          .then(() => {
+            console.log('✅ Google Sheet update triggered for booking:', bookingId);
+          })
+          .catch(error => {
+            console.error('❌ Error updating Google Sheet:', error);
           });
       } catch (error) {
         console.error('❌ Error calling sendTicketEmail:', error);
