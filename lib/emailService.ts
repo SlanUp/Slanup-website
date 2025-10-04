@@ -12,16 +12,8 @@ const EMAIL_CONFIG = {
 
 export async function sendTicketEmail(booking: Booking): Promise<boolean> {
   try {
-    // Check database to see if email already sent (prevent duplicates)
-    const { getBookingById } = await import('./db');
-    const currentBooking = await getBookingById(booking.id);
-    
-    if (!currentBooking) {
-      console.error(`❌ Booking ${booking.id} not found in database, cannot send email`);
-      return false;
-    }
-    
-    if (currentBooking.emailSent === true) {
+    // Check if email already sent (passed in booking object from database)
+    if (booking.emailSent === true) {
       console.log(`⏭️ Email already sent for booking ${booking.id}, skipping duplicate`);
       return true; // Return true since email was already sent successfully
     }
@@ -60,11 +52,7 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
     }
 
     console.log('✅ Ticket email sent successfully:', data?.id);
-    
-    // Mark email as sent in database to prevent duplicates
-    const { markEmailAsSent } = await import('./db');
-    await markEmailAsSent(booking.id);
-    console.log('✅ Email marked as sent in database for booking:', booking.id);
+    console.log('✅ Email will be marked as sent by caller');
     
     return true;
   } catch (error) {

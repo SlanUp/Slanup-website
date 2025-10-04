@@ -243,9 +243,12 @@ export async function updateBookingPaymentStatus(
       try {
         // Send email asynchronously (don't block the response)
         sendTicketEmail(updatedBooking)
-          .then(sent => {
+          .then(async (sent) => {
             if (sent) {
               console.log('✅ Ticket email sent automatically for booking:', bookingId);
+              // Mark email as sent in database
+              await markEmailAsSent(bookingId);
+              console.log('✅ Email marked as sent in database');
             } else {
               console.error('❌ Failed to send ticket email for booking:', bookingId);
             }
