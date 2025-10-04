@@ -76,6 +76,9 @@ export default function BookingReference({ booking }: BookingReferenceProps) {
             <h2 className="text-2xl font-bold text-white mb-2">YOU&apos;RE IN! 🔥</h2>
             <p className="text-gray-300">Get ready for the most INSANE Diwali party ever!</p>
             <p className="text-yellow-400 font-bold mt-1">LET&apos;S PARTYYYYYYYYY! 🎉</p>
+            <p className="text-sm text-gray-400 mt-3 px-4">
+              Tickets have been mailed to your email ID. Please also check spam if it ain&apos;t in your inbox.
+            </p>
           </>
         ) : (
           <>

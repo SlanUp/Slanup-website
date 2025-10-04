@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   title: "Slanup - Squad Your Plans Up",
   description: "Create/join nearby plans and connect with people for amazing experiences",
   icons: {
-    icon: ['/maingreeb.png', '/favicon.ico'],
-    apple: '/maingreeb.png',
+    icon: ['/favicon.ico', '/icon-192.png'],
+    apple: ['/icon-192.png', '/icon-512.png'],
     shortcut: '/favicon.ico',
   },
   manifest: '/site.webmanifest',
