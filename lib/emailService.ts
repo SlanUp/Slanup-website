@@ -12,16 +12,19 @@ const EMAIL_CONFIG = {
 
 export async function sendTicketEmail(booking: Booking): Promise<boolean> {
   try {
-    // HOTFIX: Temporarily disable duplication check to restore email functionality
-    // TODO: Fix getBookingById to include emailSent field properly
-    console.log(`📧 Attempting to send email for booking ${booking.id} (duplication check disabled)`);
+    // Check database to see if email already sent (prevent duplicates)
+    const { getBookingById } = await import('./db');
+    const currentBooking = await getBookingById(booking.id);
     
-    // const { getBookingById } = await import('./db');
-    // const currentBooking = await getBookingById(booking.id);
-    // if (currentBooking?.emailSent) {
-    //   console.log(`⏭️ Email already sent for booking ${booking.id}, skipping`);
-    //   return true;
-    // }
+    if (!currentBooking) {
+      console.error(`❌ Booking ${booking.id} not found in database, cannot send email`);
+      return false;
+    }
+    
+    if (currentBooking.emailSent === true) {
+      console.log(`⏭️ Email already sent for booking ${booking.id}, skipping duplicate`);
+      return true; // Return true since email was already sent successfully
+    }
 
     console.log(`📧 Sending ticket email to ${booking.customerEmail} for booking ${booking.id}`);
 
@@ -58,9 +61,10 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
 
     console.log('✅ Ticket email sent successfully:', data?.id);
     
-    // HOTFIX: Temporarily disable marking email as sent
-    // const { markEmailAsSent } = await import('./db');
-    // await markEmailAsSent(booking.id);
+    // Mark email as sent in database to prevent duplicates
+    const { markEmailAsSent } = await import('./db');
+    await markEmailAsSent(booking.id);
+    console.log('✅ Email marked as sent in database for booking:', booking.id);
     
     return true;
   } catch (error) {

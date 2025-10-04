@@ -153,6 +153,7 @@ export async function getBookingByInviteCode(inviteCode: string): Promise<Bookin
         cashfreePaymentId: row.cashfree_payment_id,
         eventName: row.event_name,
         eventDate: new Date(row.event_date),
+        emailSent: row.email_sent || false,
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
         expiresAt: row.expires_at ? new Date(row.expires_at) : undefined
@@ -187,6 +188,7 @@ export async function getBookingByInviteCode(inviteCode: string): Promise<Bookin
       cashfreePaymentId: row.cashfree_payment_id,
       eventName: row.event_name,
       eventDate: new Date(row.event_date),
+      emailSent: row.email_sent || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
       expiresAt: row.expires_at ? new Date(row.expires_at) : undefined
@@ -231,7 +233,29 @@ export async function updateBookingPaymentStatus(
     `;
     
     console.log('[Database] Booking payment status updated:', bookingId, status);
-    return await getBookingById(bookingId);
+    const updatedBooking = await getBookingById(bookingId);
+    
+    // Automatically send emails when payment status changes
+    if (updatedBooking && status === 'completed') {
+      console.log('📧 Payment completed - triggering ticket email');
+      // Import here to avoid circular dependency
+      const { sendTicketEmail } = await import('../emailService');
+      
+      // Send email asynchronously (don't block the response)
+      sendTicketEmail(updatedBooking)
+        .then(sent => {
+          if (sent) {
+            console.log('✅ Ticket email sent automatically for booking:', bookingId);
+          } else {
+            console.error('❌ Failed to send ticket email for booking:', bookingId);
+          }
+        })
+        .catch(error => {
+          console.error('❌ Error sending ticket email:', error);
+        });
+    }
+    
+    return updatedBooking;
   } catch (error) {
     console.error('[Database] Error updating booking payment status:', error);
     throw error;
@@ -262,6 +286,7 @@ export async function getAllBookings(): Promise<Booking[]> {
       cashfreePaymentId: row.cashfree_payment_id,
       eventName: row.event_name,
       eventDate: new Date(row.event_date),
+      emailSent: row.email_sent || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
     }));

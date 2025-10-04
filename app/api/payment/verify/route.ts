@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateBookingPaymentStatus } from '@/lib/bookingManager';
-import { sendTicketEmail, sendPaymentFailedEmail } from '@/lib/emailService';
+import { sendPaymentFailedEmail } from '@/lib/emailService';
 import { z } from 'zod';
 
 const orderIdSchema = z.string().min(1, 'Order ID cannot be empty').trim();
@@ -63,20 +63,9 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      // Send ticket email for local testing (webhook won't work locally)
+      // Email will be sent automatically by updateBookingPaymentStatus
       if (updatedBooking) {
-        console.log('📧 Payment verified as PAID, sending ticket email...');
-        sendTicketEmail(updatedBooking)
-          .then(sent => {
-            if (sent) {
-              console.log('✅ Ticket email sent successfully via payment verification');
-            } else {
-              console.error('❌ Failed to send ticket email via payment verification');
-            }
-          })
-          .catch(error => {
-            console.error('❌ Error sending ticket email:', error);
-          });
+        console.log('✅ Payment verified - email sent by updateBookingPaymentStatus');
       }
 
       return NextResponse.json({
