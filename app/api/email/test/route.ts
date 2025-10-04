@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date(),
       eventDate: new Date('2025-10-18'),
-      eventName: "Slanup's ULTIMATE Diwali Party 2025"
+      eventName: "Slanup's BYOB Diwali Party 2025"
     };
 
     const emailSent = await sendTicketEmail(testBooking);

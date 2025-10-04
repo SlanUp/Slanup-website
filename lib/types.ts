@@ -61,7 +61,7 @@ export interface InviteCodeStatus {
 
 // Event Configuration
 export const DIWALI_EVENT_CONFIG = {
-  name: "Slanup's ULTIMATE Diwali Party 2025",
+  name: "Slanup's BYOB Diwali Party 2025",
   date: new Date('2025-10-18'), // 18th October 2025
   venue: "TBD", // Update with actual venue
   ticketTypes: [
