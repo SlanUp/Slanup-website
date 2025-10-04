@@ -68,7 +68,7 @@ export const DIWALI_EVENT_CONFIG = {
     {
       id: 'ultimate',
       name: 'ULTIMATE PARTY EXPERIENCE',
-      price: 10,
+      price: 1,
       description: 'The most INSANE Diwali party experience you\'ll ever have! 🔥',
       benefits: [
         '🍽️ UNLIMITED Food & Beverages',
