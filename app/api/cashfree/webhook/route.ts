@@ -9,11 +9,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    // Debug: Log actual webhook payload structure
+    console.log('🔍 Cashfree webhook received - Full payload:', JSON.stringify(body, null, 2));
+    
     // Validate webhook payload structure
     const validation = validateCashfreeWebhook(body);
     
     if (!validation.success) {
-      console.error('Invalid webhook payload:', validation.errors);
+      console.error('❌ Invalid webhook payload:', validation.errors);
+      console.error('❌ Received payload structure:', Object.keys(body));
+      console.error('❌ Received data field:', body.data ? Object.keys(body.data) : 'No data field');
       return NextResponse.json(
         { 
           error: 'Invalid webhook payload', 
