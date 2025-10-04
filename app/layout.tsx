@@ -6,6 +6,17 @@ export const metadata: Metadata = {
   title: "Slanup - Squad Your Plans Up",
   description: "Create/join nearby plans and connect with people for amazing experiences",
   manifest: '/site.webmanifest',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/apple-icon.png',
+    other: [
+      {
+        rel: 'icon',
+        url: '/favicon.ico',
+      },
+    ],
+  },
   openGraph: {
     title: "Slanup - Squad Your Plans Up",
     description: "Create/join nearby plans and connect with people for amazing experiences",
@@ -38,6 +49,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
