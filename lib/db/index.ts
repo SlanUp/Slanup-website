@@ -65,6 +65,21 @@ export async function insertBooking(booking: Booking) {
   }
 }
 
+// Mark email as sent for a booking to prevent duplicates
+export async function markEmailAsSent(bookingId: string): Promise<void> {
+  try {
+    await sql`
+      UPDATE bookings 
+      SET email_sent = true, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${bookingId}
+    `;
+    console.log('[Database] Email marked as sent for booking:', bookingId);
+  } catch (error) {
+    console.error('[Database] Error marking email as sent:', error);
+    throw error;
+  }
+}
+
 // Get booking by ID
 export async function getBookingById(id: string): Promise<Booking | null> {
   try {
@@ -95,6 +110,7 @@ export async function getBookingById(id: string): Promise<Booking | null> {
       cashfreePaymentId: row.cashfree_payment_id,
       eventName: row.event_name,
       eventDate: new Date(row.event_date),
+      emailSent: row.email_sent || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at)
     };

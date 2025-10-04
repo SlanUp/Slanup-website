@@ -20,6 +20,7 @@ export interface Booking {
   updatedAt: Date;
   eventDate: Date;
   eventName: string;
+  emailSent?: boolean; // Track if ticket email has been sent to prevent duplicates
   expiresAt?: Date; // When pending booking expires (30 minutes from creation)
 }
 
