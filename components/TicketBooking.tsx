@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DIWALI_EVENT_CONFIG, TicketType } from '@/lib/types';
 import { formatCurrency } from '@/lib/cashfreeIntegration';
+import { getTicketFees } from '@/lib/paymentFees';
 
 interface TicketBookingProps {
   inviteCode: string;
@@ -288,11 +289,31 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
         {/* Price Display */}
         <div className="text-center mb-6">
           <div className="bg-slate-800/50 rounded-2xl p-4 border border-amber-400/30">
-            <p className="text-white/80 text-sm mb-2">Your Total</p>
-            <span className="text-3xl font-bold text-amber-400">
-              {formatCurrency(selectedTicket?.price || 0)}
-            </span>
-            <p className="text-white/60 text-sm mt-1">One incredible experience 🔥</p>
+            {(() => {
+              const fees = getTicketFees(selectedTicket?.price || 0);
+              return (
+                <>
+                  <div className="space-y-2 mb-3">
+                    <div className="flex justify-between text-white/70 text-sm">
+                      <span>Ticket Price</span>
+                      <span>{formatCurrency(fees.ticketPrice)}</span>
+                    </div>
+                    <div className="flex justify-between text-white/70 text-sm">
+                      <span>Gateway charges</span>
+                      <span>{formatCurrency(fees.gatewayCharges)}</span>
+                    </div>
+                    <div className="border-t border-white/20 pt-2 mt-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-white/80 text-sm font-medium">Total Amount</span>
+                        <span className="text-2xl font-bold text-amber-400">
+                          {formatCurrency(fees.totalAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 

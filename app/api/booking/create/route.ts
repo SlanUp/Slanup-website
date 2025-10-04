@@ -3,6 +3,7 @@ import { createBooking, getInviteCodeStatus } from '@/lib/bookingManager';
 import { createCashfreePaymentSession } from '@/lib/cashfreeIntegration';
 import { DIWALI_EVENT_CONFIG } from '@/lib/types';
 import { validateBookingData } from '@/lib/validation';
+import { getTicketFees } from '@/lib/paymentFees';
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,7 +66,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const totalAmount = ticketTypeConfig.price * ticketCount;
+    const ticketPrice = ticketTypeConfig.price * ticketCount;
+    
+    // Calculate total with payment gateway fees
+    const fees = getTicketFees(ticketPrice);
+    const totalAmount = fees.totalAmount; // This includes gateway charges
 
     // Create booking
     const booking = await createBooking({
@@ -75,15 +80,15 @@ export async function POST(request: NextRequest) {
       customerPhone,
       ticketType: ticketType as 'regular' | 'premium' | 'vip',
       ticketCount,
-      totalAmount,
+      totalAmount, // Store the total amount (with gateway fees)
       eventName: DIWALI_EVENT_CONFIG.name,
       eventDate: DIWALI_EVENT_CONFIG.date
     });
 
-    // Create Cashfree payment session
+    // Create Cashfree payment session with total amount (including fees)
     const cashfreeOrder = await createCashfreePaymentSession({
       orderId: booking.id,
-      amount: totalAmount,
+      amount: totalAmount, // Charge customer the total including gateway fees
       customerName,
       customerEmail,
       customerPhone,
