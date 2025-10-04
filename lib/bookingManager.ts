@@ -1,64 +1,20 @@
 import { Booking, InviteCodeStatus } from './types';
 import * as db from './db';
+import { getValidInviteCodes } from './googleSheets';
 
 // Booking expiry time in minutes
 const BOOKING_EXPIRY_MINUTES = 7;
 
-// Valid invite codes - you can expand this list
-const VALID_INVITE_CODES = [
+// Cache for invite codes (refreshed periodically)
+let cachedInviteCodes: string[] = [];
+let lastCacheUpdate = 0;
+const CACHE_DURATION = 60000; // 60 seconds
+
+// Fallback codes in case Google Sheets is down
+const FALLBACK_INVITE_CODES = [
   "SLANUP2025", 
   "DIWALI24", 
-  "TROPICALLAU",
-  "TEST1",
-  "TEST2",
-  "TEST3",
-  "TEST4",
-  "TEST5",
-  "TEST6",
-  "TEST7",
-  "TEST8",
-  "TEST9",
-  "TEST10",
-  "TEST11",
-  "TEST12",
-  "TEST13",
-  "TEST14",
-  "TEST15",
-  "TEST16",
-  "TEST17",
-  "TEST18",
-  "TEST19",
-  "TEST20",
-  "TEST21",
-  "TEST22",
-  "TEST23",
-  "TEST24",
-  "TEST25",
-  "TEST26",
-  "TEST27",
-  "TEST28",
-  "TEST29",
-  "TEST30",
-  "TEST31",
-  "TEST32",
-  "TEST33",
-  "TEST34",
-  "TEST35",
-  "TEST36",
-  "TEST37",
-  "TEST38",
-  "TEST39",
-  "TEST40",
-  "TEST41",
-  "TEST42",
-  "TEST43",
-  "TEST44",
-  "TEST45",
-  "TEST46",
-  "TEST47",
-  "TEST48",
-  "TEST49",
-  "TEST50"
+  "TROPICALLAU"
 ];
 
 // Generate unique reference number
@@ -80,9 +36,42 @@ export async function getAllBookings(): Promise<Booking[]> {
   return await db.getAllBookings();
 }
 
-// Check if invite code is valid
-export function isValidInviteCode(code: string): boolean {
-  return VALID_INVITE_CODES.includes(code.trim().toUpperCase());
+// Fetch and cache invite codes from Google Sheets
+async function getInviteCodesWithCache(): Promise<string[]> {
+  const now = Date.now();
+  
+  // Return cached codes if still valid
+  if (cachedInviteCodes.length > 0 && (now - lastCacheUpdate) < CACHE_DURATION) {
+    return cachedInviteCodes;
+  }
+  
+  try {
+    // Fetch fresh codes from Google Sheets
+    const codes = await getValidInviteCodes();
+    if (codes.length > 0) {
+      cachedInviteCodes = codes;
+      lastCacheUpdate = now;
+      console.log(`[BookingManager] Loaded ${codes.length} invite codes from Google Sheets`);
+      return codes;
+    }
+  } catch (error) {
+    console.error('[BookingManager] Error fetching invite codes from Google Sheets:', error);
+  }
+  
+  // Fallback to cached codes or fallback list
+  if (cachedInviteCodes.length > 0) {
+    console.warn('[BookingManager] Using cached invite codes');
+    return cachedInviteCodes;
+  }
+  
+  console.warn('[BookingManager] Using fallback invite codes');
+  return FALLBACK_INVITE_CODES;
+}
+
+// Check if invite code is valid (async now)
+export async function isValidInviteCode(code: string): Promise<boolean> {
+  const validCodes = await getInviteCodesWithCache();
+  return validCodes.includes(code.trim().toUpperCase());
 }
 
 // Check if booking has expired (pending bookings older than 30 minutes)
@@ -101,7 +90,7 @@ export function isBookingExpired(booking: Booking): boolean {
 // Get booking status for an invite code
 export async function getInviteCodeStatus(code: string): Promise<InviteCodeStatus> {
   const normalizedCode = code.trim().toUpperCase();
-  const isValid = isValidInviteCode(normalizedCode);
+  const isValid = await isValidInviteCode(normalizedCode);
   
   if (!isValid) {
     return {

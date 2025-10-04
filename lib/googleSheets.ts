@@ -25,32 +25,54 @@ function parseCSV(csvText: string): InviteCodeRow[] {
   const lines = csvText.split('\n');
   const data: InviteCodeRow[] = [];
   
+  console.log(`[GoogleSheets] Parsing ${lines.length} lines from CSV`);
+  
   // Skip header row
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // Simple CSV parsing (handles quoted fields)
-    const matches = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-    if (!matches || matches.length < 11) continue;
+    // Split by comma, handling quoted fields
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
     
-    const cleanValue = (val: string) => val.replace(/^"|"$/g, '').trim();
+    for (let j = 0; j < line.length; j++) {
+      const char = line[j];
+      
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim()); // Add last value
+    
+    // Must have at least 3 columns (group, name, inviteCode)
+    if (values.length < 3) continue;
+    
+    const inviteCode = values[2];
+    if (!inviteCode) continue; // Skip rows without invite code
     
     data.push({
-      group: cleanValue(matches[0] || ''),
-      name: cleanValue(matches[1] || ''),
-      inviteCode: cleanValue(matches[2] || ''),
-      email: cleanValue(matches[3] || ''),
-      phone: cleanValue(matches[4] || ''),
-      booked: cleanValue(matches[5] || 'No'),
-      paymentStatus: cleanValue(matches[6] || ''),
-      referenceNumber: cleanValue(matches[7] || ''),
-      transactionId: cleanValue(matches[8] || ''),
-      bookingDate: cleanValue(matches[9] || ''),
-      checkedIn: cleanValue(matches[10] || 'No')
+      group: values[0] || '',
+      name: values[1] || '',
+      inviteCode: inviteCode,
+      email: values[3] || '',
+      phone: values[4] || '',
+      booked: values[5] || 'No',
+      paymentStatus: values[6] || '',
+      referenceNumber: values[7] || '',
+      transactionId: values[8] || '',
+      bookingDate: values[9] || '',
+      checkedIn: values[10] || 'No'
     });
   }
   
+  console.log(`[GoogleSheets] Parsed ${data.length} invite codes`);
   return data;
 }
 

@@ -30,8 +30,8 @@ export const inviteCodeSchema = z
   .max(50, 'Invite code too long')
   .transform(val => val.trim().toUpperCase())
   .refine(
-    val => /^[A-Z0-9]+$/.test(val), 
-    { message: 'Invite code must contain only letters and numbers' }
+    val => /^[A-Z0-9-]+$/.test(val), 
+    { message: 'Invite code must contain only letters, numbers, and hyphens' }
   );
 
 // Ticket type validation - accept all possible ticket types
