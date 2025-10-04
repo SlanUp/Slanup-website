@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 import BookingReference from '@/components/BookingReference';
 import { Booking } from '@/lib/types';
 
@@ -189,12 +189,10 @@ function PaymentSuccessContent() {
           transition={{ duration: 0.8 }}
           className="text-center mb-8"
         >
-          <div className="flex items-center justify-center mb-4">
-            <CheckCircle className="w-16 h-16 text-green-400" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">YOU&apos;RE OFFICIALLY IN! 🔥</h1>
-          <p className="text-xl text-gray-300">GET READY FOR THE MOST EPIC DIWALI PARTY EVER!</p>
-          <p className="text-2xl text-yellow-400 font-bold mt-2 animate-bounce">LET&apos;S PARTYYYYYYYYY! 🎉🎆</p>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 animate-bounce">
+            WUHUUUUU! 🎉🚀
+          </h1>
+          <p className="text-2xl text-yellow-400 font-bold">Payment Successful! ✨</p>
         </motion.div>
 
         {/* Booking Reference Component */}
