@@ -233,7 +233,7 @@ export async function updateBookingPaymentStatus(
       WHERE id = ${bookingId}
     `;
     
-    console.log('[Database] Booking payment status updated:', bookingId, status);
+    console.log('[Database] Booking payment status updated:', bookingId, status, '- Build:', new Date().toISOString());
     const updatedBooking = await getBookingById(bookingId);
     
     // Automatically send emails when payment status changes
