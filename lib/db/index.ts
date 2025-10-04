@@ -1,5 +1,6 @@
 import { sql } from '@vercel/postgres';
 import { Booking } from '../types';
+import { sendTicketEmail } from '../emailService';
 
 // Create bookings table (run this once)
 export async function createBookingsTable() {
@@ -238,8 +239,6 @@ export async function updateBookingPaymentStatus(
     // Automatically send emails when payment status changes
     if (updatedBooking && status === 'completed') {
       console.log('📧 Payment completed - triggering ticket email');
-      // Import here to avoid circular dependency
-      const { sendTicketEmail } = await import('../emailService');
       
       // Send email asynchronously (don't block the response)
       sendTicketEmail(updatedBooking)
