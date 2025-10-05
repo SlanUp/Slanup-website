@@ -11,26 +11,20 @@ import { InviteCodeStatus } from "@/lib/types";
 // Mock invite codes - replace with your actual codes
 const VALID_INVITE_CODES = ["SLANUP2025", "DIWALI24", "TROPICALLAU"];
 
-// Real gallery items from Diwali Party 2024
+// Real gallery items from Diwali Party 2024 (images only)
 const GALLERY_ITEMS = [
   { type: "image", url: "/Gallery/diwali-party24/IMG_3260_Original.jpg", title: "Party Vibes" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3408_Original.jpg", title: "Good Times" },
-  { type: "video", url: "/Gallery/diwali-party24/IMG_3396.mov", title: "Dance Floor" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3388_Original.jpg", title: "Epic Moments" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3379_Original.jpg", title: "Celebration" },
-  { type: "video", url: "/Gallery/diwali-party24/IMG_3382.mov", title: "Party Energy" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_2027_Original.jpg", title: "Friends" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3368_Original.jpg", title: "Night Out" },
-  { type: "video", url: "/Gallery/diwali-party24/IMG_3375.mov", title: "Live Action" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3360_Original.jpg", title: "Memories" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3354_Original.jpg", title: "Group Photo" },
-  { type: "video", url: "/Gallery/diwali-party24/IMG_3373.mov", title: "Dance Moves" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3343_Original.jpg", title: "Fun Times" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3337_Original.jpg", title: "Squad Goals" },
-  { type: "video", url: "/Gallery/diwali-party24/IMG_3340.mov", title: "Party Mode" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3333_Original.jpg", title: "Night Life" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3330_Original.jpg", title: "Cheers" },
-  { type: "video", url: "/Gallery/diwali-party24/IMG_3369.mov", title: "Moments" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3323_Original.jpg", title: "Together" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3311_Original.jpg", title: "Smiles" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3310_Original.jpg", title: "Laughter" },
