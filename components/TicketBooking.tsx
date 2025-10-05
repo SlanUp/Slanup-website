@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { DIWALI_EVENT_CONFIG, TicketType } from '@/lib/types';
 import { formatCurrency } from '@/lib/cashfreeIntegration';
 import { getTicketFees } from '@/lib/paymentFees';
@@ -426,6 +427,17 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
                 Valid phone number!
               </p>
             )}
+          </div>
+
+          {/* Terms & Conditions Link */}
+          <div className="text-center pt-2">
+            <Link
+              href="/diwali/terms"
+              target="_blank"
+              className="text-gray-400 hover:text-white transition-colors underline text-xs"
+            >
+              Terms & Conditions
+            </Link>
           </div>
 
           {/* Buttons */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lock, Play } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
 import { InviteCodeStatus } from "@/lib/types";
@@ -291,6 +292,17 @@ export default function EventPage() {
             ))}
           </div>
         </motion.div>
+
+        {/* Footer with Terms & Conditions */}
+        <div className="text-center mt-16 py-8 border-t border-white/10">
+          <Link
+            href="/diwali/terms"
+            className="text-gray-400 hover:text-white transition-colors underline text-sm"
+          >
+            Terms & Conditions
+          </Link>
+          <p className="text-gray-500 text-xs mt-2">© 2025 Slanup. All rights reserved.</p>
+        </div>
       </div>
 
       {/* Media Lightbox */}
