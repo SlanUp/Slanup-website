@@ -94,7 +94,7 @@ export default function Home() {
               Contact Us
             </Link>
           </div>
-          <p className="text-neutral-500 text-xs text-center">© 2025 Slanup (BINDU DUBEY). All rights reserved.</p>
+          <p className="text-neutral-500 text-xs text-center">© 2025 Slanup. All rights reserved.</p>
           <p className="text-neutral-400 text-xs text-center mt-1">Social Media Platform for Planning Activities with Nearby People</p>
         </div>
       </footer>

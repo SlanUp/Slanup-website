@@ -231,7 +231,7 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer */}
         <div className="text-center mt-12 text-gray-500 text-sm">
-          <p>© 2025 Slanup (BINDU DUBEY). All rights reserved.</p>
+          <p>© 2025 Slanup. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
             <a href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</a>
             <a href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</a>
