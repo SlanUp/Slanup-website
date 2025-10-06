@@ -31,6 +31,7 @@ export default function ContactPage() {
             <h2 className="text-2xl font-bold text-green-400 mb-6">Company Information</h2>
             <div className="space-y-4 text-gray-300">
               <p><strong className="text-white">Business Name:</strong> Slanup</p>
+              <p><strong className="text-white">Legal Name:</strong> BINDU DUBEY</p>
               <p><strong className="text-white">What We Do:</strong> Social Media Platform for Planning Activities with Nearby People</p>
               <p><strong className="text-white">Services:</strong> Event discovery, activity planning, event ticketing, and community connections</p>
               <p><strong className="text-white">Business Type:</strong> Technology Platform & Event Organizer</p>
@@ -197,9 +198,10 @@ export default function ContactPage() {
 
         {/* Footer */}
         <div className="text-center mt-12 text-gray-500 text-sm">
-          <p>© 2025 Slanup. All rights reserved.</p>
+          <p>© 2025 Slanup (BINDU DUBEY). All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
             <a href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</a>
+            <a href="/privacy-policy" className="hover:text-green-400 transition-colors">Privacy Policy</a>
             <a href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</a>
           </div>
         </div>

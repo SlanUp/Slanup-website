@@ -76,6 +76,12 @@ export default function Home() {
               Terms & Conditions
             </Link>
             <Link
+              href="/privacy-policy"
+              className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
+            >
+              Privacy Policy
+            </Link>
+            <Link
               href="/refund-policy"
               className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
             >
@@ -88,7 +94,7 @@ export default function Home() {
               Contact Us
             </Link>
           </div>
-          <p className="text-neutral-500 text-xs text-center">© 2025 Slanup. All rights reserved.</p>
+          <p className="text-neutral-500 text-xs text-center">© 2025 Slanup (BINDU DUBEY). All rights reserved.</p>
           <p className="text-neutral-400 text-xs text-center mt-1">Social Media Platform for Planning Activities with Nearby People</p>
         </div>
       </footer>
