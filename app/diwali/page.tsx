@@ -295,26 +295,12 @@ export default function EventPage() {
 
         {/* Footer with Legal Links */}
         <div className="text-center mt-16 py-8 border-t border-white/10">
-          <div className="flex flex-wrap justify-center gap-6 mb-4">
-            <Link
-              href="/diwali/terms"
-              className="text-gray-400 hover:text-amber-400 transition-colors underline text-sm font-medium"
-            >
-              Event Terms & Conditions
-            </Link>
-            <Link
-              href="/refund-policy"
-              className="text-gray-400 hover:text-amber-400 transition-colors underline text-sm font-medium"
-            >
-              Refund Policy
-            </Link>
-            <Link
-              href="/contact"
-              className="text-gray-400 hover:text-amber-400 transition-colors underline text-sm font-medium"
-            >
-              Contact Us
-            </Link>
-          </div>
+          <Link
+            href="/diwali/terms"
+            className="text-gray-400 hover:text-amber-400 transition-colors underline text-sm font-medium inline-block mb-4"
+          >
+            Event Terms & Conditions
+          </Link>
           <p className="text-gray-500 text-xs">© 2025 Slanup. All rights reserved.</p>
           <p className="text-gray-600 text-xs mt-1">Social Media Platform for Planning Activities with Nearby People</p>
         </div>

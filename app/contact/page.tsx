@@ -105,7 +105,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold text-white mb-2">Location</h3>
                   <p className="text-gray-300">
-                    Bhopal, Madhya Pradesh<br />
+                    Jabalpur, Madhya Pradesh<br />
                     India
                   </p>
                 </div>

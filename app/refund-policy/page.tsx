@@ -32,18 +32,15 @@ export default function RefundPolicyPage() {
               <div className="text-gray-300 space-y-3">
                 <p><strong className="text-white">Service Provider:</strong> Slanup</p>
                 <p><strong className="text-white">Primary Business:</strong> Social Media Platform for Planning Activities with Nearby People</p>
-                <p><strong className="text-white">Services Covered:</strong> Event ticketing, activity planning, and event organization</p>
-                <p className="text-sm text-green-200 mt-4">
-                  <strong>Note:</strong> This is our general refund policy. Specific events may have additional terms. Always check the event-specific refund policy when purchasing tickets.
-                </p>
+                <p><strong className="text-white">Services Covered:</strong> All event ticketing, activity planning, and event organization services</p>
               </div>
             </section>
 
-            {/* General Refund Policy */}
+            {/* Refund Policy */}
             <section className="bg-red-500/10 border border-red-500/30 rounded-xl p-6">
-              <h2 className="text-2xl font-bold text-red-400 mb-4">General Refund Policy</h2>
+              <h2 className="text-2xl font-bold text-red-400 mb-4">No Refund Policy</h2>
               <p className="text-gray-300 leading-relaxed mb-4">
-                <strong className="text-white">Generally, all ticket sales are final and non-refundable.</strong> Once a ticket is purchased, refunds are typically not issued for:
+                <strong className="text-white">All ticket sales are final and non-refundable.</strong> Once a ticket is purchased, no refunds will be issued under any circumstances, including but not limited to:
               </p>
               <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
                 <li>Change of mind or plans</li>
@@ -54,9 +51,6 @@ export default function RefundPolicyPage() {
                 <li>Being denied entry due to not meeting event requirements (age, dress code, etc.)</li>
                 <li>Being removed from the event due to misconduct or policy violations</li>
               </ul>
-              <p className="text-gray-300 leading-relaxed mt-4">
-                <strong className="text-white">Event-Specific Terms:</strong> Some events may have different refund policies. Always check the specific event&apos;s refund terms before purchasing.
-              </p>
             </section>
 
             {/* Cancellation by Organizer */}
@@ -135,7 +129,7 @@ export default function RefundPolicyPage() {
                 <li><strong className="text-white">Refund Initiation:</strong> Within 3-5 business days of approval</li>
                 <li><strong className="text-white">Credit to Bank Account:</strong> 7-14 business days (depending on your bank)</li>
                 <li><strong className="text-white">Refund Method:</strong> Original payment method used for purchase</li>
-                <li><strong className="text-white">Refund Amount:</strong> Full ticket price (₹1,737) including gateway fees</li>
+                <li><strong className="text-white">Refund Amount:</strong> Full ticket price including gateway fees</li>
               </ul>
             </section>
 
