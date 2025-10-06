@@ -193,9 +193,6 @@ function PaymentSuccessContent() {
             WUHUUUUU! 🎉
           </h1>
           <p className="text-lg sm:text-xl text-yellow-400 font-semibold">Payment Successful! ✨</p>
-          <p className="text-sm sm:text-base text-gray-300 mt-4 px-4">
-            Tickets have been mailed to your email ID. Please also check spam if it ain&apos;t in your inbox.
-          </p>
         </motion.div>
 
         {/* Booking Reference Component */}
