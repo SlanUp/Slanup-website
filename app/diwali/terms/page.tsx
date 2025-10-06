@@ -26,6 +26,24 @@ export default function TermsPage() {
         >
           <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 space-y-8">
             
+            {/* Service Provider & Details */}
+            <section className="bg-gradient-to-r from-amber-400/10 to-amber-600/10 border border-amber-400/30 rounded-xl p-6">
+              <h2 className="text-2xl font-bold text-amber-400 mb-4">Service Provider & Details</h2>
+              <div className="space-y-3 text-gray-300">
+                <p><strong className="text-white">Service Provider:</strong> Slanup</p>
+                <p><strong className="text-white">Primary Business:</strong> Social Media Platform for Planning Activities with Nearby People</p>
+                <p><strong className="text-white">This Service:</strong> Event Ticketing - BYOB Diwali Party 2025</p>
+                <p><strong className="text-white">Business Category:</strong> Technology Platform & Event Management</p>
+                <p><strong className="text-white">Event Date:</strong> October 18, 2025</p>
+                <p><strong className="text-white">Ticket Price:</strong> ₹1,699 per person</p>
+                <p><strong className="text-white">Payment Gateway Fee:</strong> ₹38 per transaction (2.24%)</p>
+                <p><strong className="text-white">Total Amount Payable:</strong> ₹1,737 (inclusive of all charges)</p>
+                <p className="text-sm text-amber-200 mt-4">
+                  <strong>What&apos;s Included:</strong> Entry to BYOB Diwali Party, unlimited food and non-alcoholic beverages, entertainment, music, mixers, ice, and soft drinks.
+                </p>
+              </div>
+            </section>
+
             {/* 1. Acceptance */}
             <section>
               <h2 className="text-2xl font-bold text-amber-400 mb-4">1. Acceptance of Terms</h2>

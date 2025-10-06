@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import Header from "@/components/Header";
 import MarqueeRow from "@/components/MarqueeRow";
 import WaitlistForm from "@/components/WaitlistForm";
@@ -63,6 +64,34 @@ export default function Home() {
 
       {/* Bottom gradient blur */}
       <div className="fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white  via-white/80  to-transparent pointer-events-none z-10"></div>
+
+      {/* Footer */}
+      <footer className="relative z-20 bg-white border-t border-neutral-200 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-6 mb-4">
+            <Link
+              href="/terms"
+              className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
+            >
+              Terms & Conditions
+            </Link>
+            <Link
+              href="/refund-policy"
+              className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
+            >
+              Refund Policy
+            </Link>
+            <Link
+              href="/contact"
+              className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
+            >
+              Contact Us
+            </Link>
+          </div>
+          <p className="text-neutral-500 text-xs text-center">© 2025 Slanup. All rights reserved.</p>
+          <p className="text-neutral-400 text-xs text-center mt-1">Social Media Platform for Planning Activities with Nearby People</p>
+        </div>
+      </footer>
 
       <WaitlistForm
         isOpen={isWaitlistOpen}
