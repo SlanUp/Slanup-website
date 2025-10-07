@@ -61,28 +61,24 @@ export interface InviteCodeStatus {
 
 // Event Configuration
 export const DIWALI_EVENT_CONFIG = {
-  name: "Slanup's BYOB Diwali Party 2025",
+  name: "Slanup's Diwali Party 2025",
   date: new Date('2025-10-18'), // 18th October 2025
   venue: "TBD", // Update with actual venue
   ticketTypes: [
     {
       id: 'ultimate',
-      name: 'ULTIMATE PARTY EXPERIENCE',
+      name: 'DIWALI CELEBRATION',
       price: 1699,
-      description: 'The most INSANE Diwali party experience you\'ll ever have! 🔥',
+      description: 'A warm and memorable Diwali celebration experience 🪔',
       benefits: [
-        '🍽️ UNLIMITED Food & Beverages',
-        '🎲 Crazy Rules & Games (Prepare to get WASTED!)',
-        '✨ Breathtaking Luxury Decor',
-        '🏛️ Premium Luxurious Venue',
-        '👫 Perfect Balanced Crowd Ratio',
-        '🎧 Professional DJ All Night Long',
-        '🎯 Exclusive Game Booths & Setups',
-        '🍹 Complimentary Welcome Cocktail/Mocktail',
-        '🍾 BYOB - Bring Your Own Booze',
-        '🥤 All Sides & Mixers Provided',
-        '📸 Instagram-Worthy Photo Opportunities',
-        '🎊 Unforgettable Memories Guaranteed'
+        '✨ Beautiful Festive Decor',
+        '🏛️ Comfortable Venue',
+        '🎧 Professional DJ & Music',
+        '🎯 Fun Games & Activities',
+        '📸 Photo Opportunities',
+        '🎊 Memorable Evening',
+        '🪔 Traditional Diwali Ambiance',
+        '🎨 Cultural Activities'
       ],
       available: true,
       maxQuantity: 1

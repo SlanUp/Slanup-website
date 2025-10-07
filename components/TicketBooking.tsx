@@ -201,12 +201,12 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <span className="text-2xl mr-2">🔥</span>
-              <h2 className="text-3xl font-bold text-white">GET READY TO PARTY!</h2>
-              <span className="text-2xl ml-2">🔥</span>
+              <span className="text-2xl mr-2">🪔</span>
+              <h2 className="text-3xl font-bold text-white">Join Our Diwali Celebration</h2>
+              <span className="text-2xl ml-2">🪔</span>
             </div>
-            <p className="text-gray-300">The most INSANE Diwali experience awaits you!</p>
-            <p className="text-yellow-400 font-bold mt-2">LET&apos;S PARTYYYYYYYYY! 🎉</p>
+            <p className="text-gray-300">A warm and memorable Diwali experience awaits you!</p>
+            <p className="text-yellow-400 font-bold mt-2">Celebrate with us! ✨</p>
           </div>
 
           {/* Single Ticket Experience */}

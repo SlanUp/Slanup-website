@@ -13,7 +13,7 @@ export default function TermsPage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Terms & Conditions</h1>
-          <p className="text-gray-400">Slanup&apos;s BYOB Diwali Party 2025</p>
+          <p className="text-gray-400">Slanup&apos;s Diwali Party 2025</p>
           <p className="text-gray-500 text-sm mt-2">Last Updated: October 2025</p>
         </motion.div>
 
@@ -32,14 +32,14 @@ export default function TermsPage() {
               <div className="space-y-3 text-gray-300">
                 <p><strong className="text-white">Service Provider:</strong> Slanup</p>
                 <p><strong className="text-white">Primary Business:</strong> Social Media Platform for Planning Activities with Nearby People</p>
-                <p><strong className="text-white">This Service:</strong> Event Ticketing - BYOB Diwali Party 2025</p>
+                <p><strong className="text-white">This Service:</strong> Event Ticketing - Diwali Party 2025</p>
                 <p><strong className="text-white">Business Category:</strong> Technology Platform & Event Management</p>
                 <p><strong className="text-white">Event Date:</strong> October 18, 2025</p>
                 <p><strong className="text-white">Ticket Price:</strong> ₹1,699 per person</p>
                 <p><strong className="text-white">Payment Gateway Fee:</strong> ₹38 per transaction (2.24%)</p>
                 <p><strong className="text-white">Total Amount Payable:</strong> ₹1,737 (inclusive of all charges)</p>
                 <p className="text-sm text-amber-200 mt-4">
-                  <strong>What&apos;s Included:</strong> Entry to BYOB Diwali Party, unlimited food and non-alcoholic beverages, entertainment, music, mixers, ice, and soft drinks.
+                  <strong>What&apos;s Included:</strong> Entry to Diwali Party 2025, entertainment, and music.
                 </p>
               </div>
             </section>
@@ -48,7 +48,7 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-amber-400 mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-300 leading-relaxed">
-                By purchasing a ticket and attending Slanup&apos;s BYOB Diwali Party 2025 (&quot;the Event&quot;), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not purchase a ticket or attend the Event.
+                By purchasing a ticket and attending Slanup&apos;s Diwali Party 2025 (&quot;the Event&quot;), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not purchase a ticket or attend the Event.
               </p>
             </section>
 
@@ -77,19 +77,6 @@ export default function TermsPage() {
               </ul>
             </section>
 
-            {/* 4. BYOB Policy */}
-            <section>
-              <h2 className="text-2xl font-bold text-amber-400 mb-4">4. BYOB (Bring Your Own Booze) Policy</h2>
-              <p className="text-gray-300 leading-relaxed mb-2">
-                Attendees are permitted to bring their own alcoholic beverages, subject to the following:
-              </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
-                <li>All beverages must comply with local laws and venue regulations</li>
-                <li>Mixers, ice, and soft drinks will be provided by the organizers</li>
-                <li>Responsible consumption is mandatory; excessive intoxication may result in removal</li>
-                <li>Outside food is not permitted unless specified by organizers</li>
-              </ul>
-            </section>
 
             {/* 5. Behavior & Conduct */}
             <section>
@@ -118,16 +105,6 @@ export default function TermsPage() {
               </ul>
             </section>
 
-            {/* 7. Food & Beverages */}
-            <section>
-              <h2 className="text-2xl font-bold text-amber-400 mb-4">7. Food & Beverages Provided</h2>
-              <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
-                <li>Unlimited food and non-alcoholic beverages included in ticket price</li>
-                <li>Menu is subject to change based on availability</li>
-                <li>Special dietary requirements: Contact organizers in advance (no guarantees)</li>
-                <li>Outside food is not permitted except for medical/dietary reasons (with prior approval)</li>
-              </ul>
-            </section>
 
             {/* 8. Cancellation & Refunds */}
             <section>
