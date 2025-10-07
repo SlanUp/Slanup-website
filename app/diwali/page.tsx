@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lock, Play } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
@@ -20,20 +19,15 @@ const GALLERY_ITEMS = [
   { type: "image", url: "/Gallery/diwali-party24/IMG_3379_Original.jpg", title: "Celebration" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_2027_Original.jpg", title: "Friends" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3368_Original.jpg", title: "Night Out" },
-  { type: "image", url: "/Gallery/diwali-party24/IMG_3360_Original.jpg", title: "Memories" },
-  { type: "image", url: "/Gallery/diwali-party24/IMG_3354_Original.jpg", title: "Group Photo" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3343_Original.jpg", title: "Fun Times" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3337_Original.jpg", title: "Squad Goals" },
-  { type: "image", url: "/Gallery/diwali-party24/IMG_3333_Original.jpg", title: "Night Life" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3330_Original.jpg", title: "Cheers" },
-  { type: "image", url: "/Gallery/diwali-party24/IMG_3323_Original.jpg", title: "Together" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3311_Original.jpg", title: "Smiles" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3310_Original.jpg", title: "Laughter" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3306_Original.jpg", title: "Pure Joy" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3302_Original.jpg", title: "Crew" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3301_Original.jpg", title: "Good Vibes" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3300_Original.jpg", title: "Diwali Magic" },
-  { type: "image", url: "/Gallery/diwali-party24/IMG_3297_Original.jpg", title: "Party People" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_7889_Original.jpg", title: "Unforgettable" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3281_Original.jpg", title: "Best Night" },
   { type: "image", url: "/Gallery/diwali-party24/IMG_3272_Original.jpg", title: "Friends Forever" },
@@ -268,12 +262,11 @@ export default function EventPage() {
                 className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group"
               >
                 {item.type === "image" ? (
-                  <Image
+                  <img
                     src={item.url}
                     alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    loading="lazy"
                   />
                 ) : (
                   <>
@@ -324,12 +317,10 @@ export default function EventPage() {
               onClick={(e) => e.stopPropagation()}
             >
               {GALLERY_ITEMS[selectedMedia].type === "image" ? (
-                <Image
+                <img
                   src={GALLERY_ITEMS[selectedMedia].url}
                   alt={GALLERY_ITEMS[selectedMedia].title}
-                  fill
-                  className="object-contain"
-                  sizes="100vw"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <video
