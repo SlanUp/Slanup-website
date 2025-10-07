@@ -37,7 +37,7 @@ export default function Home() {
           transition={{ duration: 0.7, delay: 0.1 }}
           className="text-4xl md:text-5xl font-bold my-3 md:my-4 text-[var(--brand-green)]"
         >
-          plans
+          events/plans
         </motion.h2>
 
         <motion.button
