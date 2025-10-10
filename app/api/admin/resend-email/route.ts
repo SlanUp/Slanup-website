@@ -41,6 +41,11 @@ export async function POST(request: Request) {
       emailSent: booking.emailSent
     });
     
+    // Warning if email was already sent
+    if (booking.emailSent) {
+      console.warn('[Admin] ⚠️ WARNING: Email was already sent for this booking. Resending anyway (manual override).');
+    }
+    
     // Send email
     console.log('[Admin] Sending ticket email...');
     const emailSent = await sendTicketEmail(booking);

@@ -239,38 +239,45 @@ export async function updateBookingPaymentStatus(
     
     // Automatically send emails when payment status changes
     if (updatedBooking && status === 'completed') {
-      console.log('📧 Payment completed - triggering ticket email for:', bookingId);
+      console.log('📧 Payment completed - checking if ticket email needed for:', bookingId);
       
-      try {
-        // Send email asynchronously (don't block the response)
-        sendTicketEmail(updatedBooking)
-          .then(async (sent) => {
-            if (sent) {
-              console.log('✅ Ticket email sent automatically for booking:', bookingId);
-              // Mark email as sent in database
-              await markEmailAsSent(bookingId);
-              console.log('✅ Email marked as sent in database');
-            } else {
-              console.error('❌ Failed to send ticket email for booking:', bookingId);
-            }
-          })
-          .catch(error => {
-            console.error('❌ Error in sendTicketEmail promise:', error);
-            console.error('❌ Error stack:', error.stack);
-          });
+      // CRITICAL: Check if email was already sent to prevent duplicates
+      if (updatedBooking.emailSent) {
+        console.log('⏭️ Email already sent for booking:', bookingId, '- skipping duplicate send');
+      } else {
+        console.log('📧 Email not sent yet - triggering ticket email for:', bookingId);
         
-        // Update Google Sheets asynchronously (don't block the response)
-        updateSheetAfterPayment(updatedBooking)
-          .then(() => {
-            console.log('✅ Google Sheet update triggered for booking:', bookingId);
-          })
-          .catch(error => {
-            console.error('❌ Error updating Google Sheet:', error);
-          });
-      } catch (error) {
-        console.error('❌ Error calling sendTicketEmail:', error);
-        console.error('❌ Error type:', typeof error);
-        console.error('❌ Error details:', JSON.stringify(error, null, 2));
+        try {
+          // Send email asynchronously (don't block the response)
+          sendTicketEmail(updatedBooking)
+            .then(async (sent) => {
+              if (sent) {
+                console.log('✅ Ticket email sent automatically for booking:', bookingId);
+                // Mark email as sent in database
+                await markEmailAsSent(bookingId);
+                console.log('✅ Email marked as sent in database');
+              } else {
+                console.error('❌ Failed to send ticket email for booking:', bookingId);
+              }
+            })
+            .catch(error => {
+              console.error('❌ Error in sendTicketEmail promise:', error);
+              console.error('❌ Error stack:', error.stack);
+            });
+          
+          // Update Google Sheets asynchronously (don't block the response)
+          updateSheetAfterPayment(updatedBooking)
+            .then(() => {
+              console.log('✅ Google Sheet update triggered for booking:', bookingId);
+            })
+            .catch(error => {
+              console.error('❌ Error updating Google Sheet:', error);
+            });
+        } catch (error) {
+          console.error('❌ Error calling sendTicketEmail:', error);
+          console.error('❌ Error type:', typeof error);
+          console.error('❌ Error details:', JSON.stringify(error, null, 2));
+        }
       }
     }
     
