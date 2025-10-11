@@ -6,7 +6,7 @@ export interface Booking {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
-  ticketType: 'regular' | 'premium' | 'vip';
+  ticketType: 'regular' | 'premium' | 'vip' | 'ultimate' | 'standard' | 'couple';
   ticketCount: number;
   totalAmount: number;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';

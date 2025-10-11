@@ -248,35 +248,28 @@ export async function updateBookingPaymentStatus(
         console.log('📧 Email not sent yet - triggering ticket email for:', bookingId);
         
         try {
-          // Send email asynchronously (don't block the response)
-          sendTicketEmail(updatedBooking)
-            .then(async (sent) => {
-              if (sent) {
-                console.log('✅ Ticket email sent automatically for booking:', bookingId);
-                // Mark email as sent in database
-                await markEmailAsSent(bookingId);
-                console.log('✅ Email marked as sent in database');
-              } else {
-                console.error('❌ Failed to send ticket email for booking:', bookingId);
-              }
-            })
-            .catch(error => {
-              console.error('❌ Error in sendTicketEmail promise:', error);
-              console.error('❌ Error stack:', error.stack);
-            });
+          // PROPERLY AWAIT email sending to ensure it completes before function terminates
+          console.log('📧 Awaiting ticket email send...');
+          const emailSent = await sendTicketEmail(updatedBooking);
           
-          // Update Google Sheets asynchronously (don't block the response)
-          updateSheetAfterPayment(updatedBooking)
-            .then(() => {
-              console.log('✅ Google Sheet update triggered for booking:', bookingId);
-            })
-            .catch(error => {
-              console.error('❌ Error updating Google Sheet:', error);
-            });
+          if (emailSent) {
+            console.log('✅ Ticket email sent successfully for booking:', bookingId);
+            // Mark email as sent in database
+            await markEmailAsSent(bookingId);
+            console.log('✅ Email marked as sent in database');
+          } else {
+            console.error('❌ Failed to send ticket email for booking:', bookingId);
+          }
+          
+          // PROPERLY AWAIT Google Sheets update to ensure it completes
+          console.log('📊 Awaiting Google Sheet update...');
+          await updateSheetAfterPayment(updatedBooking);
+          console.log('✅ Google Sheet updated successfully for booking:', bookingId);
+          
         } catch (error) {
-          console.error('❌ Error calling sendTicketEmail:', error);
-          console.error('❌ Error type:', typeof error);
-          console.error('❌ Error details:', JSON.stringify(error, null, 2));
+          console.error('❌ Error sending email or updating sheet:', error);
+          console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+          // Don't throw - we still want to return the updated booking even if email/sheet fails
         }
       }
     }
