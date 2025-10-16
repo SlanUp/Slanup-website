@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Lock, Play, Users } from "lucide-react";
+import { Sparkles, Lock, Play } from "lucide-react";
 import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
@@ -139,38 +139,7 @@ export default function EventPage() {
               Diwali Party
             </h1>
           </div>
-          {/* Gender Ratio Display - Subtle Design */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="mt-6 flex flex-col items-center gap-3"
-          >
-            {/* Title */}
-            <p className="text-sm text-gray-500 uppercase tracking-widest">Current Booking Ratio</p>
-            
-            {/* Ratio Display */}
-            <div className="flex items-center gap-6 bg-white/5 backdrop-blur-sm rounded-full px-8 py-3 border border-white/10">
-              {/* Female Ratio */}
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500/20 to-yellow-600/20 flex items-center justify-center">
-                  <span className="text-amber-400 text-lg">👩</span>
-                </div>
-                <span className="text-lg font-semibold text-amber-400/90">57%</span>
-              </div>
-              
-              {/* Divider */}
-              <div className="w-px h-6 bg-white/20"></div>
-              
-              {/* Male Ratio */}
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-semibold text-amber-400/90">43%</span>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500/20 to-yellow-600/20 flex items-center justify-center">
-                  <span className="text-amber-400 text-lg">👨</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          <p className="text-xl md:text-2xl text-gray-300 mt-4">Diwali 2025 🪔</p>
         </motion.div>
 
         {/* Invite Code Section - Always on top */}
