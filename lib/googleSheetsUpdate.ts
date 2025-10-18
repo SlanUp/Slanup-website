@@ -10,6 +10,7 @@ interface SheetUpdateData {
   referenceNumber: string;
   transactionId: string;
   bookingDate: string;
+  checkedIn?: string;  // Optional field for check-in status
 }
 
 export async function updateGoogleSheet(data: SheetUpdateData): Promise<boolean> {
@@ -45,7 +46,7 @@ export async function updateGoogleSheet(data: SheetUpdateData): Promise<boolean>
   }
 }
 
-// Update sheet after successful payment
+// Update sheet after successful payment or check-in
 export async function updateSheetAfterPayment(booking: {
   inviteCode: string;
   customerEmail: string;
@@ -54,6 +55,7 @@ export async function updateSheetAfterPayment(booking: {
   referenceNumber: string;
   id: string;
   updatedAt?: Date;
+  checkedIn?: boolean | string;  // Added for check-in updates
 }): Promise<void> {
   try {
     const updateData: SheetUpdateData = {
@@ -63,7 +65,8 @@ export async function updateSheetAfterPayment(booking: {
       paymentStatus: booking.paymentStatus,
       referenceNumber: booking.referenceNumber,
       transactionId: booking.id,
-      bookingDate: booking.updatedAt?.toISOString() || new Date().toISOString()
+      bookingDate: booking.updatedAt?.toISOString() || new Date().toISOString(),
+      checkedIn: booking.checkedIn ? (typeof booking.checkedIn === 'string' ? booking.checkedIn : 'Yes') : undefined
     };
     
     const success = await updateGoogleSheet(updateData);

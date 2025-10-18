@@ -1,9 +1,8 @@
 /**
- * Script to create complimentary (free) tickets for VIP guests
- * This creates a booking with 'completed' status, sends ticket email, and updates Google Sheet
- * Usage: npx ts-node scripts/create-complimentary-ticket.ts
+ * Script to delete test bookings and recreate with correct guest information
  */
 
+import { sql } from '@vercel/postgres';
 import * as db from '../lib/db';
 import { sendTicketEmail } from '../lib/emailService';
 import { updateSheetAfterPayment } from '../lib/googleSheetsUpdate';
@@ -24,43 +23,52 @@ function generateTransactionId(): string {
   return `TXN${timestamp}${random}`;
 }
 
-interface GuestData {
-  inviteCode: string;
-  name: string;
-  email: string;
-  phone: string;
+async function deleteExistingBookings() {
+  console.log('\n📝 Deleting existing test bookings...\n');
+  
+  try {
+    // Delete bookings for G11-ABL-1 and G11-ABL-2
+    const result1 = await sql`
+      DELETE FROM bookings 
+      WHERE invite_code = 'G11-ABL-1'
+    `;
+    console.log(`✅ Deleted bookings for G11-ABL-1: ${result1.rowCount} rows`);
+    
+    const result2 = await sql`
+      DELETE FROM bookings 
+      WHERE invite_code = 'G11-ABL-2'
+    `;
+    console.log(`✅ Deleted bookings for G11-ABL-2: ${result2.rowCount} rows`);
+    
+  } catch (error) {
+    console.error('❌ Error deleting bookings:', error);
+    throw error;
+  }
 }
 
-async function createComplimentaryTicket(guest: GuestData): Promise<void> {
+async function createComplimentaryTicket(
+  inviteCode: string,
+  name: string,
+  email: string,
+  phone: string
+) {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`🎫 Creating complimentary ticket for: ${guest.name}`);
+  console.log(`🎫 Creating complimentary ticket for: ${name}`);
   console.log(`${'='.repeat(60)}\n`);
 
   try {
-    // Check if invite code already has a booking
-    const existingBooking = await db.getBookingByInviteCode(guest.inviteCode);
-    if (existingBooking) {
-      console.log(`⚠️  WARNING: Invite code ${guest.inviteCode} already has a booking!`);
-      console.log(`   Existing booking ID: ${existingBooking.id}`);
-      console.log(`   Customer: ${existingBooking.customerName}`);
-      console.log(`   Status: ${existingBooking.paymentStatus}`);
-      console.log(`\n❌ SKIPPING - Please use a different invite code or delete the existing booking.\n`);
-      return;
-    }
-
-    // Create the complimentary booking
     const now = new Date();
     const booking: Booking = {
       id: generateTransactionId(),
-      inviteCode: guest.inviteCode.trim().toUpperCase(),
-      customerName: guest.name,
-      customerEmail: guest.email,
-      customerPhone: guest.phone,
+      inviteCode: inviteCode.trim().toUpperCase(),
+      customerName: name,
+      customerEmail: email,
+      customerPhone: phone,
       ticketType: 'ultimate',
       ticketCount: 1,
       totalAmount: 0, // Complimentary - no payment
       paymentStatus: 'completed', // Mark as completed
-      paymentMethod: 'cash', // Use 'cash' to indicate complimentary
+      paymentMethod: 'complimentary', // Clear indication this is complimentary
       referenceNumber: generateReferenceNumber(),
       cashfreeOrderId: 'COMPLIMENTARY',
       cashfreePaymentId: 'COMPLIMENTARY',
@@ -76,6 +84,7 @@ async function createComplimentaryTicket(guest: GuestData): Promise<void> {
     console.log(`   Invite Code: ${booking.inviteCode}`);
     console.log(`   Reference: ${booking.referenceNumber}`);
     console.log(`   Email: ${booking.customerEmail}`);
+    console.log(`   Phone: ${booking.customerPhone}`);
 
     // Insert booking into database
     console.log(`\n💾 Inserting booking into database...`);
@@ -83,7 +92,7 @@ async function createComplimentaryTicket(guest: GuestData): Promise<void> {
     console.log(`✅ Booking saved to database`);
 
     // Send ticket email
-    console.log(`\n📧 Sending ticket email to ${guest.email}...`);
+    console.log(`\n📧 Sending ticket email to ${email}...`);
     const emailSent = await sendTicketEmail(booking);
     
     if (emailSent) {
@@ -109,58 +118,48 @@ async function createComplimentaryTicket(guest: GuestData): Promise<void> {
     console.log(`✅ COMPLIMENTARY TICKET CREATED SUCCESSFULLY!`);
     console.log(`${'='.repeat(60)}\n`);
 
+    return booking;
+
   } catch (error) {
     console.error(`\n❌ Error creating complimentary ticket:`, error);
     throw error;
   }
 }
 
-// Main function to process multiple guests
 async function main() {
-  console.log(`\n🎉 COMPLIMENTARY TICKET CREATOR 🎉\n`);
+  console.log(`\n🎉 FIXING COMPLIMENTARY TICKETS FOR DEEPAK & RITIKA 🎉\n`);
 
-  // Define your VIP guests here
-  const vipGuests: GuestData[] = [
-    {
-      inviteCode: 'G12-RIS-4',
-      name: 'Rishi Vishwakarma',
-      email: 'Rishivishwakarma557@gmail.com',
-      phone: '6265393433'
-    },
-    {
-      inviteCode: 'G12-RAJ-5',
-      name: 'Sanskar Mishra',
-      email: 'Sanskarigrapher@gmail.com',
-      phone: '9174334688'
-    }
-  ];
-
-  if (vipGuests.length === 0) {
-    console.log(`⚠️  No guests defined!`);
-    console.log(`\nPlease edit this script and add guest data to the vipGuests array.`);
-    console.log(`Example:`);
-    console.log(`  {`);
-    console.log(`    inviteCode: 'G1-VIP-1',`);
-    console.log(`    name: 'John Doe',`);
-    console.log(`    email: 'john.doe@example.com',`);
-    console.log(`    phone: '9876543210'`);
-    console.log(`  }\n`);
+  try {
+    // First, delete existing test bookings
+    await deleteExistingBookings();
+    
+    console.log('\n✨ Now creating correct tickets...\n');
+    
+    // Create ticket for Deepak Jagwani
+    await createComplimentaryTicket(
+      'G11-ABL-1',
+      'Deepak Jagwani',
+      'Deepakjagwani6@gmail.com',
+      '7000473748'
+    );
+    
+    // Create ticket for Ritika Kewalramani
+    await createComplimentaryTicket(
+      'G11-ABL-2',
+      'Ritika Kewalramani',
+      'Djablazelive@gmail.com',
+      '7000473748'
+    );
+    
+    console.log(`\n✨ All done! Both tickets created successfully.\n`);
+    console.log(`📧 Emails have been sent to:`);
+    console.log(`   • Deepakjagwani6@gmail.com`);
+    console.log(`   • Djablazelive@gmail.com\n`);
+    
+  } catch (error) {
+    console.error('❌ Script failed:', error);
     process.exit(1);
   }
-
-  console.log(`📋 Processing ${vipGuests.length} VIP guest(s)...\n`);
-
-  // Process each guest
-  for (const guest of vipGuests) {
-    try {
-      await createComplimentaryTicket(guest);
-    } catch (error) {
-      console.error(`❌ Failed to process guest ${guest.name}:`, error);
-      // Continue with next guest
-    }
-  }
-
-  console.log(`\n✨ All done! Processed ${vipGuests.length} guest(s).\n`);
 }
 
 // Run the script

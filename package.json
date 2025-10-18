@@ -7,7 +7,9 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test-email": "node scripts/test-email.js"
+    "test-email": "node scripts/test-email.js",
+    "migrate": "node scripts/run-migration.js",
+    "generate-test-qr": "node scripts/generate-test-qr.js"
   },
   "dependencies": {
     "@react-email/components": "^0.5.5",
@@ -15,6 +17,7 @@
     "@types/qrcode": "^1.5.5",
     "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^1.2.0",
+    "@zxing/library": "^0.21.3",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.22",
