@@ -338,14 +338,14 @@ export default function CheckInPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 pt-8"
+          className="text-center mb-6 pt-6 px-2"
         >
-          <h1 className="text-4xl font-bold mb-2">Event Check-In</h1>
-          <p className="text-gray-400">Slanup&apos;s Diwali Party 2025</p>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Event Check-In</h1>
+          <p className="text-sm sm:text-base text-gray-400">Slanup&apos;s Diwali Party 2025</p>
         </motion.div>
 
         {/* Mode Selection */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-4">
           <button
             onClick={async () => {
               setScanMode("qr");
@@ -354,14 +354,14 @@ export default function CheckInPage() {
               await new Promise(resolve => setTimeout(resolve, 50));
               startQRScanner();
             }}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center ${
               scanMode === "qr"
                 ? "bg-amber-400 text-slate-900"
                 : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
-            <QrCode className="inline w-5 h-5 mr-2" />
-            Scan QR Code
+            <QrCode className="w-5 h-5 mr-2" />
+            <span className="text-sm sm:text-base">Scan QR Code</span>
           </button>
           
           <button
@@ -370,14 +370,14 @@ export default function CheckInPage() {
               setWasScanned(false);
               stopQRScanner();
             }}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center ${
               scanMode === "manual"
                 ? "bg-amber-400 text-slate-900"
                 : "bg-white/10 text-white hover:bg-white/20"
             }`}
           >
-            <Keyboard className="inline w-5 h-5 mr-2" />
-            Manual Entry
+            <Keyboard className="w-5 h-5 mr-2" />
+            <span className="text-sm sm:text-base">Manual Entry</span>
           </button>
         </div>
 
@@ -385,26 +385,26 @@ export default function CheckInPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 mb-8"
+          className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-white/10 mb-6 sm:mb-8 mx-2"
         >
           {scanMode === "qr" ? (
             <div className="text-center">
-              <div className="relative inline-block">
+              <div className="relative inline-block w-full">
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full max-w-md mx-auto rounded-xl mb-4"
-                  style={{ maxHeight: '400px' }}
+                  className="w-full max-w-md mx-auto rounded-lg sm:rounded-xl mb-4"
+                  style={{ maxHeight: '400px', height: '300px', objectFit: 'cover' }}
                 />
                 {/* QR Code targeting overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-48 h-48 border-2 border-amber-400 rounded-lg">
-                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-amber-400 rounded-tl-lg"></div>
-                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-amber-400 rounded-tr-lg"></div>
-                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-amber-400 rounded-bl-lg"></div>
-                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-amber-400 rounded-br-lg"></div>
+                  <div className="w-40 h-40 sm:w-48 sm:h-48 border-2 border-amber-400 rounded-lg">
+                    <div className="absolute top-0 left-0 w-5 h-5 sm:w-6 sm:h-6 border-t-4 border-l-4 border-amber-400 rounded-tl-lg"></div>
+                    <div className="absolute top-0 right-0 w-5 h-5 sm:w-6 sm:h-6 border-t-4 border-r-4 border-amber-400 rounded-tr-lg"></div>
+                    <div className="absolute bottom-0 left-0 w-5 h-5 sm:w-6 sm:h-6 border-b-4 border-l-4 border-amber-400 rounded-bl-lg"></div>
+                    <div className="absolute bottom-0 right-0 w-5 h-5 sm:w-6 sm:h-6 border-b-4 border-r-4 border-amber-400 rounded-br-lg"></div>
                   </div>
                 </div>
               </div>
@@ -422,10 +422,10 @@ export default function CheckInPage() {
                 </p>
               </div>
               
-              <div className="flex gap-4 justify-center mt-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mt-4">
                 <button
                   onClick={stopQRScanner}
-                  className="px-4 py-2 text-amber-400 hover:text-amber-300 border border-amber-400/30 rounded-lg"
+                  className="px-4 py-2 text-amber-400 hover:text-amber-300 border border-amber-400/30 rounded-lg text-sm sm:text-base"
                 >
                   Cancel Scanning
                 </button>
@@ -434,7 +434,7 @@ export default function CheckInPage() {
                     stopQRScanner();
                     setScanMode('manual');
                   }}
-                  className="px-4 py-2 bg-white/10 text-white hover:bg-white/20 rounded-lg"
+                  className="px-4 py-2 bg-white/10 text-white hover:bg-white/20 rounded-lg text-sm sm:text-base"
                 >
                   Switch to Manual
                 </button>
@@ -442,7 +442,7 @@ export default function CheckInPage() {
             </div>
           ) : (
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">
                 {wasScanned ? (
                   <span className="flex items-center gap-2">
                     🎯 QR Code Scanned Successfully
@@ -452,14 +452,14 @@ export default function CheckInPage() {
                   "Enter Reference Number (e.g., DIW123456ABCD)"
                 )}
               </label>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   value={manualCode}
                   onChange={(e) => !wasScanned && setManualCode(e.target.value.toUpperCase())}
                   onKeyPress={(e) => e.key === "Enter" && !wasScanned && handleCheckIn(manualCode)}
                   placeholder={wasScanned ? "Scanned from QR Code" : "DIW123456ABCD"}
-                  className={`flex-1 px-4 py-3 border rounded-xl font-mono text-lg focus:outline-none ${
+                  className={`w-full sm:flex-1 px-4 py-3 border rounded-lg sm:rounded-xl font-mono text-base sm:text-lg focus:outline-none ${
                     wasScanned 
                       ? 'bg-green-500/20 border-green-500/30 text-green-400 cursor-not-allowed'
                       : 'bg-white/10 border-white/20 text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-400 focus:border-transparent'
@@ -476,7 +476,7 @@ export default function CheckInPage() {
                       await new Promise(resolve => setTimeout(resolve, 50));
                       startQRScanner();
                     }}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all"
+                    className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-blue-400 to-blue-500 text-white font-bold rounded-lg sm:rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all text-sm sm:text-base"
                   >
                     📷 Scan Again
                   </button>
@@ -484,7 +484,7 @@ export default function CheckInPage() {
                   <button
                     onClick={() => handleCheckIn(manualCode)}
                     disabled={isLoading || !manualCode}
-                    className="px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold rounded-xl hover:from-amber-500 hover:to-yellow-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold rounded-lg sm:rounded-xl hover:from-amber-500 hover:to-yellow-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   >
                     {isLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -505,7 +505,7 @@ export default function CheckInPage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
+              className={`mb-6 p-3 sm:p-4 rounded-lg sm:rounded-xl flex items-start sm:items-center gap-2 sm:gap-3 mx-2 ${
                 checkInStatus === "success"
                   ? "bg-green-500/20 border border-green-500/30"
                   : checkInStatus === "error"
@@ -514,13 +514,13 @@ export default function CheckInPage() {
               }`}
             >
               {checkInStatus === "success" ? (
-                <CheckCircle className="w-6 h-6 text-green-400" />
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0" />
               ) : checkInStatus === "error" ? (
-                <XCircle className="w-6 h-6 text-red-400" />
+                <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-400 flex-shrink-0" />
               ) : (
-                <AlertCircle className="w-6 h-6 text-amber-400" />
+                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 flex-shrink-0" />
               )}
-              <span className="text-white">{statusMessage}</span>
+              <span className="text-white text-sm sm:text-base">{statusMessage}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -532,39 +532,39 @@ export default function CheckInPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10"
+              className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-white/10 mx-2"
             >
-              <h2 className="text-2xl font-bold mb-6 text-amber-400">Guest Details</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-amber-400">Guest Details</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
-                  <p className="text-gray-400 text-sm">Name</p>
-                  <p className="text-xl font-semibold">{booking.customerName}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">Name</p>
+                  <p className="text-lg sm:text-xl font-semibold break-words">{booking.customerName}</p>
                 </div>
                 
                 <div>
-                  <p className="text-gray-400 text-sm">Reference Number</p>
-                  <p className="text-xl font-mono">{booking.referenceNumber}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">Reference Number</p>
+                  <p className="text-base sm:text-xl font-mono break-all">{booking.referenceNumber}</p>
                 </div>
                 
                 <div>
-                  <p className="text-gray-400 text-sm">Email</p>
-                  <p>{booking.customerEmail}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">Email</p>
+                  <p className="text-sm sm:text-base break-all">{booking.customerEmail}</p>
                 </div>
                 
                 <div>
-                  <p className="text-gray-400 text-sm">Phone</p>
-                  <p>{booking.customerPhone}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">Phone</p>
+                  <p className="text-sm sm:text-base">{booking.customerPhone}</p>
                 </div>
                 
                 <div>
-                  <p className="text-gray-400 text-sm">Ticket Type</p>
-                  <p className="capitalize">{booking.ticketType}</p>
+                  <p className="text-gray-400 text-xs sm:text-sm">Ticket Type</p>
+                  <p className="capitalize text-sm sm:text-base">{booking.ticketType}</p>
                 </div>
                 
                 <div>
-                  <p className="text-gray-400 text-sm">Payment Status</p>
-                  <p className={`capitalize ${
+                  <p className="text-gray-400 text-xs sm:text-sm">Payment Status</p>
+                  <p className={`capitalize text-sm sm:text-base ${
                     booking.paymentStatus === "completed" ? "text-green-400" : "text-yellow-400"
                   }`}>
                     {booking.paymentStatus}
@@ -587,11 +587,11 @@ export default function CheckInPage() {
 
               {/* Action Buttons */}
               {!booking.checkedIn && (
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     onClick={handleApprove}
                     disabled={isLoading}
-                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold py-3 rounded-lg sm:rounded-xl hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
                   >
                     {isLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -606,7 +606,7 @@ export default function CheckInPage() {
                   <button
                     onClick={handleReject}
                     disabled={isLoading}
-                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white font-bold py-3 rounded-lg sm:rounded-xl hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-sm sm:text-base"
                   >
                     <UserX className="w-5 h-5" />
                     Reject
