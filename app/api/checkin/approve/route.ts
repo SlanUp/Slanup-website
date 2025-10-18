@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
-import { getInviteCodeDetails } from '@/lib/googleSheets';
-import { updateSheetAfterPayment } from '@/lib/googleSheetsUpdate';
 import { safeUpdateCheckIn } from '@/lib/safeSheetUpdate';
 
 

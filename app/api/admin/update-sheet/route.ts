@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getBookingById } from '@/lib/db';
 import { updateSheetAfterPayment } from '@/lib/googleSheetsUpdate';
 import { sql } from '@vercel/postgres';
 

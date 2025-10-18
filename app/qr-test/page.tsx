@@ -130,8 +130,8 @@ export default function QRTestPage() {
             <p>📝 <strong>Debug Steps:</strong></p>
             <ol className="list-decimal list-inside space-y-1 ml-4">
               <li>Open browser console (F12)</li>
-              <li>Click "Test ZXing Library" - should show ZXing is working</li>
-              <li>Click "Start Live QR Scan" to test real-time detection</li>
+              <li>Click &quot;Test ZXing Library&quot; - should show ZXing is working</li>
+              <li>Click &quot;Start Live QR Scan&quot; to test real-time detection</li>
               <li>Point a QR code at your camera</li>
               <li>If ZXing works here, the main check-in scanner should work too</li>
             </ol>
@@ -144,7 +144,7 @@ export default function QRTestPage() {
             </p>
             <ul className="list-disc list-inside text-sm text-gray-400 space-y-1">
               <li>Go to /checkin</li>
-              <li>Use "Manual Entry" instead of QR scan</li>
+              <li>Use &quot;Manual Entry&quot; instead of QR scan</li>
               <li>Type: DIW123456ABCD</li>
               <li>If that works, the issue is camera/video capture</li>
             </ul>

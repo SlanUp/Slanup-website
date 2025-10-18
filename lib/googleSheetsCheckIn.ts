@@ -74,7 +74,7 @@ async function fallbackUpdate(inviteCode: string): Promise<boolean> {
     const lines = csvText.split('\n');
     
     // Find the row with this invite code
-    let rowData: any = null;
+    let rowData: Record<string, string> | null = null;
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i];
       if (line.includes(inviteCode)) {

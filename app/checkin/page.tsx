@@ -340,7 +340,7 @@ export default function CheckInPage() {
           className="text-center mb-8 pt-8"
         >
           <h1 className="text-4xl font-bold mb-2">Event Check-In</h1>
-          <p className="text-gray-400">Slanup's Diwali Party 2025</p>
+          <p className="text-gray-400">Slanup&apos;s Diwali Party 2025</p>
         </motion.div>
 
         {/* Mode Selection */}
