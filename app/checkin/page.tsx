@@ -150,7 +150,8 @@ export default function CheckInPage() {
         console.log('✅ ZXing scanner started successfully');
       } catch (cameraError) {
         console.error('❌ Camera access error:', cameraError);
-        throw new Error(`Camera access failed: ${cameraError.message}`);
+        const errorMessage = cameraError instanceof Error ? cameraError.message : 'Unknown error';
+        throw new Error(`Camera access failed: ${errorMessage}`);
       }
       
     } catch (error) {

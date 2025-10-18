@@ -10,7 +10,7 @@ export interface Booking {
   ticketCount: number;
   totalAmount: number;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
-  paymentMethod: 'cashfree' | 'payu' | 'cash';
+  paymentMethod: 'cashfree' | 'payu' | 'cash' | 'complimentary';
   payuTransactionId?: string;
   payuPaymentId?: string;
   cashfreeOrderId?: string;
@@ -22,6 +22,8 @@ export interface Booking {
   eventName: string;
   emailSent?: boolean; // Track if ticket email has been sent to prevent duplicates
   expiresAt?: Date; // When pending booking expires (30 minutes from creation)
+  checkedIn?: boolean; // Track if guest has been checked in at the event
+  checkedInAt?: Date; // When the guest was checked in
 }
 
 export interface TicketType {
