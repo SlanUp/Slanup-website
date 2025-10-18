@@ -41,7 +41,7 @@ export default function QRTestPage() {
       }
       
       // Start live scanning
-      reader.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
+      reader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
         if (result) {
           setResult(`✅ QR Code detected: "${result.getText()}"`);
           console.log('✅ ZXing detected QR:', result.getText());

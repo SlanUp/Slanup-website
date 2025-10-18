@@ -86,7 +86,7 @@ export default function CheckInPage() {
       
       // Start decoding from video element with device selection
       try {
-        await reader.decodeFromVideoDevice(undefined, videoRef.current, (result, err) => {
+        await reader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
           // Immediately check if we should still process callbacks
           if (!scanCallbackRef.current) {
             console.log('🚫 Ignoring callback - scanning stopped');
