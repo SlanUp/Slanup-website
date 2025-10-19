@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Lock, Play, Download, ChevronLeft, ChevronRight, MessageCircle, Instagram } from "lucide-react";
+import { Sparkles, Lock, Play, Download, ChevronLeft, ChevronRight, MessageCircle, Instagram, FolderUp } from "lucide-react";
 import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
@@ -261,7 +261,16 @@ export default function EventPage() {
                   <p className="text-amber-400 text-xl font-semibold mb-2">This event is over</p>
                   <p className="text-gray-300 text-lg mb-4">Thank you for this crazy experience! 🎉</p>
                   <p className="text-gray-400 text-sm mb-3">Want to share your photos? Send them to us:</p>
-                  <div className="flex items-center justify-center gap-4">
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                    <a
+                      href="https://drive.google.com/drive/folders/1bVEefzI0nyqPRgpmFrMC04OlRi6e78he?usp=share_link"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-amber-400 hover:bg-amber-500 text-black px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
+                    >
+                      <FolderUp className="w-5 h-5" />
+                      Upload to Drive
+                    </a>
                     <a
                       href="https://wa.link/l7il98"
                       target="_blank"
@@ -269,7 +278,7 @@ export default function EventPage() {
                       className="bg-amber-400 hover:bg-amber-500 text-black px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                     >
                       <MessageCircle className="w-5 h-5" />
-                      WhatsApp
+                      Ping us on WhatsApp
                     </a>
                     <a
                       href="https://instagram.com/slanup"
@@ -278,7 +287,7 @@ export default function EventPage() {
                       className="bg-amber-400 hover:bg-amber-500 text-black px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg flex items-center gap-2"
                     >
                       <Instagram className="w-5 h-5" />
-                      Instagram
+                      DM us on Instagram
                     </a>
                   </div>
                 </div>

@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Fetch files from Google Drive API (max 1000 per request)
-    const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+(mimeType+contains+'image/'+or+mimeType+contains+'video/')&key=${apiKey}&fields=files(id,name,thumbnailLink,webContentLink,webViewLink,mimeType)&orderBy=createdTime desc&pageSize=1000`;
+    // Fetch files from Google Drive API (max 1000 per request) - sorted by oldest first
+    const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+(mimeType+contains+'image/'+or+mimeType+contains+'video/')&key=${apiKey}&fields=files(id,name,thumbnailLink,webContentLink,webViewLink,mimeType)&orderBy=createdTime&pageSize=1000`;
     
     console.log('Fetching from Google Drive API...');
     const response = await fetch(url);
