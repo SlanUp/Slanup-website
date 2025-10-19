@@ -367,6 +367,61 @@ export default function EventPage() {
         </AnimatePresence>
 
 
+        {/* Gallery Section - Always visible when not authenticated */}
+        {!isValidated && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-12"
+          >
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center mb-4">
+                <Sparkles className="w-8 h-8 text-yellow-400 mr-2" />
+                <h3 className="text-4xl font-bold">From Our Last Year&#39;s</h3>
+                <Sparkles className="w-8 h-8 text-yellow-400 ml-2" />
+              </div>
+              <p className="text-gray-400 text-lg">Relive the magic of Diwali Party 2024</p>
+            </div>
+
+            {/* Gallery Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {GALLERY_ITEMS.map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 + index * 0.05 }}
+                  whileHover={{ scale: 1.05, zIndex: 10 }}
+                  onClick={() => setSelectedMedia(index)}
+                  className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group"
+                >
+                  {item.type === "image" ? (
+                    <img
+                      src={item.url}
+                      alt={item.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <>
+                      <video
+                        src={item.url}
+                        className="w-full h-full object-cover"
+                        muted
+                        playsInline
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <Play className="w-16 h-16 text-white opacity-80" />
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Footer with Legal Links */}
         <div className="text-center mt-16 py-8 border-t border-white/10">
           <Link
