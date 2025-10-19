@@ -260,7 +260,7 @@ export default function EventPage() {
                 <div className="max-w-2xl mx-auto">
                   <p className="text-amber-400 text-xl font-semibold mb-2">This event is over</p>
                   <p className="text-gray-300 text-lg mb-4">Thank you for this crazy experience! 🎉</p>
-                  <p className="text-gray-400 text-sm mb-3">Want to share your photos? Send them to us:</p>
+                  <p className="text-gray-400 text-sm mb-3">Pleaseee shareee all of your camera roll photos/videos:</p>
                   <div className="flex items-center justify-center gap-3 flex-wrap">
                     <a
                       href="https://drive.google.com/drive/folders/1bVEefzI0nyqPRgpmFrMC04OlRi6e78he?usp=share_link"
