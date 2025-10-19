@@ -5,7 +5,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const folderId = formData.get('folderId') as string;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
     const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
 
     if (!file || !folderId) {
@@ -110,7 +109,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper function to create JWT for service account authentication
-async function createJWT(credentials: any): Promise<string> {
+async function createJWT(credentials: Record<string, string>): Promise<string> {
   const header = {
     alg: 'RS256',
     typ: 'JWT',
@@ -131,7 +130,7 @@ async function createJWT(credentials: any): Promise<string> {
   const signatureInput = `${encodedHeader}.${encodedClaim}`;
   
   // Use Node's crypto to sign
-  const crypto = require('crypto');
+  const crypto = await import('crypto');
   const sign = crypto.createSign('RSA-SHA256');
   sign.update(signatureInput);
   const signature = sign.sign(credentials.private_key, 'base64url');

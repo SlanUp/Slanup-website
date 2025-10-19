@@ -6,11 +6,8 @@ import { Sparkles, Lock, Play, Download, ChevronLeft, ChevronRight, MessageCircl
 import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
-import PhotoUpload from "@/components/PhotoUpload";
 import { InviteCodeStatus } from "@/lib/types";
 
-// Mock invite codes - replace with your actual codes
-const VALID_INVITE_CODES = ["SLANUP2025", "DIWALI24", "TROPICALLAU", "DIWALI2025"];
 
 // Google Drive folder ID for Diwali 2025 gallery
 const DIWALI_2025_FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '';
@@ -48,7 +45,7 @@ export default function EventPage() {
   const [showTicketBooking, setShowTicketBooking] = useState(false);
   const [inviteCodeStatus, setInviteCodeStatus] = useState<InviteCodeStatus | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [driveFiles, setDriveFiles] = useState<Array<{id: string; name: string; mimeType: string}>>([]);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
   const [galleryKey, setGalleryKey] = useState(0);
 
@@ -94,7 +91,7 @@ export default function EventPage() {
       if (code === "DIWALI2025") {
         setIsValidated(true);
         setError("");
-        setInviteCodeStatus({ isValid: true, isUsed: false });
+        setInviteCodeStatus({ code, isValid: true, isUsed: false });
         // Load gallery from Google Drive
         loadGalleryFromDrive();
         return;
@@ -124,10 +121,6 @@ export default function EventPage() {
     }
   };
   
-  const refreshGallery = () => {
-    loadGalleryFromDrive();
-    setGalleryKey(prev => prev + 1);
-  };
   
   const handleBookTickets = () => {
     if (inviteCodeStatus?.isUsed) {

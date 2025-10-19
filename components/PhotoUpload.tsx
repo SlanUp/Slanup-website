@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, CheckCircle, AlertCircle, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, Loader2, Image as ImageIcon } from 'lucide-react';
 
 interface PhotoUploadProps {
   folderId: string;
@@ -15,7 +15,6 @@ export default function PhotoUpload({ folderId, onUploadSuccess }: PhotoUploadPr
   const [uploadMessage, setUploadMessage] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [uploadProgress, setUploadProgress] = useState<{current: number, total: number}>({current: 0, total: 0});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,7 +23,6 @@ export default function PhotoUpload({ folderId, onUploadSuccess }: PhotoUploadPr
 
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/quicktime'];
     const validFiles: File[] = [];
-    const previews: string[] = [];
 
     for (const file of files) {
       // Validate file type
@@ -105,9 +103,9 @@ export default function PhotoUpload({ folderId, onUploadSuccess }: PhotoUploadPr
       } else {
         throw new Error('All uploads failed');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setUploadStatus('error');
-      setUploadMessage(error.message || 'Failed to upload. Please try again.');
+      setUploadMessage(error instanceof Error ? error.message : 'Failed to upload. Please try again.');
     } finally {
       setIsUploading(false);
     }
