@@ -343,8 +343,8 @@ export default function TropicalLuauPage() {
             </div>
 
             {!isValidated && (
-              <p className="text-xs text-teal-600 text-center mt-6">
-                Don&#39;t have a code? Hit us up for an exclusive island pass! 🏝️
+              <p className="text-xs text-cyan-300 text-center mt-6">
+                Don&#39;t have a code? <a href="https://forms.gle/pcjbWruv6q9cnViW9" target="_blank" rel="noopener noreferrer" className="text-cyan-200 hover:text-cyan-100 underline font-semibold">Request your invite by filling this quick form out!</a> 🏝️
               </p>
             )}
           </div>

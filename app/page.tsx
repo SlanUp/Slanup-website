@@ -40,15 +40,29 @@ export default function Home() {
           plans
         </motion.h2>
 
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          onClick={() => setIsWaitlistOpen(true)}
-          className="my-5 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50"
-        >
-          join the waitlist
-        </motion.button>
+        <div className="flex flex-col gap-4 my-5">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            onClick={() => setIsWaitlistOpen(true)}
+            className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50"
+          >
+            join the waitlist
+          </motion.button>
+          
+          <motion.a
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25 }}
+            href="https://forms.gle/pcjbWruv6q9cnViW9"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+          >
+            🌴 Request Tropical Luau Invite
+          </motion.a>
+        </div>
 
         <motion.div
           initial={{ opacity: 0 }}
