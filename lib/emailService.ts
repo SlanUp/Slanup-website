@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { Booking } from './types';
 import { formatCurrency } from './cashfreeIntegration';
+import { getEventConfig } from './eventConfig';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -20,13 +21,18 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
 
     console.log(`📧 Sending ticket email to ${booking.customerEmail} for booking ${booking.id}`);
 
-    const emailHtml = await generateTicketEmailHTML(booking);
+    // Get event config from booking eventName
+    const eventName = booking.eventName.toLowerCase().includes('diwali') ? 'diwali' : 
+                      booking.eventName.toLowerCase().includes('luau') ? 'luau' : 'diwali';
+    const eventConfig = getEventConfig(eventName) || getEventConfig('diwali'); // Fallback to diwali
+    
+    const emailHtml = await generateTicketEmailHTML(booking, eventConfig);
     
     const { data, error } = await resend.emails.send({
       from: EMAIL_CONFIG.from,
       to: [booking.customerEmail],
       replyTo: EMAIL_CONFIG.replyTo,
-      subject: `Your Diwali Party Ticket - ${booking.referenceNumber}`,
+      subject: `Your ${eventConfig.name.replace("Slanup's ", "").split(" -")[0]} Ticket - ${booking.referenceNumber}`,
       html: emailHtml,
       headers: {
         'X-Entity-Ref-ID': booking.referenceNumber,
@@ -41,7 +47,7 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
         },
         {
           name: 'event',
-          value: 'diwali-party-2025'
+          value: `${eventConfig.id}-party-2025`
         }
       ]
     });
@@ -61,7 +67,7 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
   }
 }
 
-async function generateTicketEmailHTML(booking: Booking): Promise<string> {
+async function generateTicketEmailHTML(booking: Booking, eventConfig: any): Promise<string> {
   const eventDate = new Date(booking.eventDate).toLocaleDateString('en-IN', {
     weekday: 'long',
     year: 'numeric',
@@ -70,7 +76,8 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
   });
 
   // Using external QR service for better email client compatibility
-  console.log('📱 Using external QR service for:', `SLANUP-DIWALI-${booking.referenceNumber}-${booking.customerName}`);
+  const qrPrefix = `SLANUP-${eventConfig.referencePrefix.toUpperCase()}-`;
+  console.log('📱 Using external QR service for:', `${qrPrefix}${booking.referenceNumber}-${booking.customerName}`);
   console.log('✅ QR will be loaded from external service - works in all email clients');
 
   return `
@@ -348,7 +355,7 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
       <!-- Header -->
       <div class="header">
         <h1 class="header-title">You're Officially In!</h1>
-        <p class="header-subtitle">Get ready for an amazing Diwali party experience!</p>
+        <p class="header-subtitle">Get ready for an amazing ${eventConfig.name.replace("Slanup's ", "").split(" -")[0]} experience!</p>
       </div>
       
       <!-- Content -->
@@ -362,7 +369,7 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
         <div class="ticket">
           <div class="qr-code">
             <!-- External QR service - works in ALL email clients -->
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=SLANUP-DIWALI-${booking.referenceNumber}-${encodeURIComponent(booking.customerName)}&color=636B50&bgcolor=FFFFFF&margin=5" 
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrPrefix}${booking.referenceNumber}-${encodeURIComponent(booking.customerName)}&color=636B50&bgcolor=FFFFFF&margin=5" 
                  alt="Entry QR Code - ${booking.referenceNumber}" 
                  style="width: 100%; height: 100%; display: block; border-radius: 10px;" 
                  title="Scan this QR code at the event entrance" />
@@ -419,8 +426,17 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
         
         <!-- Important Information -->
         <div class="important-info">
-          <h3>🎉 Party Essentials - Important Information</h3>
+          <h3>${eventConfig.id === 'luau' ? '🥥' : '🎉'} Party Essentials - Important Information</h3>
           <ul>
+            ${eventConfig.id === 'luau' ? `
+            <li><strong>Save this reference number</strong> - it's your GOLDEN TICKET!</li>
+            <li><strong>Show this reference</strong> at entrance for VIP treatment</li>
+            <li><strong>Bring valid photo ID</strong> + your party energy 🌊</li>
+            <li><strong>Get your best tropical fits out</strong> for the event 🍾</li>
+            <li><strong>Prepare for a night</strong> you're gonna smile while dreaming of</li>
+            <li><strong>Please schedule your return cab</strong> 1 hour prior</li>
+            <li><strong>Drink safely</strong>, because playing with the rules and games is gonna get you a lot wasted, so be careful</li>
+            ` : `
             <li><strong>Bring Valid Photo ID</strong> and your party energy</li>
             <li><strong>Show this email</strong> or QR code at entrance</li>
             <li><strong>BYOB</strong> - Bring your own booze</li>
@@ -428,6 +444,7 @@ async function generateTicketEmailHTML(booking: Booking): Promise<string> {
             <li><strong>Unlimited food and beverages</strong> included</li>
             <li><strong>Games and DJ</strong> all night long</li>
             <li><strong>Photo setups</strong> available</li>
+            `}
           </ul>
         </div>
         
@@ -459,9 +476,9 @@ export async function sendPaymentFailedEmail(booking: Booking): Promise<boolean>
       subject: `❌ Payment Failed - ${booking.referenceNumber} | Try Again?`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2>Payment Failed for Diwali Party</h2>
+          <h2>Payment Failed for ${booking.eventName}</h2>
           <p>Hi ${booking.customerName},</p>
-          <p>Unfortunately, your payment for the Diwali Party ticket could not be processed.</p>
+          <p>Unfortunately, your payment for the ${booking.eventName} ticket could not be processed.</p>
           <p><strong>Reference:</strong> ${booking.referenceNumber}</p>
           <p><strong>Amount:</strong> ${formatCurrency(booking.totalAmount)}</p>
           <p>Don't worry! Your invite code <strong>${booking.inviteCode}</strong> will be available again in 10 minutes. You can try booking again.</p>

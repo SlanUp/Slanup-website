@@ -17,11 +17,11 @@ const FALLBACK_INVITE_CODES = [
   "TROPICALLAU"
 ];
 
-// Generate unique reference number
-export function generateReferenceNumber(): string {
+// Generate unique reference number with dynamic prefix
+export function generateReferenceNumber(eventPrefix: string = 'DIW'): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substr(2, 4).toUpperCase();
-  return `DIW${timestamp.toString().slice(-6)}${random}`;
+  return `${eventPrefix}${timestamp.toString().slice(-6)}${random}`;
 }
 
 // Generate unique transaction ID
@@ -132,6 +132,7 @@ export async function createBooking(data: {
   totalAmount: number;
   eventName: string;
   eventDate: Date;
+  eventPrefix?: string; // Optional reference prefix
 }): Promise<Booking> {
   // Check for existing expired bookings and clean them up
   const existingBooking = await db.getBookingByInviteCode(data.inviteCode.trim().toUpperCase());
@@ -154,7 +155,7 @@ export async function createBooking(data: {
     totalAmount: data.totalAmount,
     paymentStatus: 'pending',
     paymentMethod: 'cashfree',
-    referenceNumber: generateReferenceNumber(),
+    referenceNumber: generateReferenceNumber(data.eventPrefix || 'DIW'),
     createdAt: now,
     updatedAt: now,
     eventDate: data.eventDate,

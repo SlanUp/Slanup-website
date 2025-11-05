@@ -61,6 +61,33 @@ export interface InviteCodeStatus {
   isValid: boolean;
 }
 
+// Event Theme Configuration
+export interface EventTheme {
+  background: string; // Tailwind gradient classes
+  textColor: string; // Tailwind text color class
+  primaryColor: string; // Tailwind color name (e.g., 'teal', 'amber')
+  secondaryColor: string;
+  accentColor: string;
+  emoji: string;
+  fontFamily: {
+    title: string;
+    subtitle: string;
+  };
+}
+
+// Complete Event Configuration
+export interface EventConfig {
+  id: string;
+  name: string;
+  date: Date;
+  venue: string;
+  referencePrefix: string; // For ticket reference numbers (e.g., 'DIW', 'LUAU')
+  galleryCode: string; // Special invite code for gallery access
+  googleDriveFolderId: string;
+  theme: EventTheme;
+  ticketTypes: TicketType[];
+}
+
 // Event Configuration
 export const DIWALI_EVENT_CONFIG = {
   name: "Slanup's BYOB Diwali Party 2025",

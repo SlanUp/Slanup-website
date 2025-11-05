@@ -51,7 +51,8 @@ export const bookingCreateSchema = z.object({
   customerEmail: emailSchema,
   customerPhone: phoneSchema,
   ticketType: ticketTypeSchema,
-  ticketCount: ticketCountSchema
+  ticketCount: ticketCountSchema,
+  eventName: z.string().optional() // Optional event name for backward compatibility
 });
 
 // Order ID validation (for payment verification)
@@ -93,6 +94,7 @@ export function validateBookingData(data: unknown):
       customerPhone: string;
       ticketType: 'regular' | 'premium' | 'vip' | 'ultimate' | 'standard' | 'couple';
       ticketCount: number;
+      eventName?: string;
     }}
   | { success: false; errors: Array<{ field: string; message: string }> } {
   

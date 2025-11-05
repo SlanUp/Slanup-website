@@ -7,6 +7,7 @@ import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
 import { InviteCodeStatus } from "@/lib/types";
+import { getEventConfig } from "@/lib/eventConfig";
 
 
 // Google Drive folder ID for Tropical Luau 2025 gallery
@@ -71,6 +72,10 @@ const GALLERY_ITEMS = [
 ];
 
 export default function TropicalLuauPage() {
+  // Get Luau event config
+  const eventConfig = getEventConfig('luau');
+  
+  // State declarations first
   const [inviteCode, setInviteCode] = useState("");
   const [isValidated, setIsValidated] = useState(false);
   const [error, setError] = useState("");
@@ -82,6 +87,36 @@ export default function TropicalLuauPage() {
   const [driveFiles, setDriveFiles] = useState<Array<{id: string; name: string; mimeType: string}>>([]);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
   const [galleryKey, setGalleryKey] = useState(0);
+  
+  // Logging for debugging
+  useEffect(() => {
+    console.log('🌺 [Luau Page] Component mounted');
+    console.log('🌺 [Luau Page] Event Config:', eventConfig);
+    if (eventConfig) {
+      console.log('🌺 [Luau Page] Event ID:', eventConfig.id);
+      console.log('🌺 [Luau Page] Event Name:', eventConfig.name);
+      console.log('🌺 [Luau Page] Ticket Types:', eventConfig.ticketTypes);
+      console.log('🌺 [Luau Page] First Ticket Price:', eventConfig.ticketTypes[0]?.price);
+      console.log('🌺 [Luau Page] Theme Primary Color:', eventConfig.theme.primaryColor);
+      console.log('🌺 [Luau Page] Theme Emoji:', eventConfig.theme.emoji);
+    } else {
+      console.error('❌ [Luau Page] Event config is null!');
+    }
+  }, [eventConfig]);
+  
+  // Log when TicketBooking is about to be rendered
+  useEffect(() => {
+    if (showTicketBooking && eventConfig) {
+      console.log('🌺 [Luau Page] Rendering TicketBooking with:', {
+        inviteCode,
+        eventConfigId: eventConfig.id,
+        eventConfigName: eventConfig.name,
+        ticketPrice: eventConfig.ticketTypes[0]?.price,
+        themePrimaryColor: eventConfig.theme.primaryColor,
+        themeEmoji: eventConfig.theme.emoji
+      });
+    }
+  }, [showTicketBooking, eventConfig, inviteCode]);
 
   useEffect(() => {
     setIsClient(true);
@@ -471,7 +506,7 @@ export default function TropicalLuauPage() {
             >
               {inviteCodeStatus?.isUsed ? (
                 // Show booking reference if already booked
-                <BookingReference booking={inviteCodeStatus.booking!} />
+                <BookingReference booking={inviteCodeStatus.booking!} eventConfig={eventConfig} />
               ) : (
                 // Show book tickets button if not booked yet
                 <button 
@@ -659,9 +694,10 @@ export default function TropicalLuauPage() {
       
       {/* Ticket Booking Modal */}
       <AnimatePresence>
-        {showTicketBooking && (
+        {showTicketBooking && eventConfig && (
           <TicketBooking
             inviteCode={inviteCode}
+            eventConfig={eventConfig}
             onClose={() => setShowTicketBooking(false)}
           />
         )}

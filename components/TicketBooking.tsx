@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { DIWALI_EVENT_CONFIG, TicketType } from '@/lib/types';
+import { EventConfig, TicketType } from '@/lib/types';
 import { formatCurrency } from '@/lib/cashfreeIntegration';
 import { getTicketFees } from '@/lib/paymentFees';
 
 interface TicketBookingProps {
   inviteCode: string;
+  eventConfig: EventConfig;
   onClose: () => void;
 }
 
@@ -26,7 +27,36 @@ interface ValidationErrors {
   customerPhone?: string;
 }
 
-export default function TicketBooking({ inviteCode, onClose }: TicketBookingProps) {
+export default function TicketBooking({ inviteCode, eventConfig, onClose }: TicketBookingProps) {
+  // Logging for debugging
+  useEffect(() => {
+    console.log('🎟️ [TicketBooking] Component mounted');
+    console.log('🎟️ [TicketBooking] Event Config received:', eventConfig);
+    if (eventConfig) {
+      console.log('🎟️ [TicketBooking] Event ID:', eventConfig.id);
+      console.log('🎟️ [TicketBooking] Event Name:', eventConfig.name);
+      console.log('🎟️ [TicketBooking] Invite Code:', inviteCode);
+      console.log('🎟️ [TicketBooking] Ticket Types Count:', eventConfig.ticketTypes.length);
+      eventConfig.ticketTypes.forEach((ticket, index) => {
+        console.log(`🎟️ [TicketBooking] Ticket ${index + 1}:`, {
+          id: ticket.id,
+          name: ticket.name,
+          price: ticket.price,
+          description: ticket.description
+        });
+      });
+      console.log('🎟️ [TicketBooking] Theme:', {
+        primaryColor: eventConfig.theme.primaryColor,
+        secondaryColor: eventConfig.theme.secondaryColor,
+        accentColor: eventConfig.theme.accentColor,
+        emoji: eventConfig.theme.emoji,
+        textColor: eventConfig.theme.textColor
+      });
+    } else {
+      console.error('❌ [TicketBooking] Event config is null!');
+    }
+  }, [eventConfig, inviteCode]);
+  
   const [selectedTicket, setSelectedTicket] = useState<TicketType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -42,9 +72,69 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
 
 
   const getTicketColor = (ticketType: string) => {
-    switch (ticketType) {
-      case 'ultimate': return 'from-slate-800 via-slate-700 to-slate-900';
-      default: return 'from-slate-800 via-slate-700 to-slate-900';
+    // Use event theme colors for ticket card
+    const { theme } = eventConfig;
+    const color = theme.primaryColor === 'teal' 
+      ? 'from-amber-400 via-orange-300 to-amber-500' // Cream/amber gradient instead of teal
+      : 'from-slate-800 via-slate-700 to-slate-900';
+    console.log(`🎨 [TicketBooking] getTicketColor(${ticketType}): primaryColor=${theme.primaryColor}, returning=${color}`);
+    return color;
+  };
+
+  // Get theme-based classes
+  const getModalBackground = () => {
+    const { theme } = eventConfig;
+    if (theme.primaryColor === 'teal') {
+      // Luau - cream background matching page
+      return 'bg-gradient-to-br from-amber-50/95 via-orange-50/95 to-amber-100/95 backdrop-blur-sm';
+    } else {
+      // Diwali - dark background
+      return 'bg-black/80 backdrop-blur-sm';
+    }
+  };
+
+  const getModalContainer = () => {
+    const { theme } = eventConfig;
+    if (theme.primaryColor === 'teal') {
+      // Luau - cream container with subtle amber tones, less green
+      return 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 rounded-3xl border-2 border-amber-200 shadow-2xl shadow-amber-500/20';
+    } else {
+      // Diwali - dark container
+      return 'bg-gradient-to-br from-gray-900 to-black rounded-3xl';
+    }
+  };
+
+  const getTextColor = () => {
+    return eventConfig.theme.textColor;
+  };
+
+  const getPrimaryButtonClass = () => {
+    const { theme } = eventConfig;
+    if (theme.primaryColor === 'teal') {
+      // Use amber/orange instead of teal for buttons
+      return 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white';
+    } else {
+      return 'bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-900';
+    }
+  };
+
+  const getPriceColor = () => {
+    const { theme } = eventConfig;
+    if (theme.primaryColor === 'teal') {
+      // Dark text on light background
+      return 'text-neutral-800 drop-shadow-lg';
+    } else {
+      return 'text-amber-400';
+    }
+  };
+
+  const getBorderColor = () => {
+    const { theme } = eventConfig;
+    if (theme.primaryColor === 'teal') {
+      // Amber border instead of teal
+      return 'border-amber-300/50 hover:border-amber-400/70';
+    } else {
+      return 'border-amber-400/30 hover:border-amber-400/60';
     }
   };
 
@@ -133,7 +223,8 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
         body: JSON.stringify({
           inviteCode,
           ...formData,
-          ticketCount: 1
+          ticketCount: 1,
+          eventName: eventConfig.id
         }),
       });
 
@@ -145,10 +236,11 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
       }
 
       // Save the complete booking to localStorage (client-side)
-      const bookingsData = localStorage.getItem('diwali_bookings');
+      const bookingsKey = `${eventConfig.id}_bookings`;
+      const bookingsData = localStorage.getItem(bookingsKey);
       const existingBookings = bookingsData ? JSON.parse(bookingsData) : [];
       const updatedBookings = [...existingBookings.filter((b: { id: string }) => b.id !== data.booking.id), data.booking];
-      localStorage.setItem('diwali_bookings', JSON.stringify(updatedBookings));
+      localStorage.setItem(bookingsKey, JSON.stringify(updatedBookings));
       console.log('[Client] Booking saved to localStorage:', data.booking.id);
 
       // Store booking information in localStorage before redirect
@@ -164,7 +256,7 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
       // Configure checkout options - append order_id to return URL
       const checkoutOptions = {
         paymentSessionId: data.paymentSessionId,
-        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/diwali/payment/success?order_id=${data.cashfreeOrder.order_id}`,
+        returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/${eventConfig.id}/payment/success?order_id=${data.cashfreeOrder.order_id}`,
         redirectTarget: '_self'
       };
 
@@ -188,76 +280,99 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className={`fixed inset-0 ${getModalBackground()} z-50 flex items-center justify-center p-4`}
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className="bg-gradient-to-br from-gray-900 to-black rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8"
+          className={`${getModalContainer()} max-w-3xl w-full max-h-[95vh] overflow-y-auto p-4 md:p-6`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <span className="text-2xl mr-2">🔥</span>
-              <h2 className="text-3xl font-bold text-white">GET READY TO PARTY!</h2>
-              <span className="text-2xl ml-2">🔥</span>
+          <div className="text-center mb-4 md:mb-6">
+            <div className="flex items-center justify-center mb-2">
+              <span className="text-2xl md:text-3xl mr-2">{eventConfig.theme.emoji}</span>
+              <h2 className={`text-2xl md:text-3xl font-bold ${getTextColor()}`} style={{ fontFamily: eventConfig.theme.fontFamily.title }}>
+                GET READY TO PARTY!
+              </h2>
+              <span className="text-2xl md:text-3xl ml-2">{eventConfig.theme.emoji === '🌺' ? '🌴' : eventConfig.theme.emoji}</span>
             </div>
-            <p className="text-gray-300">The most INSANE Diwali experience awaits you!</p>
-            <p className="text-yellow-400 font-bold mt-2">LET&apos;S PARTYYYYYYYYY! 🎉</p>
+            <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : getTextColor()} opacity-90 text-sm md:text-base`}>The most INSANE {eventConfig.name.replace("Slanup's ", "").split(" -")[0]} experience awaits you!</p>
+            <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-amber-700' : 'text-yellow-400'} font-bold mt-1 text-sm md:text-base`}>
+              {eventConfig.theme.emoji === '🌺' ? '🌺🌴 LET\'S GOOOO! 🎉🌺' : 'LET\'S PARTYYYYYYYYY! 🎉'}
+            </p>
           </div>
 
           {/* Single Ticket Experience */}
-          <div className="max-w-2xl mx-auto mb-8">
-            {DIWALI_EVENT_CONFIG.ticketTypes.map((ticket) => (
+          <div className="max-w-2xl mx-auto mb-4 md:mb-6">
+            {eventConfig.ticketTypes.map((ticket) => {
+              // Log ticket rendering
+              console.log(`🎫 [TicketBooking] Rendering ticket card:`, {
+                id: ticket.id,
+                name: ticket.name,
+                price: ticket.price,
+                themePrimaryColor: eventConfig.theme.primaryColor,
+                isTeal: eventConfig.theme.primaryColor === 'teal'
+              });
+              console.log(`💰 [TicketBooking] Displaying price:`, {
+                ticketId: ticket.id,
+                price: ticket.price,
+                formatted: formatCurrency(ticket.price),
+                priceColorClass: getPriceColor()
+              });
+              
+              return (
               <motion.div
                 key={ticket.id}
                 whileHover={{ scale: 1.02 }}
-                className={`relative bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-8 cursor-pointer border-2 border-amber-400/30 hover:border-amber-400/60 transition-all shadow-2xl hover:shadow-amber-500/20`}
+                className={`relative ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white/90 backdrop-blur-xl rounded-3xl p-4 md:p-6 border-2 border-amber-200 shadow-2xl shadow-amber-500/20' : `bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-4 md:p-6 border-2 ${getBorderColor()} shadow-2xl hover:shadow-amber-500/20`} cursor-pointer transition-all`}
                 onClick={() => handleTicketSelect(ticket)}
               >
 
 
                 {/* Price */}
-                <div className="text-center mb-6">
-                  <span className="text-4xl md:text-5xl font-bold text-amber-400">
+                <div className="text-center mb-3 md:mb-4">
+                  <span className={`text-3xl md:text-4xl font-bold ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800 drop-shadow-lg' : getPriceColor()}`}>
                     {formatCurrency(ticket.price)}
                   </span>
-                  <span className="text-white/80 text-lg block mt-1">One Epic Experience</span>
+                  <span className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : 'text-white/90'} text-sm md:text-base block mt-1 drop-shadow-lg`}>One Epic Experience</span>
                 </div>
 
                 {/* Description */}
-                <p className="text-white/90 text-lg text-center mb-6 font-semibold">
+                <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white'} text-sm md:text-base text-center mb-3 md:mb-4 font-semibold drop-shadow-lg`}>
                   {ticket.description}
                 </p>
 
                 {/* Benefits */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2 mb-4 md:mb-5">
                   {ticket.benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-center text-white/95 text-sm">
-                      <div className="w-2 h-2 bg-white rounded-full mr-3 flex-shrink-0" />
+                    <div key={index} className={`flex items-start ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800 text-xs md:text-sm bg-white/60 backdrop-blur-sm rounded-lg p-1.5 md:p-2' : 'text-white text-xs md:text-sm'}`}>
+                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-amber-500' : 'bg-white'} rounded-full mr-2 md:mr-3 flex-shrink-0 mt-1`} />
                       <span className="leading-relaxed">{benefit}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* CTA Button */}
-                <div className="text-center mt-8">
-                  <div className="bg-gradient-to-r from-amber-400 to-yellow-500 rounded-xl px-6 py-3 inline-block shadow-lg hover:shadow-amber-500/30 transition-all">
-                    <span className="text-slate-900 font-bold text-lg">🎟️ Click to Book Your Spot!</span>
+                <div className="text-center mt-4 md:mt-6">
+                  <div className={`${getPrimaryButtonClass()} rounded-xl px-4 md:px-6 py-2 md:py-3 inline-block shadow-lg transition-all ${eventConfig.theme.primaryColor === 'teal' ? 'hover:shadow-amber-500/30' : 'hover:shadow-amber-500/30'}`}>
+                    <span className={`font-bold text-sm md:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-white' : 'text-slate-900'}`}>
+                      {eventConfig.theme.emoji === '🌺' ? '🌺🎟️ Click to Book Your Spot! 🌴' : '🎟️ Click to Book Your Spot!'}
+                    </span>
                   </div>
                 </div>
               </motion.div>
-            ))}
+            );
+            })}
           </div>
 
           {/* Close Button */}
-          <div className="text-center">
+          <div className="text-center mt-2 md:mt-4">
             <button
               onClick={onClose}
-              className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
+              className={`px-4 md:px-6 py-1.5 md:py-2 text-sm md:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800' : 'text-gray-400 hover:text-white'} transition-colors font-medium`}
             >
               Cancel
             </button>
@@ -268,45 +383,45 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        className="bg-gradient-to-br from-gray-900 to-black rounded-3xl max-w-md w-full p-8"
-        onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className={`fixed inset-0 ${getModalBackground()} z-50 flex items-center justify-center p-4`}
+        onClick={onClose}
       >
-        {/* Header */}
-        <div className="text-center mb-6">
-          <p className="text-gray-300 text-lg">{selectedTicket?.description}</p>
-        </div>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          className={`${getModalContainer()} max-w-md w-full p-8`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="text-center mb-6">
+            <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : getTextColor()} opacity-90 text-lg`}>{selectedTicket?.description}</p>
+          </div>
 
-        {/* Price Display */}
-        <div className="text-center mb-6">
-          <div className="bg-slate-800/50 rounded-2xl p-4 border border-amber-400/30">
+          {/* Price Display */}
+          <div className="text-center mb-6">
+            <div className={`${eventConfig.theme.primaryColor === 'teal' ? 'bg-amber-50 border-2 border-amber-200' : 'bg-slate-800/50 border border-amber-400/30'} rounded-2xl p-4`}>
             {(() => {
               const fees = getTicketFees(selectedTicket?.price || 0);
               return (
                 <>
                   <div className="space-y-2 mb-3">
-                    <div className="flex justify-between text-white/70 text-sm">
+                    <div className={`flex justify-between ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white/70'} text-sm`}>
                       <span>Ticket Price</span>
                       <span>{formatCurrency(fees.ticketPrice)}</span>
                     </div>
-                    <div className="flex justify-between text-white/70 text-sm">
+                    <div className={`flex justify-between ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white/70'} text-sm`}>
                       <span>Gateway charges</span>
                       <span>{formatCurrency(fees.gatewayCharges)}</span>
                     </div>
-                    <div className="border-t border-white/20 pt-2 mt-2">
+                    <div className={`border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200' : 'border-white/20'} pt-2 mt-2`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-white/80 text-sm font-medium">Total Amount</span>
-                        <span className="text-2xl font-bold text-amber-400">
+                        <span className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white/80'} text-sm font-medium`}>Total Amount</span>
+                        <span className={`text-2xl font-bold ${eventConfig.theme.primaryColor === 'teal' ? 'text-amber-700' : 'text-amber-400'}`}>
                           {formatCurrency(fees.totalAmount)}
                         </span>
                       </div>
@@ -321,33 +436,33 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
         {/* Form */}
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
-            <label className="block text-white font-medium mb-2">Full Name *</label>
+            <label className={`block ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white'} font-medium mb-2`}>Full Name *</label>
             <input
               type="text"
               required
               value={formData.customerName}
               onChange={(e) => handleFieldChange('customerName', e.target.value)}
               onBlur={() => handleFieldBlur('customerName')}
-              className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
                 validationErrors.customerName && touched.customerName
                   ? 'border-red-400 focus:ring-red-400'
                   : formData.customerName && !validationErrors.customerName && touched.customerName
                   ? 'border-green-400 focus:ring-green-400'
-                  : 'border-white/20 focus:ring-[var(--brand-green)]'
+                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
               }`}
               placeholder="e.g., John Doe"
             />
             {touched.customerName && validationErrors.customerName && (
-              <p className="text-red-400 text-sm mt-1 flex items-center">
+              <p className="text-red-600 text-sm mt-1 flex items-center">
                 <span className="mr-1">⚠️</span>
                 {validationErrors.customerName}
               </p>
             )}
             {!touched.customerName && (
-              <p className="text-gray-400 text-xs mt-1">💡 Use letters, spaces, dots, hyphens only</p>
+              <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600' : 'text-gray-400'} text-xs mt-1`}>💡 Use letters, spaces, dots, hyphens only</p>
             )}
             {touched.customerName && formData.customerName && !validationErrors.customerName && (
-              <p className="text-green-400 text-sm mt-1 flex items-center">
+              <p className="text-green-600 text-sm mt-1 flex items-center">
                 <span className="mr-1">✓</span>
                 Looks good!
               </p>
@@ -355,33 +470,33 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
           </div>
 
           <div>
-            <label className="block text-white font-medium mb-2">Email Address *</label>
+            <label className={`block ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white'} font-medium mb-2`}>Email Address *</label>
             <input
               type="email"
               required
               value={formData.customerEmail}
               onChange={(e) => handleFieldChange('customerEmail', e.target.value)}
               onBlur={() => handleFieldBlur('customerEmail')}
-              className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
                 validationErrors.customerEmail && touched.customerEmail
                   ? 'border-red-400 focus:ring-red-400'
                   : formData.customerEmail && !validationErrors.customerEmail && touched.customerEmail
                   ? 'border-green-400 focus:ring-green-400'
-                  : 'border-white/20 focus:ring-[var(--brand-green)]'
+                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
               }`}
               placeholder="e.g., john@example.com"
             />
             {touched.customerEmail && validationErrors.customerEmail && (
-              <p className="text-red-400 text-sm mt-1 flex items-center">
+              <p className="text-red-600 text-sm mt-1 flex items-center">
                 <span className="mr-1">⚠️</span>
                 {validationErrors.customerEmail}
               </p>
             )}
             {!touched.customerEmail && (
-              <p className="text-gray-400 text-xs mt-1">💡 We&apos;ll send your ticket here</p>
+              <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600' : 'text-gray-400'} text-xs mt-1`}>💡 We&apos;ll send your ticket here</p>
             )}
             {touched.customerEmail && formData.customerEmail && !validationErrors.customerEmail && (
-              <p className="text-green-400 text-sm mt-1 flex items-center">
+              <p className="text-green-600 text-sm mt-1 flex items-center">
                 <span className="mr-1">✓</span>
                 Valid email!
               </p>
@@ -389,7 +504,7 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
           </div>
 
           <div>
-            <label className="block text-white font-medium mb-2">Phone Number *</label>
+            <label className={`block ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white'} font-medium mb-2`}>Phone Number *</label>
             <input
               type="tel"
               required
@@ -402,27 +517,27 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
                 }
               }}
               onBlur={() => handleFieldBlur('customerPhone')}
-              className={`w-full px-4 py-3 bg-white/10 border rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
                 validationErrors.customerPhone && touched.customerPhone
                   ? 'border-red-400 focus:ring-red-400'
                   : formData.customerPhone && !validationErrors.customerPhone && touched.customerPhone
                   ? 'border-green-400 focus:ring-green-400'
-                  : 'border-white/20 focus:ring-[var(--brand-green)]'
+                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
               }`}
               placeholder="e.g., 9876543210"
               maxLength={10}
             />
             {touched.customerPhone && validationErrors.customerPhone && (
-              <p className="text-red-400 text-sm mt-1 flex items-center">
+              <p className="text-red-600 text-sm mt-1 flex items-center">
                 <span className="mr-1">⚠️</span>
                 {validationErrors.customerPhone}
               </p>
             )}
             {!touched.customerPhone && (
-              <p className="text-gray-400 text-xs mt-1">💡 10 digits, starting with 6, 7, 8, or 9</p>
+              <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600' : 'text-gray-400'} text-xs mt-1`}>💡 10 digits, starting with 6, 7, 8, or 9</p>
             )}
             {touched.customerPhone && formData.customerPhone && !validationErrors.customerPhone && (
-              <p className="text-green-400 text-sm mt-1 flex items-center">
+              <p className="text-green-600 text-sm mt-1 flex items-center">
                 <span className="mr-1">✓</span>
                 Valid phone number!
               </p>
@@ -432,9 +547,9 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
           {/* Terms & Conditions Link */}
           <div className="text-center pt-2">
             <Link
-              href="/diwali/terms"
+              href={`/${eventConfig.id}/terms`}
               target="_blank"
-              className="text-gray-400 hover:text-white transition-colors underline text-xs"
+              className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800' : 'text-gray-400 hover:text-white'} transition-colors underline text-xs`}
             >
               Terms & Conditions
             </Link>
@@ -445,14 +560,14 @@ export default function TicketBooking({ inviteCode, onClose }: TicketBookingProp
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="flex-1 px-6 py-3 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-colors"
+              className={`flex-1 px-6 py-3 border-2 ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 text-neutral-700 hover:bg-amber-50' : 'border-white/20 text-white hover:bg-white/10'} rounded-xl transition-colors`}
             >
               Back
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-bold rounded-xl hover:from-amber-500 hover:to-yellow-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              className={`flex-1 px-6 py-3 ${getPrimaryButtonClass()} font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
             >
               {isLoading ? 'Processing...' : 'Proceed to Payment'}
             </button>

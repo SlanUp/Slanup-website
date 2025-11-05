@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createBooking, getInviteCodeStatus } from '@/lib/bookingManager';
 import { createCashfreePaymentSession } from '@/lib/cashfreeIntegration';
-import { DIWALI_EVENT_CONFIG } from '@/lib/types';
+import { getEventConfig } from '@/lib/eventConfig';
 import { validateBookingData } from '@/lib/validation';
 import { getTicketFees } from '@/lib/paymentFees';
 
@@ -28,8 +28,18 @@ export async function POST(request: NextRequest) {
       customerEmail,
       customerPhone,
       ticketType,
-      ticketCount
+      ticketCount,
+      eventName // Get event name from request
     } = validation.data;
+
+    // Get event configuration
+    const eventConfig = getEventConfig(eventName || 'diwali'); // Default to diwali for backward compatibility
+    if (!eventConfig) {
+      return NextResponse.json(
+        { error: 'Invalid event name' },
+        { status: 400 }
+      );
+    }
 
     // Check if invite code is valid and not used
     const inviteStatus = await getInviteCodeStatus(inviteCode);
@@ -49,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find ticket type configuration
-    const ticketTypeConfig = DIWALI_EVENT_CONFIG.ticketTypes.find(t => t.id === ticketType);
+    const ticketTypeConfig = eventConfig.ticketTypes.find(t => t.id === ticketType);
     
     if (!ticketTypeConfig) {
       return NextResponse.json(
@@ -81,8 +91,9 @@ export async function POST(request: NextRequest) {
       ticketType: ticketType as 'regular' | 'premium' | 'vip',
       ticketCount,
       totalAmount, // Store the total amount (with gateway fees)
-      eventName: DIWALI_EVENT_CONFIG.name,
-      eventDate: DIWALI_EVENT_CONFIG.date
+      eventName: eventConfig.name,
+      eventDate: eventConfig.date,
+      eventPrefix: eventConfig.referencePrefix
     });
 
     // Create Cashfree payment session with total amount (including fees)
@@ -92,7 +103,7 @@ export async function POST(request: NextRequest) {
       customerName,
       customerEmail,
       customerPhone,
-      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/diwali/payment/success`
+      returnUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/${eventConfig.id}/payment/success`
     });
 
     // Debug: Log the Cashfree response
