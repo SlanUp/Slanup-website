@@ -119,7 +119,8 @@ function updateBookingData(data) {
     }
     
     const inviteCode = data.inviteCode.trim().toUpperCase();
-    console.log('Updating booking data for invite code:', inviteCode);
+    console.log('📊 Updating booking data for invite code:', inviteCode);
+    console.log('📊 Received data:', JSON.stringify(data));
     
     // Get all data
     const dataRange = sheet.getDataRange();
@@ -127,10 +128,22 @@ function updateBookingData(data) {
     
     // Find header row to get column indices
     const headerRow = values[0];
+    console.log('📋 Header row:', headerRow);
+    
     const colMap = {};
     headerRow.forEach((header, index) => {
       colMap[header] = index;
     });
+    
+    console.log('📋 Column map:', colMap);
+    
+    // Check if Invite Code column exists
+    if (colMap['Invite Code'] === undefined) {
+      console.error('❌ Invite Code column not found in headers:', headerRow);
+      throw new Error('Invite Code column not found. Available columns: ' + headerRow.join(', '));
+    }
+    
+    console.log('✅ Found Invite Code column at index:', colMap['Invite Code']);
     
     // Find the row with this invite code
     let targetRow = -1;
@@ -140,11 +153,13 @@ function updateBookingData(data) {
       
       if (cellInviteCode && cellInviteCode.toString().trim().toUpperCase() === inviteCode) {
         targetRow = i;
+        console.log('✅ Found invite code in row:', i + 1);
         break;
       }
     }
     
     if (targetRow === -1) {
+      console.error('❌ Invite code not found. Searched', values.length - 1, 'rows');
       throw new Error(`Invite code ${inviteCode} not found in sheet`);
     }
     
@@ -184,17 +199,25 @@ function updateBookingData(data) {
       updates.push({ row: targetRow + 1, col: colMap['Booked'] + 1, value: 'Yes' });
     }
     
+    // Log what will be updated
+    console.log('📝 Updates to apply:', updates.length);
+    updates.forEach(update => {
+      console.log(`  - Row ${update.row}, Col ${update.col}: ${update.value}`);
+    });
+    
     // Apply all updates
     updates.forEach(update => {
       sheet.getRange(update.row, update.col).setValue(update.value);
     });
     
-    console.log('Booking data updated successfully');
+    console.log('✅ Booking data updated successfully for invite code:', inviteCode);
     
     return ContentService
       .createTextOutput(JSON.stringify({
         success: true,
-        message: 'Booking data updated successfully'
+        message: 'Booking data updated successfully',
+        inviteCode: inviteCode,
+        updatesApplied: updates.length
       }))
       .setMimeType(ContentService.MimeType.JSON);
       

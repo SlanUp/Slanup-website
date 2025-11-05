@@ -15,7 +15,14 @@ interface SheetUpdateData {
 
 export async function updateGoogleSheet(data: SheetUpdateData): Promise<boolean> {
   try {
-    console.log('[GoogleSheets] Updating sheet for invite code:', data.inviteCode);
+    console.log('[GoogleSheets] 📊 Updating sheet for invite code:', data.inviteCode);
+    console.log('[GoogleSheets] 📊 Update data:', {
+      inviteCode: data.inviteCode,
+      email: data.email,
+      phone: data.phone,
+      paymentStatus: data.paymentStatus,
+      referenceNumber: data.referenceNumber
+    });
     
     const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
       method: 'POST',
@@ -26,21 +33,28 @@ export async function updateGoogleSheet(data: SheetUpdateData): Promise<boolean>
       redirect: 'follow'
     });
     
+    console.log('[GoogleSheets] 📡 Response status:', response.status, response.statusText);
+    
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('[GoogleSheets] ❌ HTTP Error:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
     }
     
     const result = await response.json();
+    console.log('[GoogleSheets] 📥 Response from Apps Script:', result);
     
     if (result.success) {
-      console.log('[GoogleSheets] ✅ Sheet updated successfully:', result);
+      console.log('[GoogleSheets] ✅ Sheet updated successfully for invite code:', data.inviteCode);
       return true;
     } else {
       console.error('[GoogleSheets] ❌ Sheet update failed:', result.error);
+      console.error('[GoogleSheets] ❌ Full error response:', result);
       return false;
     }
   } catch (error) {
-    console.error('[GoogleSheets] Error updating sheet:', error);
+    console.error('[GoogleSheets] ❌ Exception updating sheet:', error);
+    console.error('[GoogleSheets] ❌ Error details:', error instanceof Error ? error.message : String(error));
     // Don't throw - we don't want to fail the booking if sheet update fails
     return false;
   }
