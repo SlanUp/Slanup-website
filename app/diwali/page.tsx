@@ -7,6 +7,7 @@ import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
 import { InviteCodeStatus } from "@/lib/types";
+import { getEventConfig } from "@/lib/eventConfig";
 
 
 // Google Drive folder ID for Diwali 2025 gallery
@@ -37,6 +38,7 @@ const GALLERY_ITEMS = [
 ];
 
 export default function EventPage() {
+  const eventConfig = getEventConfig('diwali');
   const [inviteCode, setInviteCode] = useState("");
   const [isValidated, setIsValidated] = useState(false);
   const [error, setError] = useState("");
@@ -47,7 +49,6 @@ export default function EventPage() {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [driveFiles, setDriveFiles] = useState<Array<{id: string; name: string; mimeType: string}>>([]);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
-  const [galleryKey, setGalleryKey] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -245,7 +246,7 @@ export default function EventPage() {
           {isValidated && inviteCode.trim().toUpperCase() === "DIWALI2025" ? (
             // Show Google Drive Gallery for diwali2025 code
             <motion.div
-              key={galleryKey}
+              key="drive-gallery"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -361,7 +362,7 @@ export default function EventPage() {
             >
               {inviteCodeStatus?.isUsed ? (
                 // Show booking reference if already booked
-                <BookingReference booking={inviteCodeStatus.booking!} />
+                <BookingReference booking={inviteCodeStatus.booking!} eventConfig={eventConfig || undefined} />
               ) : (
                 // Show book tickets button if not booked yet
                 <button 
@@ -548,9 +549,10 @@ export default function EventPage() {
       
       {/* Ticket Booking Modal */}
       <AnimatePresence>
-        {showTicketBooking && (
+        {showTicketBooking && eventConfig && (
           <TicketBooking
             inviteCode={inviteCode}
+            eventConfig={eventConfig}
             onClose={() => setShowTicketBooking(false)}
           />
         )}

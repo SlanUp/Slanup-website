@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function GeneralTermsPage() {
   return (
@@ -104,7 +105,7 @@ export default function GeneralTermsPage() {
             <section>
               <h2 className="text-2xl font-bold text-green-400 mb-4">6. Refunds & Cancellations</h2>
               <p className="text-gray-300 leading-relaxed mb-4">
-                Our refund policy varies by event. Please refer to our <a href="/refund-policy" className="text-green-400 hover:text-green-300 underline">Refund & Cancellation Policy</a> page and the specific event&apos;s refund terms for details.
+                Our refund policy varies by event. Please refer to our <Link href="/refund-policy" className="text-green-400 hover:text-green-300 underline">Refund & Cancellation Policy</Link> page and the specific event&apos;s refund terms for details.
               </p>
               <p className="text-gray-300 leading-relaxed">
                 Generally, tickets are non-refundable unless the event is cancelled by Slanup.
@@ -192,8 +193,8 @@ export default function GeneralTermsPage() {
         <div className="text-center mt-12 text-gray-500 text-sm">
           <p>© 2025 Slanup. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
-            <a href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</a>
-            <a href="/contact" className="hover:text-green-400 transition-colors">Contact Us</a>
+            <Link href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</Link>
+            <Link href="/contact" className="hover:text-green-400 transition-colors">Contact Us</Link>
           </div>
         </div>
       </div>

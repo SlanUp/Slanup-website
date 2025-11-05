@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ContactPage() {
   return (
@@ -200,9 +201,9 @@ export default function ContactPage() {
         <div className="text-center mt-12 text-gray-500 text-sm">
           <p>© 2025 Slanup. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
-            <a href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</a>
-            <a href="/privacy-policy" className="hover:text-green-400 transition-colors">Privacy Policy</a>
-            <a href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</a>
+            <Link href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</Link>
+            <Link href="/privacy-policy" className="hover:text-green-400 transition-colors">Privacy Policy</Link>
+            <Link href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</Link>
           </div>
         </div>
       </div>

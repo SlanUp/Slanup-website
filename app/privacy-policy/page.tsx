@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -233,9 +234,9 @@ export default function PrivacyPolicyPage() {
         <div className="text-center mt-12 text-gray-500 text-sm">
           <p>© 2025 Slanup. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
-            <a href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</a>
-            <a href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</a>
-            <a href="/contact" className="hover:text-green-400 transition-colors">Contact Us</a>
+            <Link href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</Link>
+            <Link href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</Link>
+            <Link href="/contact" className="hover:text-green-400 transition-colors">Contact Us</Link>
           </div>
         </div>
       </div>

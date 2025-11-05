@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { CheckCircle, Calendar, Ticket, User, Mail, Phone, Copy } from 'lucide-react';
+import { Calendar, Ticket, User, Mail, Phone, Copy } from 'lucide-react';
 import { Booking, EventConfig } from '@/lib/types';
 import { formatCurrency } from '@/lib/cashfreeIntegration';
 import { useState } from 'react';

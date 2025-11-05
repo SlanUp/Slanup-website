@@ -21,11 +21,11 @@ interface GoogleDriveGalleryProps {
 export default function GoogleDriveGallery({ folderId, apiKey }: GoogleDriveGalleryProps) {
   const [files, setFiles] = useState<DriveFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string>('');
   const [selectedImage, setSelectedImage] = useState<DriveFile | null>(null);
 
   useEffect(() => {
     loadDriveFiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderId]);
 
   const loadDriveFiles = async () => {
@@ -91,13 +91,6 @@ export default function GoogleDriveGallery({ folderId, apiKey }: GoogleDriveGall
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-red-400">{error}</p>
-      </div>
-    );
-  }
 
   return (
     <>

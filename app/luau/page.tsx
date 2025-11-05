@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Lock, Play, Download, ChevronLeft, ChevronRight, MessageCircle, Instagram, FolderUp } from "lucide-react";
+import { Play, Download, ChevronLeft, ChevronRight, MessageCircle, Instagram, FolderUp } from "lucide-react";
 import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
@@ -86,7 +86,6 @@ export default function TropicalLuauPage() {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [driveFiles, setDriveFiles] = useState<Array<{id: string; name: string; mimeType: string}>>([]);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
-  const [galleryKey, setGalleryKey] = useState(0);
   
   // Logging for debugging
   useEffect(() => {
@@ -390,7 +389,7 @@ export default function TropicalLuauPage() {
           {isValidated && inviteCode.trim().toUpperCase() === "LUAU2025" ? (
             // Show Google Drive Gallery for luau2025 code
             <motion.div
-              key={galleryKey}
+              key="drive-gallery"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -506,7 +505,7 @@ export default function TropicalLuauPage() {
             >
               {inviteCodeStatus?.isUsed ? (
                 // Show booking reference if already booked
-                <BookingReference booking={inviteCodeStatus.booking!} eventConfig={eventConfig} />
+                <BookingReference booking={inviteCodeStatus.booking!} eventConfig={eventConfig || undefined} />
               ) : (
                 // Show book tickets button if not booked yet
                 <button 

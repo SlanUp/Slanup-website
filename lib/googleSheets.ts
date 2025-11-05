@@ -1,8 +1,5 @@
 // Google Sheets integration for invite codes management
 
-const SHEET_ID = '1q05oFF-xEquICKxj2_q64tStByCrz6IS-WF3YaNwPIw';
-const SHEET_NAME = 'FinalDB';
-
 // CSV export URL (public)
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/e/2PACX-1vRz2LJGIYgY4Fq1lp4_8DPs5p31YvPbVs7tFkS7pRU01oPYZkbqZmS8wg0ilJYnTtpsqJcQYi-kyf8z/pub?gid=636322054&single=true&output=csv`;
 

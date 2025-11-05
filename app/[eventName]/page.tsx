@@ -10,8 +10,6 @@ import BookingReference from "@/components/BookingReference";
 import { InviteCodeStatus } from "@/lib/types";
 import { getEventConfig, isValidEventName } from "@/lib/eventConfig";
 
-// Static gallery items - can be overridden per event in config
-const DEFAULT_GALLERY_ITEMS: Array<{ type: "image" | "video"; url: string; title: string }> = [];
 
 export default function EventPage() {
   const params = useParams();
@@ -20,6 +18,18 @@ export default function EventPage() {
   
   // Get event configuration
   const eventConfig = getEventConfig(eventName);
+  
+  // All hooks must be declared before any early returns
+  const [inviteCode, setInviteCode] = useState("");
+  const [isValidated, setIsValidated] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedMedia, setSelectedMedia] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [showTicketBooking, setShowTicketBooking] = useState(false);
+  const [inviteCodeStatus, setInviteCodeStatus] = useState<InviteCodeStatus | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [driveFiles, setDriveFiles] = useState<Array<{id: string; name: string; mimeType: string}>>([]);
+  const [isLoadingGallery, setIsLoadingGallery] = useState(false);
   
   // Logging for debugging
   useEffect(() => {
@@ -41,40 +51,15 @@ export default function EventPage() {
       router.push('/404');
     }
   }, [eventConfig, eventName, router]);
-
-  if (!eventConfig || !isValidEventName(eventName)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Event Not Found</h1>
-          <p className="text-gray-600">The event you're looking for doesn't exist.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const [inviteCode, setInviteCode] = useState("");
-  const [isValidated, setIsValidated] = useState(false);
-  const [error, setError] = useState("");
-  const [selectedMedia, setSelectedMedia] = useState<number | null>(null);
-  const [isClient, setIsClient] = useState(false);
-  const [showTicketBooking, setShowTicketBooking] = useState(false);
-  const [inviteCodeStatus, setInviteCodeStatus] = useState<InviteCodeStatus | null>(null);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [driveFiles, setDriveFiles] = useState<Array<{id: string; name: string; mimeType: string}>>([]);
-  const [isLoadingGallery, setIsLoadingGallery] = useState(false);
-  const [galleryKey, setGalleryKey] = useState(0);
-
-  const { theme, galleryCode, googleDriveFolderId } = eventConfig;
   
   // Log when TicketBooking is about to be rendered
   useEffect(() => {
     if (showTicketBooking && eventConfig) {
       console.log(`📅 [EventPage] Rendering TicketBooking with:`, {
         eventName,
-        eventConfigId: eventConfig.id,
-        eventConfigName: eventConfig.name,
-        ticketPrice: eventConfig.ticketTypes[0]?.price,
+        eventConfigId: eventConfig?.id,
+        eventConfigName: eventConfig?.name,
+        ticketPrice: eventConfig?.ticketTypes[0]?.price,
         inviteCode
       });
     }
@@ -83,9 +68,11 @@ export default function EventPage() {
   useEffect(() => {
     setIsClient(true);
     
+    if (!eventConfig) return;
+    
     // Load custom fonts based on event theme
     const link = document.createElement('link');
-    const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(theme.fontFamily.title.split("'")[1])}:wght@400;500;600;700&family=${encodeURIComponent(theme.fontFamily.subtitle.split("'")[1])}:wght@400;500;600;700&display=swap`;
+    const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(eventConfig.theme.fontFamily.title.split("'")[1])}:wght@400;500;600;700&family=${encodeURIComponent(eventConfig.theme.fontFamily.subtitle.split("'")[1])}:wght@400;500;600;700&display=swap`;
     link.href = fontUrl;
     link.rel = 'stylesheet';
     document.head.appendChild(link);
@@ -95,14 +82,14 @@ export default function EventPage() {
     cashfreeScript.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
     cashfreeScript.async = true;
     document.head.appendChild(cashfreeScript);
-  }, [theme]);
+  }, [eventConfig]);
 
   const loadGalleryFromDrive = async () => {
-    if (!googleDriveFolderId) return;
+    if (!eventConfig?.googleDriveFolderId) return;
     
     setIsLoadingGallery(true);
     try {
-      const response = await fetch(`/api/drive-files?folderId=${googleDriveFolderId}`);
+      const response = await fetch(`/api/drive-files?folderId=${eventConfig.googleDriveFolderId}`);
       if (response.ok) {
         const data = await response.json();
         setDriveFiles(data.files || []);
@@ -120,7 +107,7 @@ export default function EventPage() {
     
     try {
       // Special handling for gallery code - it's a gallery-only code
-      if (code === galleryCode) {
+      if (code === eventConfig?.galleryCode) {
         setIsValidated(true);
         setError("");
         setInviteCodeStatus({ code, isValid: true, isUsed: false });
@@ -159,6 +146,10 @@ export default function EventPage() {
     }
     setShowTicketBooking(true);
   };
+  
+  if (!eventConfig) return null;
+  
+  const { theme, galleryCode, googleDriveFolderId } = eventConfig;
 
   // Dynamic color classes - using CSS variables and conditional classes
   const getPrimaryButtonClass = () => {
@@ -305,10 +296,10 @@ export default function EventPage() {
 
         {/* Booking Section OR Gallery Section */}
         <AnimatePresence>
-          {isValidated && inviteCode.trim().toUpperCase() === galleryCode ? (
+          {isValidated && inviteCode.trim().toUpperCase() === eventConfig?.galleryCode ? (
             // Show Google Drive Gallery for gallery code
             <motion.div
-              key={galleryKey}
+              key="drive-gallery"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -325,7 +316,7 @@ export default function EventPage() {
                   <p className={`${theme.textColor} opacity-70 text-lg mb-4`}>Upload all your photos/videos:</p>
                   <div className="flex items-center justify-center gap-3 flex-wrap">
                     <a
-                      href={`https://drive.google.com/drive/folders/${googleDriveFolderId}?usp=share_link`}
+                      href={`https://drive.google.com/drive/folders/${eventConfig?.googleDriveFolderId}?usp=share_link`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`${primaryColorClass} text-white px-6 py-2 rounded-full font-semibold transition-all transform hover:scale-105 shadow-lg flex items-center gap-2`}
@@ -456,7 +447,7 @@ export default function EventPage() {
             onClick={() => setSelectedMedia(null)}
             className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
           >
-            {inviteCode.trim().toUpperCase() === galleryCode && selectedMedia > 0 && (
+            {inviteCode.trim().toUpperCase() === eventConfig?.galleryCode && selectedMedia > 0 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -468,7 +459,7 @@ export default function EventPage() {
               </button>
             )}
 
-            {inviteCode.trim().toUpperCase() === galleryCode && selectedMedia < driveFiles.length - 1 && (
+            {inviteCode.trim().toUpperCase() === eventConfig?.galleryCode && selectedMedia < driveFiles.length - 1 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -487,7 +478,7 @@ export default function EventPage() {
               className="relative w-full max-w-4xl aspect-video"
               onClick={(e) => e.stopPropagation()}
             >
-              {inviteCode.trim().toUpperCase() === galleryCode && driveFiles[selectedMedia] ? (
+              {inviteCode.trim().toUpperCase() === eventConfig?.galleryCode && driveFiles[selectedMedia] ? (
                 driveFiles[selectedMedia].mimeType.startsWith('image/') ? (
                   <img
                     src={`/api/drive-image?id=${driveFiles[selectedMedia].id}`}
@@ -505,7 +496,7 @@ export default function EventPage() {
               ) : null}
             </motion.div>
             
-            {inviteCode.trim().toUpperCase() === galleryCode && driveFiles[selectedMedia] && (
+            {inviteCode.trim().toUpperCase() === eventConfig?.galleryCode && driveFiles[selectedMedia] && (
               <a
                 href={`/api/drive-image?id=${driveFiles[selectedMedia].id}`}
                 download={driveFiles[selectedMedia].name}

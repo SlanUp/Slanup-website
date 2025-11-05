@@ -131,7 +131,7 @@ export default function WaitlistForm({ isOpen, onClose }: WaitlistFormProps) {
       setErrors({});
       
       setTimeout(onClose, 2500);
-    } catch (error) {
+    } catch {
       setMessage("Something went wrong. Please try again!");
     } finally {
       setIsSubmitting(false);

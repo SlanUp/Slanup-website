@@ -28,7 +28,7 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
     
     const emailHtml = await generateTicketEmailHTML(booking, eventConfig);
     
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: EMAIL_CONFIG.from,
       to: [booking.customerEmail],
       replyTo: EMAIL_CONFIG.replyTo,
@@ -67,7 +67,7 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
   }
 }
 
-async function generateTicketEmailHTML(booking: Booking, eventConfig: any): Promise<string> {
+async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: string; name: string; referencePrefix: string; theme: { emoji: string } }): Promise<string> {
   const eventDate = new Date(booking.eventDate).toLocaleDateString('en-IN', {
     weekday: 'long',
     year: 'numeric',
@@ -469,7 +469,7 @@ export async function sendPaymentFailedEmail(booking: Booking): Promise<boolean>
   try {
     console.log(`📧 Sending payment failed email to ${booking.customerEmail}`);
 
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
       from: EMAIL_CONFIG.from,
       to: [booking.customerEmail],
       replyTo: EMAIL_CONFIG.replyTo,
