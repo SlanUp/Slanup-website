@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     console.log('🚀 Starting database migration...');
 

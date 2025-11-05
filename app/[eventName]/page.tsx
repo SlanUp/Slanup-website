@@ -149,7 +149,7 @@ export default function EventPage() {
   
   if (!eventConfig) return null;
   
-  const { theme, galleryCode, googleDriveFolderId } = eventConfig;
+  const { theme } = eventConfig;
 
   // Dynamic color classes - using CSS variables and conditional classes
   const getPrimaryButtonClass = () => {

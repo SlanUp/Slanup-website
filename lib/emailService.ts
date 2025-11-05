@@ -26,6 +26,11 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
                       booking.eventName.toLowerCase().includes('luau') ? 'luau' : 'diwali';
     const eventConfig = getEventConfig(eventName) || getEventConfig('diwali'); // Fallback to diwali
     
+    if (!eventConfig) {
+      console.error('❌ No event config found for email:', eventName);
+      return false;
+    }
+    
     const emailHtml = await generateTicketEmailHTML(booking, eventConfig);
     
     const { error } = await resend.emails.send({
@@ -57,7 +62,7 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
       return false;
     }
 
-    console.log('✅ Ticket email sent successfully:', data?.id);
+    console.log('✅ Ticket email sent successfully');
     console.log('✅ Email will be marked as sent by caller');
     
     return true;
