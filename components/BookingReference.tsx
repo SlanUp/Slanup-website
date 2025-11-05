@@ -256,14 +256,14 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
         <h3 className={`font-semibold ${isLuau ? 'text-neutral-800' : 'text-amber-400'} mb-3 text-lg`}>PARTY ESSENTIALS {isLuau ? '🥥' : '🎉'}:</h3>
         <div className={`grid grid-cols-1 ${isLuau ? 'gap-2' : 'gap-3'}`}>
           {[
-            'Save this reference number - it\'s your GOLDEN TICKET!',
-            'Show this reference at entrance for VIP treatment',
-            `Bring valid photo ID + your party energy ${isLuau ? '🌊' : '🔥'}`,
-            isLuau ? 'Get your best tropical fits out for the event 🍾' : 'BYOB - Bring your favorite booze 🍾',
-            isLuau ? 'Prepare for a night you\'re gonna smile while dreaming of' : 'We provide all mixers & sides 🥤',
-            isLuau ? 'Please schedule your return cab 1 hour prior' : 'Get ready for UNLIMITED food & drinks',
-            isLuau ? 'Drink safely, because playing with the rules and games is gonna get you a lot wasted, so be careful' : 'Prepare for the craziest games ever!',
-            ...(booking.paymentStatus === 'pending' ? ['Complete payment to secure your spot'] : [])
+            isLuau ? 'Save this reference number - it\'s your GOLDEN TICKET! 🎫' : 'Save this reference number - it\'s your GOLDEN TICKET! 🎫',
+            isLuau ? 'Show this reference at entrance for VIP treatment ✨' : 'Show this reference at entrance for VIP treatment ✨',
+            isLuau ? `Bring valid photo ID + your party energy 🌊` : `Bring valid photo ID + your party energy 🔥`,
+            isLuau ? 'Get your best tropical fits out for the event 🏝️' : 'BYOB - Bring your favorite booze 🍾',
+            isLuau ? 'Prepare for a night you\'re gonna smile while dreaming of 💭' : 'We provide all mixers & sides 🥤',
+            isLuau ? 'Please schedule your return cab 1 hour prior 🚗' : 'Get ready for UNLIMITED food & drinks 🍽️',
+            isLuau ? 'Drink safely, because playing with the rules and games is gonna get you a lot wasted, so be careful ⚠️' : 'Prepare for the craziest games ever! 🎲',
+            ...(booking.paymentStatus === 'pending' ? [isLuau ? 'Complete payment to secure your spot 💳' : 'Complete payment to secure your spot 💳'] : [])
           ].map((item, index) => (
             <div key={index} className={`flex items-center ${isLuau ? 'text-neutral-800 text-sm bg-white/40 backdrop-blur-sm rounded-lg p-2' : 'text-amber-200 text-sm'}`}>
               <div className={`w-2 h-2 ${isLuau ? 'bg-amber-500' : 'bg-white'} rounded-full mr-3 flex-shrink-0`} />

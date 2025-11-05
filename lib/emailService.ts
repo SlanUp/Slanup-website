@@ -434,21 +434,21 @@ async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: stri
           <h3>${eventConfig.id === 'luau' ? '🥥' : '🎉'} Party Essentials - Important Information</h3>
           <ul>
             ${eventConfig.id === 'luau' ? `
-            <li><strong>Save this reference number</strong> - it's your GOLDEN TICKET!</li>
-            <li><strong>Show this reference</strong> at entrance for VIP treatment</li>
+            <li><strong>Save this reference number</strong> - it's your GOLDEN TICKET! 🎫</li>
+            <li><strong>Show this reference</strong> at entrance for VIP treatment ✨</li>
             <li><strong>Bring valid photo ID</strong> + your party energy 🌊</li>
-            <li><strong>Get your best tropical fits out</strong> for the event 🍾</li>
-            <li><strong>Prepare for a night</strong> you're gonna smile while dreaming of</li>
-            <li><strong>Please schedule your return cab</strong> 1 hour prior</li>
-            <li><strong>Drink safely</strong>, because playing with the rules and games is gonna get you a lot wasted, so be careful</li>
+            <li><strong>Get your best tropical fits out</strong> for the event 🏝️</li>
+            <li><strong>Prepare for a night</strong> you're gonna smile while dreaming of 💭</li>
+            <li><strong>Please schedule your return cab</strong> 1 hour prior 🚗</li>
+            <li><strong>Drink safely</strong>, because playing with the rules and games is gonna get you a lot wasted, so be careful ⚠️</li>
             ` : `
-            <li><strong>Bring Valid Photo ID</strong> and your party energy</li>
-            <li><strong>Show this email</strong> or QR code at entrance</li>
-            <li><strong>BYOB</strong> - Bring your own booze</li>
-            <li><strong>All mixers and sides provided</strong> by us</li>
-            <li><strong>Unlimited food and beverages</strong> included</li>
-            <li><strong>Games and DJ</strong> all night long</li>
-            <li><strong>Photo setups</strong> available</li>
+            <li><strong>Bring Valid Photo ID</strong> and your party energy 🔥</li>
+            <li><strong>Show this email</strong> or QR code at entrance ✨</li>
+            <li><strong>BYOB</strong> - Bring your own booze 🍾</li>
+            <li><strong>All mixers and sides provided</strong> by us 🥤</li>
+            <li><strong>Unlimited food and beverages</strong> included 🍽️</li>
+            <li><strong>Games and DJ</strong> all night long 🎲</li>
+            <li><strong>Photo setups</strong> available 📸</li>
             `}
           </ul>
         </div>
