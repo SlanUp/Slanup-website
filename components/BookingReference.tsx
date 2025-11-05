@@ -82,8 +82,10 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={containerClass}
+      className={`${containerClass} max-w-2xl w-full mx-auto max-h-[90vh] flex flex-col`}
     >
+      {/* Single scrollable container */}
+      <div className="flex-1 overflow-y-auto pr-1 -mr-1 px-4 md:px-8 py-4 md:py-8">
       {/* Header - Matching ticket modal design */}
       <div className="text-center mb-8">
         {booking.paymentStatus === 'completed' ? (
@@ -93,13 +95,13 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
                 YOU&apos;RE IN!
               </h2>
             </div>
-            <p className={`${textSecondaryColor} opacity-90 text-lg`}>
+            <p className={`${textSecondaryColor} opacity-90 text-base sm:text-lg`}>
               Get ready for the most INSANE {eventConfig?.name.replace("Slanup's ", "").split(" -")[0] || 'party'} experience!
             </p>
-            <p className={`${isLuau ? 'text-amber-700' : 'text-yellow-400'} font-bold mt-2 text-lg`}>
+            <p className={`${isLuau ? 'text-amber-700' : 'text-yellow-400'} font-bold mt-2 text-base sm:text-lg`}>
               {isLuau ? '🏝️ LET\'S GOOOO! 🍹' : 'LET\'S PARTYYYYYYYYY! 🎉'}
             </p>
-            <p className={`text-sm ${textMutedColor} mt-4 px-4`}>
+            <p className={`text-xs sm:text-sm ${textMutedColor} mt-4 px-2 sm:px-4`}>
               Tickets have been mailed to your email ID. Please also check spam if it ain&apos;t in your inbox.
             </p>
           </>
@@ -108,51 +110,51 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
             <div className="flex items-center justify-center mb-4">
               <span className="text-3xl">⏳</span>
             </div>
-            <h2 className={`text-2xl font-bold ${isLuau ? 'text-amber-700' : 'text-yellow-400'} mb-2`}>PAYMENT PENDING ⏳</h2>
-            <p className={textSecondaryColor}>We&apos;re processing your payment...</p>
-            <p className={`${isLuau ? 'text-amber-600' : 'text-yellow-300'} font-medium mt-1`}>You&apos;ll be confirmed shortly! 🎯</p>
+            <h2 className={`text-xl sm:text-2xl font-bold ${isLuau ? 'text-amber-700' : 'text-yellow-400'} mb-2`}>PAYMENT PENDING ⏳</h2>
+            <p className={`${textSecondaryColor} text-sm sm:text-base`}>We&apos;re processing your payment...</p>
+            <p className={`${isLuau ? 'text-amber-600' : 'text-yellow-300'} font-medium mt-1 text-sm sm:text-base`}>You&apos;ll be confirmed shortly! 🎯</p>
           </>
         )}
       </div>
 
       {/* Reference Number - Styled like ticket card */}
       {booking.paymentStatus === 'completed' ? (
-        <div className={`${referenceBg} mb-8`}>
+        <div className={`${referenceBg} mb-6`}>
           <div className="text-center">
-            <p className={`${isLuau ? 'text-neutral-800' : 'text-white'} text-lg mb-4 font-semibold drop-shadow-lg`}>
+            <p className={`${isLuau ? 'text-neutral-800' : 'text-white'} text-base md:text-lg mb-3 md:mb-4 font-semibold drop-shadow-lg`}>
               🎫 Your Golden Ticket
             </p>
-            <div className="flex items-center justify-center space-x-3 mb-4">
-              <span className={`text-3xl md:text-4xl font-bold ${isLuau ? 'text-neutral-800 drop-shadow-lg' : 'text-white'} font-mono`}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mb-3 md:mb-4">
+              <span className={`text-xl sm:text-2xl md:text-3xl font-bold ${isLuau ? 'text-neutral-800 drop-shadow-lg' : 'text-white'} font-mono break-all text-center px-2`}>
                 {booking.referenceNumber}
               </span>
               <button
                 onClick={copyReferenceNumber}
-                className={`p-2 rounded-lg ${isLuau ? 'bg-white/80 hover:bg-white' : 'bg-white/20 hover:bg-white/30'} transition-colors`}
+                className={`p-2 rounded-lg flex-shrink-0 ${isLuau ? 'bg-white/80 hover:bg-white' : 'bg-white/20 hover:bg-white/30'} transition-colors`}
                 title="Copy reference number"
               >
-                <Copy className={`w-5 h-5 ${isLuau ? 'text-neutral-800' : 'text-white'}`} />
+                <Copy className={`w-4 h-4 sm:w-5 sm:h-5 ${isLuau ? 'text-neutral-800' : 'text-white'}`} />
               </button>
             </div>
             {copied && (
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`text-sm mt-2 ${isLuau ? 'text-green-700' : 'text-green-300'}`}
+                className={`text-xs sm:text-sm mt-2 ${isLuau ? 'text-green-700' : 'text-green-300'}`}
               >
                 ✓ Copied to clipboard
               </motion.p>
             )}
-            <p className={`${isLuau ? 'text-neutral-800' : 'text-white/90'} text-sm mt-3 drop-shadow-lg`}>
+            <p className={`${isLuau ? 'text-neutral-800' : 'text-white/90'} text-xs sm:text-sm mt-3 drop-shadow-lg`}>
               Show this at the event entrance!
             </p>
           </div>
         </div>
       ) : (
-        <div className={`${isLuau ? 'bg-amber-100 border-2 border-amber-300' : 'bg-yellow-400/10 border border-yellow-400/20'} rounded-2xl p-6 mb-6`}>
+        <div className={`${isLuau ? 'bg-amber-100 border-2 border-amber-300' : 'bg-yellow-400/10 border border-yellow-400/20'} rounded-2xl p-4 md:p-6 mb-6`}>
           <div className="text-center">
-            <p className={`${isLuau ? 'text-amber-700' : 'text-yellow-400'} text-sm mb-2`}>📦 Order Tracking</p>
-            <div className={`text-lg font-bold ${isLuau ? 'text-neutral-800' : 'text-yellow-300'} font-mono mb-1`}>
+            <p className={`${isLuau ? 'text-amber-700' : 'text-yellow-400'} text-xs sm:text-sm mb-2`}>📦 Order Tracking</p>
+            <div className={`text-base sm:text-lg font-bold ${isLuau ? 'text-neutral-800' : 'text-yellow-300'} font-mono mb-1 break-all px-2`}>
               Order #{booking.id.slice(-8).toUpperCase()}
             </div>
             <p className={`${isLuau ? 'text-neutral-600' : 'text-yellow-200'} text-xs`}>Your reference number will appear once payment is confirmed</p>
@@ -271,9 +273,11 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
         </div>
       </div>
 
-      {/* Contact Support */}
-      <div className="mt-6 text-center">
-        <p className={`${isLuau ? 'text-neutral-600' : 'text-gray-400'} text-sm`}>
+      </div>
+      
+      {/* Contact Support - Fixed at bottom */}
+      <div className={`mt-4 pt-4 border-t ${isLuau ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0 px-4 md:px-8 pb-4 md:pb-8`}>
+        <p className={`${isLuau ? 'text-neutral-600' : 'text-gray-400'} text-xs sm:text-sm text-center`}>
           Need help? Contact us for support
         </p>
       </div>

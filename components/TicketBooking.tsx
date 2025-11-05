@@ -287,9 +287,11 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className={`${getModalContainer()} max-w-3xl w-full max-h-[95vh] overflow-y-auto p-4 md:p-6`}
+          className={`${getModalContainer()} max-w-3xl w-full max-h-[95vh] flex flex-col p-4 md:p-6`}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Single scrollable container */}
+          <div className="flex-1 overflow-y-auto pr-1 -mr-1">
           {/* Header */}
           <div className="text-center mb-4 md:mb-6">
             <div className="flex items-center justify-center mb-2">
@@ -368,8 +370,10 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
             })}
           </div>
 
-          {/* Close Button */}
-          <div className="text-center mt-2 md:mt-4">
+          </div>
+          
+          {/* Close Button - Fixed at bottom */}
+          <div className={`text-center mt-4 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0`}>
             <button
               onClick={onClose}
               className={`px-4 md:px-6 py-1.5 md:py-2 text-sm md:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800' : 'text-gray-400 hover:text-white'} transition-colors font-medium`}
@@ -394,9 +398,11 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className={`${getModalContainer()} max-w-md w-full p-8`}
+          className={`${getModalContainer()} max-w-md w-full max-h-[95vh] flex flex-col p-4 md:p-6`}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Single scrollable container */}
+          <div className="flex-1 overflow-y-auto pr-1 -mr-1">
           {/* Header */}
           <div className="text-center mb-6">
             <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : getTextColor()} opacity-90 text-lg`}>{selectedTicket?.description}</p>
@@ -434,7 +440,7 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
         </div>
 
         {/* Form */}
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form id="booking-form" onSubmit={handleFormSubmit} className="space-y-4">
           <div>
             <label className={`block ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white'} font-medium mb-2`}>Full Name *</label>
             <input
@@ -554,26 +560,28 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
               Terms & Conditions
             </Link>
           </div>
-
-          {/* Buttons */}
-          <div className="flex space-x-4 mt-6">
+        </form>
+          </div>
+          
+          {/* Buttons - Fixed at bottom */}
+          <div className={`flex flex-col sm:flex-row gap-3 sm:space-x-4 mt-6 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0`}>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className={`flex-1 px-6 py-3 border-2 ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 text-neutral-700 hover:bg-amber-50' : 'border-white/20 text-white hover:bg-white/10'} rounded-xl transition-colors`}
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 border-2 ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 text-neutral-700 hover:bg-amber-50' : 'border-white/20 text-white hover:bg-white/10'} rounded-xl transition-colors text-sm md:text-base`}
             >
               Back
             </button>
             <button
               type="submit"
+              form="booking-form"
               disabled={isLoading}
-              className={`flex-1 px-6 py-3 ${getPrimaryButtonClass()} font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
+              className={`flex-1 px-4 md:px-6 py-2 md:py-3 ${getPrimaryButtonClass()} font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm md:text-base`}
             >
               {isLoading ? 'Processing...' : 'Proceed to Payment'}
             </button>
           </div>
-        </form>
-      </motion.div>
+        </motion.div>
     </motion.div>
   );
 }
