@@ -287,13 +287,13 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className={`${getModalContainer()} max-w-3xl w-full max-h-[95vh] flex flex-col p-4 md:p-6`}
+          className={`${getModalContainer()} max-w-3xl w-full max-h-[95vh] flex flex-col p-4 sm:p-6`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Single scrollable container */}
-          <div className="flex-1 overflow-y-auto pr-1 -mr-1">
+          <div className="flex-1 overflow-y-auto pr-1 -mr-1 pt-2 sm:pt-0">
           {/* Header */}
-          <div className="text-center mb-4 md:mb-6">
+          <div className="text-center mb-4 sm:mb-6">
             <div className="flex items-center justify-center mb-2">
               <span className="text-2xl md:text-3xl mr-2">{eventConfig.theme.emoji}</span>
               <h2 className={`text-2xl md:text-3xl font-bold ${getTextColor()}`} style={{ fontFamily: eventConfig.theme.fontFamily.title }}>
@@ -308,7 +308,7 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           </div>
 
           {/* Single Ticket Experience */}
-          <div className="max-w-2xl mx-auto mb-4 md:mb-6">
+          <div className="max-w-2xl mx-auto mb-4 sm:mb-6">
             {eventConfig.ticketTypes.map((ticket) => {
               // Log ticket rendering
               console.log(`🎫 [TicketBooking] Rendering ticket card:`, {
@@ -348,22 +348,13 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
                 </p>
 
                 {/* Benefits */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2 mb-4 md:mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2 mb-4">
                   {ticket.benefits.map((benefit, index) => (
                     <div key={index} className={`flex items-start ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800 text-xs md:text-sm bg-white/60 backdrop-blur-sm rounded-lg p-1.5 md:p-2' : 'text-white text-xs md:text-sm'}`}>
                       <div className={`w-1.5 h-1.5 md:w-2 md:h-2 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-amber-500' : 'bg-white'} rounded-full mr-2 md:mr-3 flex-shrink-0 mt-1`} />
                       <span className="leading-relaxed">{benefit}</span>
                     </div>
                   ))}
-                </div>
-
-                {/* CTA Button */}
-                <div className="text-center mt-4 md:mt-6">
-                  <div className={`${getPrimaryButtonClass()} rounded-xl px-4 md:px-6 py-2 md:py-3 inline-block shadow-lg transition-all ${eventConfig.theme.primaryColor === 'teal' ? 'hover:shadow-amber-500/30' : 'hover:shadow-amber-500/30'}`}>
-                    <span className={`font-bold text-sm md:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-white' : 'text-slate-900'}`}>
-                      {eventConfig.theme.emoji === '🌺' ? '🌺🎟️ Click to Book Your Spot! 🌴' : '🎟️ Click to Book Your Spot!'}
-                    </span>
-                  </div>
                 </div>
               </motion.div>
             );
@@ -372,11 +363,19 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
 
           </div>
           
-          {/* Close Button - Fixed at bottom */}
-          <div className={`text-center mt-4 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0`}>
+          {/* Action Buttons - Fixed at bottom */}
+          <div className={`flex flex-col gap-2 sm:gap-3 mt-4 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0 pb-2`}>
+            {/* Book Your Spot Button - Stationary */}
+            <button
+              onClick={() => eventConfig.ticketTypes.length > 0 && handleTicketSelect(eventConfig.ticketTypes[0])}
+              className={`w-full ${getPrimaryButtonClass()} rounded-xl px-4 py-3 sm:py-3.5 shadow-lg transition-all font-bold text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-white' : 'text-slate-900'}`}
+            >
+              {eventConfig.theme.emoji === '🌺' ? '🌺🎟️ Click to Book Your Spot! 🌴' : '🎟️ Click to Book Your Spot!'}
+            </button>
+            {/* Cancel Button - Stationary */}
             <button
               onClick={onClose}
-              className={`px-4 md:px-6 py-1.5 md:py-2 text-sm md:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800' : 'text-gray-400 hover:text-white'} transition-colors font-medium`}
+              className={`w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800 hover:bg-amber-50' : 'text-gray-400 hover:text-white hover:bg-white/10'} transition-colors font-medium rounded-xl border ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/20'}`}
             >
               Cancel
             </button>
@@ -398,11 +397,11 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.8, opacity: 0 }}
-          className={`${getModalContainer()} max-w-md w-full max-h-[95vh] flex flex-col p-4 md:p-6`}
+          className={`${getModalContainer()} max-w-md w-full max-h-[95vh] flex flex-col p-4 sm:p-6`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Single scrollable container */}
-          <div className="flex-1 overflow-y-auto pr-1 -mr-1">
+          <div className="flex-1 overflow-y-auto pr-1 -mr-1 pt-2 sm:pt-0">
           {/* Header */}
           <div className="text-center mb-6">
             <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : getTextColor()} opacity-90 text-lg`}>{selectedTicket?.description}</p>
@@ -564,21 +563,21 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           </div>
           
           {/* Buttons - Fixed at bottom */}
-          <div className={`flex flex-col sm:flex-row gap-3 sm:space-x-4 mt-6 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0`}>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 border-2 ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 text-neutral-700 hover:bg-amber-50' : 'border-white/20 text-white hover:bg-white/10'} rounded-xl transition-colors text-sm md:text-base`}
-            >
-              Back
-            </button>
+          <div className={`flex flex-col gap-3 mt-6 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0 pb-2`}>
             <button
               type="submit"
               form="booking-form"
               disabled={isLoading}
-              className={`flex-1 px-4 md:px-6 py-2 md:py-3 ${getPrimaryButtonClass()} font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm md:text-base`}
+              className={`w-full px-4 py-3 sm:py-3.5 ${getPrimaryButtonClass()} font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-white' : 'text-slate-900'}`}
             >
               {isLoading ? 'Processing...' : 'Proceed to Payment'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className={`w-full px-4 py-2.5 sm:py-3 border-2 ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 text-neutral-700 hover:bg-amber-50' : 'border-white/20 text-white hover:bg-white/10'} rounded-xl transition-colors text-sm sm:text-base`}
+            >
+              Back
             </button>
           </div>
         </motion.div>
