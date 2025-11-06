@@ -30,7 +30,6 @@ const GALLERY_ITEMS = [
   { type: "image", url: "/Gallery/best-parties/2830EE9F-7C84-46F2-8B08-D99639BB2E11.JPG", title: "Pure Joy" },
   { type: "image", url: "/Gallery/best-parties/3DF8E5E8-4523-4B21-B5E1-A2F8BEA3E0A4.JPG", title: "Crew" },
   { type: "image", url: "/Gallery/best-parties/47F96A65-070F-4149-A322-F42C80A54F42.JPG", title: "Good Vibes" },
-  { type: "image", url: "/Gallery/best-parties/5C745E99-93E1-48B1-B44D-E55AC9E682C5.JPG", title: "Paradise" },
   { type: "image", url: "/Gallery/best-parties/6DBBC89B-9756-42E4-A750-D47215B337CB.jpg", title: "Unforgettable" },
   { type: "image", url: "/Gallery/best-parties/72919371-E11C-4EB8-BF70-D603BA7FD5A9.JPG", title: "Best Night" },
   { type: "image", url: "/Gallery/best-parties/7B553836-8F88-4CDA-BE1E-06FE9746853F.JPG", title: "Forever" },
@@ -68,7 +67,6 @@ const GALLERY_ITEMS = [
   { type: "image", url: "/Gallery/best-parties/CBD8D89D-9E0F-4E54-9259-6E6C6E868F31.JPG", title: "Legendary" },
   { type: "image", url: "/Gallery/best-parties/E533DA87-E331-4D05-8954-74848E0689F2.JPG", title: "Electric" },
   { type: "image", url: "/Gallery/best-parties/E81EFEE7-858B-42F5-985A-EE72B3FB7710.JPG", title: "Iconic" },
-  { type: "image", url: "/Gallery/best-parties/4.JPG", title: "Celebration" },
 ];
 
 export default function TropicalLuauPage() {
