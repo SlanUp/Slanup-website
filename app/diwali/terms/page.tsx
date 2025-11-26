@@ -102,7 +102,6 @@ export default function TermsPage() {
                 <li><strong className="text-white">No Violence:</strong> Physical altercations or aggressive behavior will result in immediate removal</li>
                 <li><strong className="text-white">No Harassment:</strong> Any form of harassment (verbal, physical, or sexual) is strictly prohibited</li>
                 <li><strong className="text-white">Dress Code:</strong> Classy traditionals; organizers reserve the right to deny entry for inappropriate clothing</li>
-                <li><strong className="text-white">Photography:</strong> By attending, you consent to being photographed/recorded for promotional purposes</li>
               </ul>
             </section>
 
@@ -167,6 +166,22 @@ export default function TermsPage() {
                 <li>We will not share your data with third parties (except payment processor)</li>
                 <li>Photos/videos from the Event may be used for marketing purposes</li>
                 <li>You may request removal from photos by contacting us</li>
+              </ul>
+            </section>
+
+            {/* 10.5. Camera & Recording Consent */}
+            <section>
+              <h2 className="text-2xl font-bold text-amber-400 mb-4">10.5. Camera & Recording Consent</h2>
+              <p className="text-gray-300 leading-relaxed mb-4">
+                <strong className="text-white">By purchasing tickets to this event, you explicitly consent to being photographed, videotaped, and recorded during the event for promotional purposes.</strong>
+              </p>
+              <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
+                <li><strong className="text-white">Consent to Recording:</strong> By purchasing a ticket, you consent to being recorded (photography, video, audio) during the event. This content will be used for promotional purposes by Slanup.</li>
+                <li><strong className="text-white">Public Sharing:</strong> After posting, recorded content will be shared publicly on social media, our website, and other marketing channels. This content will be accessible to everyone.</li>
+                <li><strong className="text-white">Removal Requests:</strong> You may request removal of content featuring you, but such requests must be made within <strong className="text-white">3 hours</strong> of the content being posted. Requests made after 3 hours may not be honored.</li>
+                <li><strong className="text-white">Content Preferences:</strong> If you do not wish to appear in certain types of content (e.g., images showing drinking, or any activity you&apos;re not comfortable with), please inform our photographers/videographers at the event by flagging your name or speaking with event staff at the time of recording.</li>
+                <li><strong className="text-white">No Guarantee:</strong> While we will make reasonable efforts to honor your preferences, we cannot guarantee that you will not appear in any recordings.</li>
+                <li><strong className="text-white">No Compensation:</strong> You will not receive any compensation for the use of your likeness in promotional materials.</li>
               </ul>
             </section>
 

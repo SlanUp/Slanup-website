@@ -139,6 +139,22 @@ export default function GeneralTermsPage() {
               </ul>
             </section>
 
+            {/* 8.5. Camera & Recording Consent */}
+            <section>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">8.5. Camera & Recording Consent</h2>
+              <p className="text-gray-300 leading-relaxed mb-4">
+                <strong className="text-white">By purchasing tickets to any Slanup event, you explicitly consent to being photographed, videotaped, and recorded during the event for promotional purposes.</strong>
+              </p>
+              <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
+                <li><strong className="text-white">Consent to Recording:</strong> By purchasing a ticket, you consent to being recorded (photography, video, audio) during the event. This content will be used for promotional purposes by Slanup.</li>
+                <li><strong className="text-white">Public Sharing:</strong> After posting, recorded content will be shared publicly on social media, our website, and other marketing channels. This content will be accessible to everyone.</li>
+                <li><strong className="text-white">Removal Requests:</strong> You may request removal of content featuring you, but such requests must be made within <strong className="text-white">3 hours</strong> of the content being posted. Requests made after 3 hours may not be honored.</li>
+                <li><strong className="text-white">Content Preferences:</strong> If you do not wish to appear in certain types of content (e.g., images showing drinking, or any activity you&apos;re not comfortable with), please inform our photographers/videographers at the event by flagging your name or speaking with event staff at the time of recording.</li>
+                <li><strong className="text-white">No Guarantee:</strong> While we will make reasonable efforts to honor your preferences, we cannot guarantee that you will not appear in any recordings.</li>
+                <li><strong className="text-white">No Compensation:</strong> You will not receive any compensation for the use of your likeness in promotional materials.</li>
+              </ul>
+            </section>
+
             {/* 9. Liability */}
             <section>
               <h2 className="text-2xl font-bold text-green-400 mb-4">9. Liability & Disclaimers</h2>
@@ -174,7 +190,6 @@ export default function GeneralTermsPage() {
               </p>
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-white mb-2"><strong>Email:</strong> <a href="mailto:hello@slanup.com" className="text-green-400 hover:text-green-300 underline">hello@slanup.com</a></p>
-                <p className="text-white mb-2"><strong>Phone:</strong> +91 7773861799</p>
                 <p className="text-white"><strong>Website:</strong> <a href="https://slanup.com" className="text-green-400 hover:text-green-300 underline">slanup.com</a></p>
               </div>
             </section>

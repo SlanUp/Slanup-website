@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Privacy Policy</h1>
-          <p className="text-gray-400">Slanup - Operated by BINDU DUBEY</p>
+          <p className="text-gray-400">Slanup</p>
           <p className="text-gray-500 text-sm mt-2">Last Updated: October 2025</p>
         </motion.div>
 
@@ -32,10 +32,9 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-2xl font-bold text-green-400 mb-4">Business Information</h2>
               <div className="space-y-3 text-gray-300">
                 <p><strong className="text-white">Business Name:</strong> Slanup</p>
-                <p><strong className="text-white">Legal Name:</strong> BINDU DUBEY</p>
                 <p><strong className="text-white">Service Type:</strong> Social Media Platform for Planning Activities with Nearby People</p>
                 <p><strong className="text-white">Location:</strong> Jabalpur, Madhya Pradesh, India</p>
-                <p><strong className="text-white">Contact:</strong> hello@slanup.com | +91 7773861799</p>
+                <p><strong className="text-white">Contact:</strong> hello@slanup.com</p>
               </div>
             </section>
 
@@ -43,7 +42,7 @@ export default function PrivacyPolicyPage() {
             <section>
               <h2 className="text-2xl font-bold text-green-400 mb-4">1. Introduction</h2>
               <p className="text-gray-300 leading-relaxed">
-                Welcome to Slanup, operated by <strong className="text-white">BINDU DUBEY</strong>. We are committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, store, and protect your data when you use our platform and services.
+                Welcome to Slanup. We are committed to protecting your privacy and personal information. This Privacy Policy explains how we collect, use, store, and protect your data when you use our platform and services.
               </p>
               <p className="text-gray-300 leading-relaxed mt-4">
                 By using Slanup, you agree to the collection and use of information in accordance with this policy.
@@ -189,9 +188,25 @@ export default function PrivacyPolicyPage() {
               </p>
             </section>
 
+            {/* Camera & Recording */}
+            <section>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">9. Camera & Recording Policy</h2>
+              <p className="text-gray-300 leading-relaxed mb-4">
+                <strong className="text-white">By purchasing tickets to any Slanup event, you explicitly consent to being photographed, videotaped, and recorded during the event for promotional purposes.</strong>
+              </p>
+              <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
+                <li><strong className="text-white">Consent to Recording:</strong> By purchasing a ticket, you consent to being recorded (photography, video, audio) during the event. This content will be used for promotional purposes by Slanup.</li>
+                <li><strong className="text-white">Public Sharing:</strong> After posting, recorded content will be shared publicly on social media, our website, and other marketing channels. This content will be accessible to everyone.</li>
+                <li><strong className="text-white">Removal Requests:</strong> You may request removal of content featuring you, but such requests must be made within <strong className="text-white">3 hours</strong> of the content being posted. Requests made after 3 hours may not be honored.</li>
+                <li><strong className="text-white">Content Preferences:</strong> If you do not wish to appear in certain types of content (e.g., images showing drinking, or any activity you&apos;re not comfortable with), please inform our photographers/videographers at the event by flagging your name or speaking with event staff at the time of recording.</li>
+                <li><strong className="text-white">No Guarantee:</strong> While we will make reasonable efforts to honor your preferences, we cannot guarantee that you will not appear in any recordings.</li>
+                <li><strong className="text-white">No Compensation:</strong> You will not receive any compensation for the use of your likeness in promotional materials.</li>
+              </ul>
+            </section>
+
             {/* Data Protection */}
             <section>
-              <h2 className="text-2xl font-bold text-green-400 mb-4">9. Data Protection & Compliance</h2>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">10. Data Protection & Compliance</h2>
               <p className="text-gray-300 leading-relaxed">
                 We comply with applicable data protection laws and regulations in India. We implement appropriate technical and organizational measures to ensure data security and protect your rights.
               </p>
@@ -199,7 +214,7 @@ export default function PrivacyPolicyPage() {
 
             {/* Changes to Policy */}
             <section>
-              <h2 className="text-2xl font-bold text-green-400 mb-4">10. Changes to This Policy</h2>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">11. Changes to This Policy</h2>
               <p className="text-gray-300 leading-relaxed">
                 We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated &ldquo;Last Updated&rdquo; date. We encourage you to review this policy periodically. Continued use of our services after changes constitutes acceptance of the updated policy.
               </p>
@@ -207,15 +222,13 @@ export default function PrivacyPolicyPage() {
 
             {/* Contact */}
             <section>
-              <h2 className="text-2xl font-bold text-green-400 mb-4">11. Contact Us</h2>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">12. Contact Us</h2>
               <p className="text-gray-300 leading-relaxed mb-4">
                 For questions about this Privacy Policy or to exercise your rights, please contact us:
               </p>
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-white mb-2"><strong>Business Name:</strong> Slanup</p>
-                <p className="text-white mb-2"><strong>Legal Name:</strong> BINDU DUBEY</p>
                 <p className="text-white mb-2"><strong>Email:</strong> <a href="mailto:hello@slanup.com" className="text-green-400 hover:text-green-300 underline">hello@slanup.com</a></p>
-                <p className="text-white mb-2"><strong>Phone:</strong> +91 7773861799</p>
                 <p className="text-white"><strong>Location:</strong> Jabalpur, Madhya Pradesh, India</p>
               </div>
             </section>
