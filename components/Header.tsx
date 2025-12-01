@@ -17,11 +17,6 @@ export default function Header() {
           beta
         </sup>
       </Link>
-      <Link href="/luau">
-        <button className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-2 px-5 md:px-6 rounded-full text-sm md:text-base transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50">
-          🌴 Slanup&apos;s Tropical Luau
-        </button>
-      </Link>
     </header>
   );
 }
