@@ -92,6 +92,50 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
         maxQuantity: 1
       }
     ] as TicketType[]
+  },
+  'mafia-soiree': {
+    id: 'mafia-soiree',
+    name: "Slanup's Mafia Soireé",
+    date: new Date('2024-12-31'),
+    venue: "TBD",
+    referencePrefix: 'MAFIA',
+    galleryCode: 'MAFIA2024',
+    googleDriveFolderId: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '',
+    theme: {
+      background: 'from-black via-neutral-900 to-black',
+      textColor: 'text-white',
+      primaryColor: 'red',
+      secondaryColor: 'amber',
+      accentColor: 'rose',
+      emoji: '🎩',
+      fontFamily: {
+        title: "'Bebas Neue', cursive",
+        subtitle: "'Playfair Display', serif"
+      }
+    },
+    ticketTypes: [
+      {
+        id: 'ultimate',
+        name: 'ULTIMATE MAFIA SOIRÉE EXPERIENCE',
+        price: 1699,
+        description: 'The most INSANE Mafia Soireé experience you\'ll ever have! 🎩🔥',
+        benefits: [
+          '🍽️ UNLIMITED Food & Beverages',
+          '🎲 Crazy Rules & Games (Prepare to get WASTED!)',
+          '✨ Breathtaking Mafia-Themed Decor',
+          '🏛️ Premium Luxurious Venue',
+          '👫 Perfect Balanced Crowd Ratio',
+          '🎧 Professional DJ All Night Long',
+          '🎯 Exclusive Game Booths & Setups',
+          '🍹 Complimentary Welcome Cocktail/Mocktail',
+          '📍 Location details will be shared one day prior to the event',
+          '📸 Instagram-Worthy Photo Opportunities',
+          '🎊 Unforgettable Memories Guaranteed'
+        ],
+        available: true,
+        maxQuantity: 1
+      }
+    ] as TicketType[]
   }
 };
 

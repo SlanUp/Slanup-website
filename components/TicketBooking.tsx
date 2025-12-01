@@ -74,9 +74,14 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
   const getTicketColor = (ticketType: string) => {
     // Use event theme colors for ticket card
     const { theme } = eventConfig;
-    const color = theme.primaryColor === 'teal' 
-      ? 'from-amber-400 via-orange-300 to-amber-500' // Cream/amber gradient instead of teal
-      : 'from-slate-800 via-slate-700 to-slate-900';
+    let color;
+    if (theme.primaryColor === 'teal') {
+      color = 'from-amber-400 via-orange-300 to-amber-500'; // Cream/amber gradient instead of teal
+    } else if (theme.primaryColor === 'red') {
+      color = 'from-red-900 via-red-800 to-black'; // Mafia theme - red to black gradient
+    } else {
+      color = 'from-slate-800 via-slate-700 to-slate-900'; // Diwali - dark slate
+    }
     console.log(`🎨 [TicketBooking] getTicketColor(${ticketType}): primaryColor=${theme.primaryColor}, returning=${color}`);
     return color;
   };
@@ -87,6 +92,9 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
     if (theme.primaryColor === 'teal') {
       // Luau - cream background matching page
       return 'bg-gradient-to-br from-amber-50/95 via-orange-50/95 to-amber-100/95 backdrop-blur-sm';
+    } else if (theme.primaryColor === 'red') {
+      // Mafia - dark red/black background
+      return 'bg-black/90 backdrop-blur-sm';
     } else {
       // Diwali - dark background
       return 'bg-black/80 backdrop-blur-sm';
@@ -98,6 +106,9 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
     if (theme.primaryColor === 'teal') {
       // Luau - cream container with subtle amber tones, less green
       return 'bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 rounded-3xl border-2 border-amber-200 shadow-2xl shadow-amber-500/20';
+    } else if (theme.primaryColor === 'red') {
+      // Mafia - dark red/black container with red border
+      return 'bg-gradient-to-br from-black via-neutral-900 to-black rounded-3xl border-2 border-red-600/50 shadow-2xl shadow-red-900/30';
     } else {
       // Diwali - dark container
       return 'bg-gradient-to-br from-gray-900 to-black rounded-3xl';
@@ -113,6 +124,9 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
     if (theme.primaryColor === 'teal') {
       // Use amber/orange instead of teal for buttons
       return 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white';
+    } else if (theme.primaryColor === 'red') {
+      // Mafia - red gradient button
+      return 'bg-gradient-to-r from-red-700 to-red-900 hover:from-red-800 hover:to-red-950 text-white';
     } else {
       return 'bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-900';
     }
@@ -123,6 +137,9 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
     if (theme.primaryColor === 'teal') {
       // Dark text on light background
       return 'text-neutral-800 drop-shadow-lg';
+    } else if (theme.primaryColor === 'red') {
+      // Mafia - white text for better visibility on red background
+      return 'text-white';
     } else {
       return 'text-amber-400';
     }
@@ -133,6 +150,9 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
     if (theme.primaryColor === 'teal') {
       // Amber border instead of teal
       return 'border-amber-300/50 hover:border-amber-400/70';
+    } else if (theme.primaryColor === 'red') {
+      // Mafia - red border
+      return 'border-red-600/50 hover:border-red-500/70';
     } else {
       return 'border-amber-400/30 hover:border-amber-400/60';
     }
@@ -302,8 +322,8 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
               <span className="text-2xl md:text-3xl ml-2">{eventConfig.theme.emoji === '🌺' ? '🌴' : eventConfig.theme.emoji}</span>
             </div>
             <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : getTextColor()} opacity-90 text-sm md:text-base`}>The most INSANE {eventConfig.name.replace("Slanup's ", "").split(" -")[0]} experience awaits you!</p>
-            <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-amber-700' : 'text-yellow-400'} font-bold mt-1 text-sm md:text-base`}>
-              {eventConfig.theme.emoji === '🌺' ? '🌺🌴 LET\'S GOOOO! 🎉🌺' : 'LET\'S PARTYYYYYYYYY! 🎉'}
+            <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-amber-700' : eventConfig.theme.primaryColor === 'red' ? 'text-red-400' : 'text-yellow-400'} font-bold mt-1 text-sm md:text-base`}>
+              {eventConfig.theme.emoji === '🌺' ? '🌺🌴 LET\'S GOOOO! 🎉🌺' : eventConfig.theme.emoji === '🎩' ? '🎩 LET\'S PARTYYYYYYYYY! 🎉' : 'LET\'S PARTYYYYYYYYY! 🎉'}
             </p>
           </div>
 
@@ -329,7 +349,7 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
               <motion.div
                 key={ticket.id}
                 whileHover={{ scale: 1.02 }}
-                className={`relative ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white/90 backdrop-blur-xl rounded-3xl p-4 md:p-6 border-2 border-amber-200 shadow-2xl shadow-amber-500/20' : `bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-4 md:p-6 border-2 ${getBorderColor()} shadow-2xl hover:shadow-amber-500/20`} cursor-pointer transition-all`}
+                className={`relative ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white/90 backdrop-blur-xl rounded-3xl p-4 md:p-6 border-2 border-amber-200 shadow-2xl shadow-amber-500/20' : eventConfig.theme.primaryColor === 'red' ? `bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-4 md:p-6 border-2 ${getBorderColor()} shadow-2xl hover:shadow-red-900/30` : `bg-gradient-to-br ${getTicketColor(ticket.id)} rounded-3xl p-4 md:p-6 border-2 ${getBorderColor()} shadow-2xl hover:shadow-amber-500/20`} cursor-pointer transition-all`}
                 onClick={() => handleTicketSelect(ticket)}
               >
 
@@ -362,20 +382,20 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           </div>
 
           </div>
-          
+
           {/* Action Buttons - Fixed at bottom */}
-          <div className={`flex flex-col gap-2 sm:gap-3 mt-4 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0 pb-2`}>
+          <div className={`flex flex-col gap-2 sm:gap-3 mt-4 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : eventConfig.theme.primaryColor === 'red' ? 'border-red-600/30' : 'border-white/10'} flex-shrink-0 pb-2`}>
             {/* Book Your Spot Button - Stationary */}
             <button
               onClick={() => eventConfig.ticketTypes.length > 0 && handleTicketSelect(eventConfig.ticketTypes[0])}
-              className={`w-full ${getPrimaryButtonClass()} rounded-xl px-4 py-3 sm:py-3.5 shadow-lg transition-all font-bold text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-white' : 'text-slate-900'}`}
+              className={`w-full ${getPrimaryButtonClass()} rounded-xl px-4 py-3 sm:py-3.5 shadow-lg transition-all font-bold text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-white' : eventConfig.theme.primaryColor === 'red' ? 'text-white' : 'text-slate-900'}`}
             >
-              {eventConfig.theme.emoji === '🌺' ? '🌺🎟️ Click to Book Your Spot! 🌴' : '🎟️ Click to Book Your Spot!'}
+              {eventConfig.theme.emoji === '🌺' ? '🌺🎟️ Click to Book Your Spot! 🌴' : eventConfig.theme.emoji === '🎩' ? '🎩🎟️ Click to Book Your Spot! 🎩' : '🎟️ Click to Book Your Spot!'}
             </button>
             {/* Cancel Button - Stationary */}
             <button
               onClick={onClose}
-              className={`w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800 hover:bg-amber-50' : 'text-gray-400 hover:text-white hover:bg-white/10'} transition-colors font-medium rounded-xl border ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/20'}`}
+              className={`w-full px-4 py-2.5 sm:py-3 text-sm sm:text-base ${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-600 hover:text-neutral-800 hover:bg-amber-50' : eventConfig.theme.primaryColor === 'red' ? 'text-red-400 hover:text-red-300 hover:bg-red-950/30' : 'text-gray-400 hover:text-white hover:bg-white/10'} transition-colors font-medium rounded-xl border ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : eventConfig.theme.primaryColor === 'red' ? 'border-red-600/30' : 'border-white/20'}`}
             >
               Cancel
             </button>
@@ -386,30 +406,30 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
   }
 
   return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
         className={`fixed inset-0 ${getModalBackground()} z-50 flex items-center justify-center p-4`}
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
           className={`${getModalContainer()} max-w-md w-full max-h-[95vh] flex flex-col p-4 sm:p-6`}
-          onClick={(e) => e.stopPropagation()}
-        >
+        onClick={(e) => e.stopPropagation()}
+      >
           {/* Single scrollable container */}
           <div className="flex-1 overflow-y-auto pr-1 -mr-1 pt-2 sm:pt-0">
-          {/* Header */}
-          <div className="text-center mb-6">
+        {/* Header */}
+        <div className="text-center mb-6">
             <p className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-700' : getTextColor()} opacity-90 text-lg`}>{selectedTicket?.description}</p>
-          </div>
+        </div>
 
-          {/* Price Display */}
-          <div className="text-center mb-6">
-            <div className={`${eventConfig.theme.primaryColor === 'teal' ? 'bg-amber-50 border-2 border-amber-200' : 'bg-slate-800/50 border border-amber-400/30'} rounded-2xl p-4`}>
+        {/* Price Display */}
+        <div className="text-center mb-6">
+            <div className={`${eventConfig.theme.primaryColor === 'teal' ? 'bg-amber-50 border-2 border-amber-200' : eventConfig.theme.primaryColor === 'red' ? 'bg-red-950/50 border border-red-600/30' : 'bg-slate-800/50 border border-amber-400/30'} rounded-2xl p-4`}>
             {(() => {
               const fees = getTicketFees(selectedTicket?.price || 0);
               return (
@@ -423,10 +443,10 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
                       <span>Gateway charges</span>
                       <span>{formatCurrency(fees.gatewayCharges)}</span>
                     </div>
-                    <div className={`border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200' : 'border-white/20'} pt-2 mt-2`}>
+                    <div className={`border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200' : eventConfig.theme.primaryColor === 'red' ? 'border-red-600/30' : 'border-white/20'} pt-2 mt-2`}>
                       <div className="flex justify-between items-center">
                         <span className={`${eventConfig.theme.primaryColor === 'teal' ? 'text-neutral-800' : 'text-white/80'} text-sm font-medium`}>Total Amount</span>
-                        <span className={`text-2xl font-bold ${eventConfig.theme.primaryColor === 'teal' ? 'text-amber-700' : 'text-amber-400'}`}>
+                        <span className={`text-2xl font-bold ${eventConfig.theme.primaryColor === 'teal' ? 'text-amber-700' : eventConfig.theme.primaryColor === 'red' ? 'text-white' : 'text-amber-400'}`}>
                           {formatCurrency(fees.totalAmount)}
                         </span>
                       </div>
@@ -448,12 +468,12 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
               value={formData.customerName}
               onChange={(e) => handleFieldChange('customerName', e.target.value)}
               onBlur={() => handleFieldBlur('customerName')}
-              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : eventConfig.theme.primaryColor === 'red' ? 'bg-red-950/30 border border-red-600/30 rounded-xl text-white placeholder-red-400/50' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
                 validationErrors.customerName && touched.customerName
                   ? 'border-red-400 focus:ring-red-400'
                   : formData.customerName && !validationErrors.customerName && touched.customerName
                   ? 'border-green-400 focus:ring-green-400'
-                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
+                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : eventConfig.theme.primaryColor === 'red' ? 'border-red-600/30 focus:ring-red-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
               }`}
               placeholder="e.g., John Doe"
             />
@@ -482,12 +502,12 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
               value={formData.customerEmail}
               onChange={(e) => handleFieldChange('customerEmail', e.target.value)}
               onBlur={() => handleFieldBlur('customerEmail')}
-              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : eventConfig.theme.primaryColor === 'red' ? 'bg-red-950/30 border border-red-600/30 rounded-xl text-white placeholder-red-400/50' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
                 validationErrors.customerEmail && touched.customerEmail
                   ? 'border-red-400 focus:ring-red-400'
                   : formData.customerEmail && !validationErrors.customerEmail && touched.customerEmail
                   ? 'border-green-400 focus:ring-green-400'
-                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
+                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : eventConfig.theme.primaryColor === 'red' ? 'border-red-600/30 focus:ring-red-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
               }`}
               placeholder="e.g., john@example.com"
             />
@@ -522,12 +542,12 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
                 }
               }}
               onBlur={() => handleFieldBlur('customerPhone')}
-              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
+              className={`w-full px-4 py-3 ${eventConfig.theme.primaryColor === 'teal' ? 'bg-white border-2 rounded-xl text-neutral-800 placeholder-neutral-400' : eventConfig.theme.primaryColor === 'red' ? 'bg-red-950/30 border border-red-600/30 rounded-xl text-white placeholder-red-400/50' : 'bg-white/10 border rounded-xl text-white placeholder-white/50'} focus:outline-none focus:ring-2 transition-colors ${
                 validationErrors.customerPhone && touched.customerPhone
                   ? 'border-red-400 focus:ring-red-400'
                   : formData.customerPhone && !validationErrors.customerPhone && touched.customerPhone
                   ? 'border-green-400 focus:ring-green-400'
-                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
+                  : eventConfig.theme.primaryColor === 'teal' ? 'border-amber-300 focus:ring-amber-500' : eventConfig.theme.primaryColor === 'red' ? 'border-red-600/30 focus:ring-red-500' : 'border-white/20 focus:ring-[var(--brand-green)]'
               }`}
               placeholder="e.g., 9876543210"
               maxLength={10}
@@ -561,7 +581,7 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
           </div>
         </form>
           </div>
-          
+
           {/* Buttons - Fixed at bottom */}
           <div className={`flex flex-col gap-3 mt-6 pt-4 border-t ${eventConfig.theme.primaryColor === 'teal' ? 'border-amber-200/50' : 'border-white/10'} flex-shrink-0 pb-2`}>
             <button
@@ -580,7 +600,7 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
               Back
             </button>
           </div>
-        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }

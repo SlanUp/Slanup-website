@@ -22,8 +22,14 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
     console.log(`📧 Sending ticket email to ${booking.customerEmail} for booking ${booking.id}`);
 
     // Get event config from booking eventName
-    const eventName = booking.eventName.toLowerCase().includes('diwali') ? 'diwali' : 
-                      booking.eventName.toLowerCase().includes('luau') ? 'luau' : 'diwali';
+    let eventName = 'diwali'; // default
+    if (booking.eventName.toLowerCase().includes('mafia') || booking.eventName.toLowerCase().includes('soiree')) {
+      eventName = 'mafia-soiree';
+    } else if (booking.eventName.toLowerCase().includes('luau')) {
+      eventName = 'luau';
+    } else if (booking.eventName.toLowerCase().includes('diwali')) {
+      eventName = 'diwali';
+    }
     const eventConfig = getEventConfig(eventName) || getEventConfig('diwali'); // Fallback to diwali
     
     if (!eventConfig) {
@@ -431,7 +437,7 @@ async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: stri
         
         <!-- Important Information -->
         <div class="important-info">
-          <h3>${eventConfig.id === 'luau' ? '🥥' : '🎉'} Party Essentials - Important Information</h3>
+          <h3>${eventConfig.id === 'luau' ? '🥥' : eventConfig.id === 'mafia-soiree' ? '🎩' : '🎉'} Party Essentials - Important Information</h3>
           <ul>
             ${eventConfig.id === 'luau' ? `
             <li><strong>Save this reference number</strong> - it's your GOLDEN TICKET! 🎫</li>
@@ -439,6 +445,14 @@ async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: stri
             <li><strong>Bring valid photo ID</strong> + your party energy 🌊</li>
             <li><strong>Get your best tropical fits out</strong> for the event 🏝️</li>
             <li><strong>Prepare for a night</strong> you're gonna smile while dreaming of 💭</li>
+            <li><strong>Please schedule your return cab</strong> 1 hour prior 🚗</li>
+            <li><strong>Drink safely</strong>, because playing with the rules and games is gonna get you a lot wasted, so be careful ⚠️</li>
+            ` : eventConfig.id === 'mafia-soiree' ? `
+            <li><strong>Save this reference number</strong> - it's your GOLDEN TICKET! 🎫</li>
+            <li><strong>Show this reference</strong> at entrance for VIP treatment ✨</li>
+            <li><strong>Bring valid photo ID</strong> + your party energy 🎩</li>
+            <li><strong>Get your best mafia/gangster fits out</strong> for the event 💼</li>
+            <li><strong>Prepare for a night</strong> you're gonna remember forever 🎰</li>
             <li><strong>Please schedule your return cab</strong> 1 hour prior 🚗</li>
             <li><strong>Drink safely</strong>, because playing with the rules and games is gonna get you a lot wasted, so be careful ⚠️</li>
             ` : `
