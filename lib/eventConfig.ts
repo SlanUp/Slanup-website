@@ -117,7 +117,7 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
       {
         id: 'ultimate',
         name: 'ULTIMATE MAFIA SOIRÉE EXPERIENCE',
-        price: 1699,
+        price: 2099,
         description: 'The most INSANE Mafia Soireé experience you\'ll ever have! 🎩🔥',
         benefits: [
           '🍽️ UNLIMITED Food & Beverages',
