@@ -17,6 +17,12 @@ export default function Header() {
           beta
         </sup>
       </Link>
+      <Link 
+        href="/events" 
+        className="text-neutral-700 hover:text-[var(--brand-green)] font-semibold text-base md:text-lg transition-colors duration-300 cursor-pointer"
+      >
+        Slanup Events
+      </Link>
     </header>
   );
 }
