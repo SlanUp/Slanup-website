@@ -138,8 +138,3 @@ async function createJWT(credentials: Record<string, string>): Promise<string> {
   return `${signatureInput}.${signature}`;
 }
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
