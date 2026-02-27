@@ -55,10 +55,10 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.25 }}
-            href="/mafia-soiree"
-            className="bg-gradient-to-r from-red-700 via-rose-800 to-red-900 hover:from-red-800 hover:via-rose-900 hover:to-red-950 text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+            href="/full-moon-party"
+            className="bg-gradient-to-r from-cyan-500 via-fuchsia-500 to-yellow-400 hover:from-cyan-600 hover:via-fuchsia-600 hover:to-yellow-500 text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-opacity-50"
           >
-            🎩 Slanup&apos;s Mafia Soiree
+            🌕 Slanup&apos;s Full Moon Party
           </motion.a>
         </div>
 

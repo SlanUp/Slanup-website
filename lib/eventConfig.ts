@@ -136,6 +136,52 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
         maxQuantity: 1
       }
     ] as TicketType[]
+  },
+  'full-moon-party': {
+    id: 'full-moon-party',
+    name: "Slanup's Full Moon Party",
+    date: new Date('2026-03-28'),
+    venue: "Delhi",
+    referencePrefix: 'FMP',
+    galleryCode: 'FMP2026',
+    googleDriveFolderId: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '',
+    theme: {
+      background: 'from-indigo-950 via-purple-950 to-black',
+      textColor: 'text-white',
+      primaryColor: 'cyan',
+      secondaryColor: 'fuchsia',
+      accentColor: 'yellow',
+      emoji: '🌕',
+      fontFamily: {
+        title: "'Bebas Neue', cursive",
+        subtitle: "'Poppins', sans-serif"
+      }
+    },
+    ticketTypes: [
+      {
+        id: 'ultimate',
+        name: 'FULL MOON PARTY EXPERIENCE',
+        price: 2499,
+        description: 'The most INSANE Full Moon Party experience in Delhi! 🌕🔥',
+        benefits: [
+          '🍽️ UNLIMITED Food & Beverages',
+          '🎲 Crazy Rules & Games (Prepare to get WASTED!)',
+          '🌕 Breathtaking Full Moon Themed Decor',
+          '🔥 Fire Performances & UV Neon Setup',
+          '🏛️ Premium Luxurious Venue',
+          '👫 Perfect Balanced Crowd Ratio',
+          '🎧 Professional DJ All Night Long',
+          '🎨 Free Neon Body Paint & UV Gear',
+          '🎯 Exclusive Game Booths & Setups',
+          '🍹 Complimentary Welcome Cocktail/Mocktail',
+          '📍 Location details will be shared one day prior to the event',
+          '📸 Instagram-Worthy Photo Opportunities',
+          '🎊 Unforgettable Memories Guaranteed'
+        ],
+        available: true,
+        maxQuantity: 1
+      }
+    ] as TicketType[]
   }
 };
 
