@@ -51,6 +51,7 @@ export default function Home() {
             join the waitlist
           </motion.button>
           
+          {/* Full Moon Party button - hidden until launch
           <motion.a
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,6 +61,7 @@ export default function Home() {
           >
             🌕 Slanup&apos;s Full Moon Party
           </motion.a>
+          */}
         </div>
 
         <motion.div
