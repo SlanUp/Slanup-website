@@ -3,11 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Upload, X, MapPin, Calendar, Clock, Users, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Upload, X, MapPin, Calendar, Clock, Users, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
+import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
 
 
 export default function CreatePlanPage() {
@@ -17,13 +18,13 @@ export default function CreatePlanPage() {
 
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
-  const [venue, setVenue] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
   const [maxPeople, setMaxPeople] = useState("10");
-  const [tags, setTags] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [city, setCity] = useState("");
   const [coverKey, setCoverKey] = useState("");
   const [coverPreview, setCoverPreview] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -55,7 +56,7 @@ export default function CreatePlanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !startDate || !startTime || !endDate || !endTime) {
+    if (!name || !startDate || !startTime || !endDate || !endTime || !city) {
       alert("Please fill in all required fields.");
       return;
     }
@@ -69,14 +70,11 @@ export default function CreatePlanPage() {
       await api.createPlan({
         name,
         desc,
-        venue_string: venue,
+        city,
         start,
         end,
         max_people: parseInt(maxPeople) || 10,
-        tags: tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
+        tags,
         pic_id: coverKey || undefined,
       });
 
@@ -216,18 +214,22 @@ export default function CreatePlanPage() {
             />
           </div>
 
-          {/* Location */}
+          {/* City */}
           <div>
             <label className="text-sm font-semibold text-neutral-700 block mb-2">
-              <MapPin className="w-4 h-4 inline mr-1 -mt-0.5" /> Location
+              <MapPin className="w-4 h-4 inline mr-1 -mt-0.5" /> City <span className="text-red-400">*</span>
             </label>
-            <input
-              type="text"
-              value={venue}
-              onChange={(e) => setVenue(e.target.value)}
-              placeholder="Where's the plan happening?"
-              className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
-            />
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+              required
+            >
+              <option value="">Select city</option>
+              {CITIES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           {/* Date & Time */}
@@ -299,21 +301,38 @@ export default function CreatePlanPage() {
           {/* Tags */}
           <div>
             <label className="text-sm font-semibold text-neutral-700 block mb-2">
-              <ImageIcon className="w-4 h-4 inline mr-1 -mt-0.5" /> Tags
+              <Tag className="w-4 h-4 inline mr-1 -mt-0.5" /> Tags
             </label>
-            <input
-              type="text"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="hiking, party, coffee (comma separated)"
-              className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
-            />
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {tags.map(tag => (
+                  <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-green)] text-white text-xs font-medium rounded-full">
+                    {tag}
+                    <button type="button" onClick={() => setTags(prev => prev.filter(t => t !== tag))}>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-1.5">
+              {PLAN_TAGS.filter(t => !tags.includes(t)).map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setTags(prev => [...prev, tag])}
+                  className="px-2.5 py-1 bg-neutral-100 text-neutral-600 text-xs font-medium rounded-full hover:bg-neutral-200 transition-colors"
+                >
+                  + {tag}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Submit */}
           <motion.button
             type="submit"
-            disabled={submitting || uploading || !name || !startDate || !startTime || !endDate || !endTime}
+            disabled={submitting || uploading || !name || !startDate || !startTime || !endDate || !endTime || !city}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-4 rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2 } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
   const startEdit = () => {
     setEditName(profile?.name || "");
-    setEditBio(profile?.desc || profile?.bio || "");
+    setEditBio(profile?.about || "");
     setEditInsta(profile?.instagramHandle || "");
     setEditing(true);
   };
@@ -74,7 +74,7 @@ export default function ProfilePage() {
     try {
       await api.updateProfile({
         name: editName,
-        desc: editBio,
+        about: editBio,
         instagramHandle: editInsta,
       });
       await refreshUser();
@@ -237,9 +237,15 @@ export default function ProfilePage() {
                   )}
                 </div>
 
-                {(profile.desc || profile.bio) && (
+                {profile.about && (
                   <p className="text-neutral-600 text-sm mt-4 leading-relaxed whitespace-pre-wrap">
-                    {profile.desc || profile.bio}
+                    {profile.about}
+                  </p>
+                )}
+
+                {profile.city && (
+                  <p className="text-neutral-500 text-sm mt-2 flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" /> {profile.city}
                   </p>
                 )}
               </>

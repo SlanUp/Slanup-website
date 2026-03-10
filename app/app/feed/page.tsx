@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Search, Plus, MapPin, Calendar, Heart, LogOut, User as UserIcon, LayoutList } from "lucide-react";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Plus, MapPin, Calendar, Heart, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
 
 interface Plan {
   id: string;
@@ -18,6 +18,7 @@ interface Plan {
   start: string;
   end: string;
   venue_string?: string;
+  city?: string;
   tags?: string[];
   max_people: number;
   participants: { _id: string; name: string; image?: string }[];
@@ -30,11 +31,6 @@ interface Plan {
 function formatDate(date: string) {
   const d = new Date(date);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function formatTime(date: string) {
-  const d = new Date(date);
-  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
 function PlanCard({ plan }: { plan: Plan }) {
@@ -83,6 +79,11 @@ function PlanCard({ plan }: { plan: Plan }) {
               <Calendar className="w-12 h-12 text-[var(--brand-green)]/30" />
             </div>
           )}
+          {plan.city && (
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-neutral-700 flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> {plan.city}
+            </span>
+          )}
         </div>
 
         {/* Details */}
@@ -104,9 +105,6 @@ function PlanCard({ plan }: { plan: Plan }) {
                   <span className="truncate">{plan.venue_string}</span>
                 </p>
               )}
-              <p className="text-xs text-neutral-400 mt-0.5">
-                {formatTime(plan.start)} — {formatTime(plan.end)}
-              </p>
             </div>
           </div>
 
@@ -140,17 +138,6 @@ function PlanCard({ plan }: { plan: Plan }) {
               <Heart className="w-4 h-4 text-neutral-300" />
             </div>
           </div>
-
-          {/* Tags */}
-          {plan.tags && plan.tags.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mt-3">
-              {plan.tags.slice(0, 3).map(tag => (
-                <span key={tag} className="px-2 py-0.5 bg-[var(--brand-green)]/8 text-[var(--brand-green)] text-xs rounded-full font-medium">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </motion.div>
     </Link>
@@ -162,6 +149,10 @@ export default function FeedPage() {
   const { user, isLoggedIn, isLoading, isNewUser, logout } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [search, setSearch] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [tagFilters, setTagFilters] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -173,10 +164,18 @@ export default function FeedPage() {
     }
   }, [isLoading, isLoggedIn, isNewUser, router]);
 
-  const fetchPlans = useCallback(async (q?: string) => {
+  // Set default city from user profile once
+  useEffect(() => {
+    if (isLoggedIn && !isNewUser && !cityFilter) {
+      const userCity = (user as Record<string, unknown>)?.city as string || '';
+      if (userCity) setCityFilter(userCity);
+    }
+  }, [isLoggedIn, isNewUser, user, cityFilter]);
+
+  const fetchPlans = useCallback(async (q?: string, city?: string, tags?: string[]) => {
     try {
       setLoading(true);
-      const res = await api.getPlans(1, q) as { data: { plans: Plan[] } };
+      const res = await api.getPlans(1, q, city, tags) as { data: { plans: Plan[] } };
       setPlans(res.data.plans);
     } catch {
       // Ignore
@@ -185,17 +184,36 @@ export default function FeedPage() {
     }
   }, []);
 
+  // Fetch plans whenever filters change
   useEffect(() => {
-    if (isLoggedIn && !isNewUser) fetchPlans();
-  }, [isLoggedIn, isNewUser, fetchPlans]);
-
-  useEffect(() => {
+    if (!isLoggedIn || isNewUser) return;
     const timer = setTimeout(() => {
-      if (search) fetchPlans(search);
-      else fetchPlans();
-    }, 400);
+      fetchPlans(
+        search || undefined,
+        cityFilter || undefined,
+        tagFilters.length > 0 ? tagFilters : undefined
+      );
+    }, 300);
     return () => clearTimeout(timer);
-  }, [search, fetchPlans]);
+  }, [search, cityFilter, tagFilters, fetchPlans, isLoggedIn, isNewUser]);
+
+  const filteredCities = CITIES.filter(c =>
+    c.toLowerCase().includes(citySearch.toLowerCase())
+  );
+
+  const activeFilterCount = (cityFilter ? 1 : 0) + tagFilters.length;
+
+  const toggleTag = (tag: string) => {
+    setTagFilters(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const clearFilters = () => {
+    setCityFilter("");
+    setTagFilters([]);
+    setCitySearch("");
+  };
 
   const userName = (user as Record<string, unknown>)?.name as string || 'there';
 
@@ -231,20 +249,147 @@ export default function FeedPage() {
           className="mb-6"
         >
           <h1 className="text-2xl font-bold text-neutral-800">Hey {userName} 👋</h1>
-          <p className="text-neutral-500 text-sm mt-0.5">Find your next plan</p>
+          <p className="text-neutral-500 text-sm mt-0.5">Active plans</p>
         </motion.div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search plans..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent shadow-sm"
-          />
+        {/* Search + Filter Toggle */}
+        <div className="flex gap-2 mb-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search plans..."
+              className="w-full pl-12 pr-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent shadow-sm"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`relative px-4 py-3 rounded-2xl border shadow-sm transition-colors flex items-center gap-1.5 ${
+              showFilters || activeFilterCount > 0
+                ? 'bg-[var(--brand-green)] text-white border-[var(--brand-green)]'
+                : 'bg-white text-neutral-600 border-neutral-200 hover:border-[var(--brand-green)]'
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            {activeFilterCount > 0 && (
+              <span className={`text-xs font-bold ${showFilters || activeFilterCount > 0 ? 'text-white' : ''}`}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
         </div>
+
+        {/* Active Filter Pills */}
+        {activeFilterCount > 0 && !showFilters && (
+          <div className="flex items-center gap-1.5 flex-wrap mb-4">
+            {cityFilter && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-green)]/10 text-[var(--brand-green)] text-xs font-medium rounded-full">
+                <MapPin className="w-3 h-3" /> {cityFilter}
+                <button onClick={() => setCityFilter("")}><X className="w-3 h-3" /></button>
+              </span>
+            )}
+            {tagFilters.map(t => (
+              <span key={t} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-green)]/10 text-[var(--brand-green)] text-xs font-medium rounded-full">
+                <Tag className="w-3 h-3" /> {t}
+                <button onClick={() => toggleTag(t)}><X className="w-3 h-3" /></button>
+              </span>
+            ))}
+            <button onClick={clearFilters} className="text-xs text-neutral-400 hover:text-neutral-600 ml-1">
+              Clear all
+            </button>
+          </div>
+        )}
+
+        {/* Filter Panel */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden mb-4"
+            >
+              <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-4 space-y-4">
+                {/* City Filter */}
+                <div>
+                  <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" /> City
+                  </label>
+                  <input
+                    type="text"
+                    value={citySearch}
+                    onChange={(e) => setCitySearch(e.target.value)}
+                    placeholder="Search cities..."
+                    className="w-full px-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent mb-2"
+                  />
+                  <div className="flex flex-wrap gap-1.5 max-h-48 overflow-auto">
+                    <button
+                      onClick={() => setCityFilter("")}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                        !cityFilter
+                          ? 'bg-[var(--brand-green)] text-white'
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                      }`}
+                    >
+                      All Cities
+                    </button>
+                    {filteredCities.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => setCityFilter(cityFilter === c ? "" : c)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                          cityFilter === c
+                            ? 'bg-[var(--brand-green)] text-white'
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tag Filter */}
+                <div>
+                  <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5" /> Tags
+                  </label>
+                  <div className="flex flex-wrap gap-1.5 max-h-40 overflow-auto">
+                    {PLAN_TAGS.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                          tagFilters.includes(tag)
+                            ? 'bg-[var(--brand-green)] text-white'
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Clear + Close */}
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
+                  <button onClick={clearFilters} className="text-xs text-neutral-400 hover:text-neutral-600">
+                    Clear all filters
+                  </button>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="text-xs font-semibold text-[var(--brand-green)] hover:underline"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Plans Grid */}
         {loading ? (
@@ -258,8 +403,10 @@ export default function FeedPage() {
             className="text-center py-20"
           >
             <Calendar className="w-16 h-16 text-neutral-200 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-neutral-700 mb-2">No plans yet</h2>
-            <p className="text-neutral-500 mb-6">Be the first to create a plan!</p>
+            <h2 className="text-xl font-bold text-neutral-700 mb-2">No active plans{cityFilter ? ` in ${cityFilter}` : ''}</h2>
+            <p className="text-neutral-500 mb-6">
+              {activeFilterCount > 0 ? 'Try broadening your filters or ' : ''}Be the first to create a plan!
+            </p>
             <Link
               href="/app/create"
               className="inline-flex items-center gap-2 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-6 rounded-2xl transition-colors"
@@ -270,7 +417,7 @@ export default function FeedPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {plans.map((plan, i) => (
-              <motion.div key={plan.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <motion.div key={plan.id || plan._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                 <PlanCard plan={plan} />
               </motion.div>
             ))}

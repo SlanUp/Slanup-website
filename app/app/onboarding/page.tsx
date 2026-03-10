@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Camera, ArrowRight, Loader2, Instagram } from "lucide-react";
+import { Camera, ArrowRight, Loader2, Instagram, MapPin, Bell, X } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, imageUrl } from "@/lib/api/client";
+import { CITIES } from "@/lib/config/cities";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -15,6 +16,11 @@ export default function OnboardingPage() {
   const [about, setAbout] = useState("");
   const [instagram, setInstagram] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [city, setCity] = useState("");
+  const [notificationCities, setNotificationCities] = useState<string[]>([]);
+  const [emailDigest, setEmailDigest] = useState(true);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [citySearch, setCitySearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,19 +33,27 @@ export default function OnboardingPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Preview
     const reader = new FileReader();
     reader.onload = () => setProfileImage(reader.result as string);
     reader.readAsDataURL(file);
 
-    // Upload to S3 (section=profile auto-updates user.image on backend)
     try {
       const fileUrl = await api.uploadToS3("profile", file);
       setProfileImage(fileUrl);
     } catch {
-      // Keep local preview, image upload failed
+      // Keep local preview
     }
   };
+
+  const toggleNotifCity = (c: string) => {
+    setNotificationCities(prev =>
+      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+    );
+  };
+
+  const filteredCities = CITIES.filter(c =>
+    c.toLowerCase().includes(citySearch.toLowerCase())
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +63,10 @@ export default function OnboardingPage() {
       setError("Name is required");
       return;
     }
+    if (!city) {
+      setError("Please select your city");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -56,6 +74,9 @@ export default function OnboardingPage() {
         name: name.trim(),
         about: about.trim(),
         instagramHandle: instagram.trim().replace('@', ''),
+        city,
+        notificationCities: notificationCities.length > 0 ? notificationCities : [city],
+        emailDigest,
         ...(profileImage && !profileImage.startsWith('data:') && { image: profileImage }),
       });
       await refreshUser();
@@ -69,7 +90,6 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
       <header className="py-4 px-6 md:px-10 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-end hover:opacity-80 transition-opacity">
           <span className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
@@ -135,6 +155,28 @@ export default function OnboardingPage() {
               </div>
             </div>
 
+            {/* City */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                <MapPin className="w-4 h-4 inline mr-1 -mt-0.5" /> Your City *
+              </label>
+              <select
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value);
+                  if (notificationCities.length === 0 && e.target.value) {
+                    setNotificationCities([e.target.value]);
+                  }
+                }}
+                className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+              >
+                <option value="">Select your city</option>
+                {CITIES.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Bio */}
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">About you</label>
@@ -147,6 +189,72 @@ export default function OnboardingPage() {
                 className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent resize-none"
               />
               <p className="text-xs text-neutral-400 text-right mt-1">{about.length}/500</p>
+            </div>
+
+            {/* Email Digest Section */}
+            <div className="bg-neutral-50 rounded-2xl p-4 space-y-4 border border-neutral-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-[var(--brand-green)]" />
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-800">Weekly Plan Digest</p>
+                    <p className="text-xs text-neutral-500">Get notified about new plans near you</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEmailDigest(!emailDigest)}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${emailDigest ? 'bg-[var(--brand-green)]' : 'bg-neutral-300'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${emailDigest ? 'translate-x-5' : ''}`} />
+                </button>
+              </div>
+
+              {emailDigest && (
+                <div>
+                  <p className="text-xs font-medium text-neutral-600 mb-2">Get updates from these cities:</p>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={citySearch}
+                      onChange={(e) => { setCitySearch(e.target.value); setShowCityDropdown(true); }}
+                      onFocus={() => setShowCityDropdown(true)}
+                      placeholder="Search cities to add..."
+                      className="w-full px-3 py-2 text-sm bg-white border border-neutral-200 rounded-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+                    />
+                    {showCityDropdown && citySearch && (
+                      <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-40 overflow-auto z-10">
+                        {filteredCities.filter(c => !notificationCities.includes(c)).map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => { toggleNotifCity(c); setCitySearch(""); setShowCityDropdown(false); }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                          >
+                            {c}
+                          </button>
+                        ))}
+                        {filteredCities.filter(c => !notificationCities.includes(c)).length === 0 && (
+                          <p className="px-3 py-2 text-sm text-neutral-400">No cities found</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {notificationCities.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {notificationCities.map(c => (
+                        <span key={c} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-green)]/10 text-[var(--brand-green)] text-xs font-medium rounded-full">
+                          {c}
+                          <button type="button" onClick={() => toggleNotifCity(c)}>
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {error && (

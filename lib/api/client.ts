@@ -105,8 +105,8 @@ export const api = {
   getProfile: (id: string) => apiFetch(`/api/web/profile/${id}`),
 
   // Plans
-  getPlans: (page = 1, search?: string) =>
-    apiFetch(`/api/web/plans?page=${page}&limit=20${search ? `&search=${encodeURIComponent(search)}` : ''}`),
+  getPlans: (page = 1, search?: string, city?: string, tags?: string[]) =>
+    apiFetch(`/api/web/plans?page=${page}&limit=20${search ? `&search=${encodeURIComponent(search)}` : ''}${city ? `&city=${encodeURIComponent(city)}` : ''}${tags && tags.length > 0 ? `&tags=${encodeURIComponent(tags.join(','))}` : ''}`),
   getPlan: (id: string) => apiFetch(`/api/web/plans/${id}`),
   createPlan: (data: Record<string, unknown>) =>
     apiFetch('/api/web/plans', { method: 'POST', body: data }),
