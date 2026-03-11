@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import html2canvas from "html2canvas";
 import { getS3Url } from "./S3Image";
 
@@ -22,8 +22,6 @@ interface SharePlanCardProps {
   onClose: () => void;
 }
 
-// Convert a remote URL to a data URL via fetch → blob → FileReader
-// This avoids CORS issues with html2canvas since data URLs are same-origin
 async function toDataUrl(url: string, signal?: AbortSignal): Promise<string> {
   const resp = await fetch(url, { signal });
   const blob = await resp.blob();
@@ -37,10 +35,11 @@ async function toDataUrl(url: string, signal?: AbortSignal): Promise<string> {
 
 export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [sharing, setSharing] = useState(false);
   const [planImgData, setPlanImgData] = useState<string | null>(null);
-  const [imgLoading, setImgLoading] = useState(false);
-  const [imgResolved, setImgResolved] = useState(false);
+  // Pre-generated share file ready for instant navigator.share()
+  const [shareFile, setShareFile] = useState<File | null>(null);
+  const [generating, setGenerating] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const planImageUrl = plan.pic_id ? getS3Url(plan.pic_id) : null;
   const startDate = new Date(plan.start);
@@ -51,43 +50,41 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
   const endTimeStr = endDate.toLocaleString("default", { hour: "numeric", minute: "2-digit", hour12: true });
   const slotsLeft = plan.max_people - plan.participants.length;
 
-  // Pre-fetch images as data URLs, then capture with html2canvas
-  const handleShare = async () => {
-    if (sharing) return;
-    setSharing(true);
+  // Pre-generate the share image on mount so navigator.share() can fire instantly
+  const generateImage = useCallback(async () => {
+    setGenerating(true);
+    setError(null);
 
     try {
-      // Convert plan image to data URL to avoid CORS/tainted canvas
-      let dataUrlReady = !!planImgData;
-      if (planImageUrl && !imgResolved) {
-        setImgLoading(true);
+      // Step 1: Convert plan image to data URL
+      let imgDataUrl: string | null = null;
+      if (planImageUrl) {
         try {
           const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 4000);
-          const dataUrl = await toDataUrl(planImageUrl, controller.signal);
+          const timeout = setTimeout(() => controller.abort(), 5000);
+          imgDataUrl = await toDataUrl(planImageUrl, controller.signal);
           clearTimeout(timeout);
-          setPlanImgData(dataUrl);
-          dataUrlReady = true;
-        } catch {
-          // Image conversion failed
+          setPlanImgData(imgDataUrl);
+        } catch (e) {
+          console.warn("[ShareCard] Image data URL conversion failed:", e);
         }
-        setImgResolved(true);
-        setImgLoading(false);
-        await new Promise((r) => setTimeout(r, 150));
       }
+
+      // Wait for React to re-render with the data URL
+      await new Promise((r) => setTimeout(r, 300));
 
       if (!cardRef.current) throw new Error("Card ref not ready");
 
-      // If we couldn't convert to data URL, temporarily hide the image
-      // so html2canvas doesn't taint the canvas
+      // Step 2: Hide img if data URL failed (prevents tainted canvas)
       const imgEl = cardRef.current.querySelector("img");
       let hiddenImg = false;
-      if (imgEl && !dataUrlReady) {
+      if (imgEl && !imgDataUrl) {
         imgEl.style.display = "none";
         hiddenImg = true;
       }
 
       try {
+        // Step 3: html2canvas capture
         const isMobile = window.innerWidth < 768;
         const canvas = await html2canvas(cardRef.current, {
           scale: isMobile ? 2 : 3,
@@ -97,10 +94,11 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
           allowTaint: false,
         });
 
+        // Step 4: Convert to blob
         const blob = await new Promise<Blob | null>((resolve) =>
           canvas.toBlob(resolve, "image/png", 0.92)
         );
-        if (!blob) throw new Error("Failed to generate image");
+        if (!blob) throw new Error("toBlob returned null");
 
         const file = new File(
           [blob],
@@ -108,35 +106,50 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
           { type: "image/png" }
         );
 
-        if (navigator.share && navigator.canShare?.({ files: [file] })) {
-          await navigator.share({
-            title: plan.name,
-            text: `Check out this plan on Slanup — ${plan.name}`,
-            url: `https://www.slanup.com/app/plan/${plan.id}`,
-            files: [file],
-          });
-        } else {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = file.name;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }
+        setShareFile(file);
       } finally {
-        // Restore image if we hid it
-        if (hiddenImg && imgEl) {
-          imgEl.style.display = "";
-        }
+        if (hiddenImg && imgEl) imgEl.style.display = "";
+      }
+    } catch (err) {
+      console.error("[ShareCard] Generation failed:", err);
+      setError(err instanceof Error ? err.message : "Image generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  }, [planImageUrl, plan.name]);
+
+  useEffect(() => {
+    generateImage();
+  }, [generateImage]);
+
+  // Instant share — no async work between user gesture and navigator.share()
+  const handleShare = async () => {
+    if (!shareFile) return;
+
+    try {
+      if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
+        await navigator.share({
+          title: plan.name,
+          text: `Check out this plan on Slanup — ${plan.name}`,
+          url: `https://www.slanup.com/app/plan/${plan.id}`,
+          files: [shareFile],
+        });
+      } else {
+        // Desktop fallback — download the image
+        const url = URL.createObjectURL(shareFile);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = shareFile.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") {
-        console.error("Share failed:", err);
+        console.error("[ShareCard] Share failed:", err);
+        setError("Share failed: " + err.message);
       }
-    } finally {
-      setSharing(false);
     }
   };
 
@@ -147,7 +160,6 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
     } catch { /* fallback */ }
   };
 
-  // Use data URL if resolved, otherwise direct S3 URL (preview only)
   const displayImgSrc = planImgData || planImageUrl;
 
   return (
@@ -260,14 +272,22 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
           </div>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-500/20 text-red-200 text-xs px-4 py-2 rounded-lg max-w-[360px] w-full text-center">
+            {error}
+            <button onClick={generateImage} className="underline ml-2">Retry</button>
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className="flex gap-3 w-full max-w-[360px]">
           <button
             onClick={handleShare}
-            disabled={sharing || imgLoading}
+            disabled={generating || !shareFile}
             className="flex-1 bg-white text-neutral-800 font-semibold py-3 rounded-xl text-sm hover:bg-neutral-100 transition-colors disabled:opacity-50"
           >
-            {sharing ? "Generating..." : "📤 Share to Story"}
+            {generating ? "Generating..." : "📤 Share to Story"}
           </button>
           <button
             onClick={handleCopyLink}
