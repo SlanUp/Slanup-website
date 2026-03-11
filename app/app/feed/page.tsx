@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, MapPin, Calendar, Heart, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell } from "lucide-react";import Link from "next/link";
+import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell, Share2 } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
 import { io, Socket } from "socket.io-client";
 import S3Image from "@/components/S3Image";
+import SharePlanCard from "@/components/SharePlanCard";
 import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://d2oulqfcyna7a4.cloudfront.net";
@@ -39,111 +40,150 @@ function formatDate(date: string) {
 function PlanCard({ plan }: { plan: Plan }) {
   const slotsLeft = plan.max_people - plan.participants.length;
   const startDate = new Date(plan.start);
+  const [showShare, setShowShare] = useState(false);
+  const [planImageUrl, setPlanImageUrl] = useState<string | undefined>();
+
+  const handleShareClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Resolve S3 image URL for the share card
+    if (plan.pic_id && !planImageUrl) {
+      try {
+        const token = getStoredToken();
+        const key = plan.pic_id.includes("amazonaws.com")
+          ? plan.pic_id.split(".com/").pop() || plan.pic_id
+          : plan.pic_id;
+        const res = await fetch(
+          `${API_URL}/api/upload/get-file-url?fileKey=${encodeURIComponent(key)}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        );
+        const data = await res.json();
+        if (data.url) setPlanImageUrl(data.url);
+      } catch {}
+    }
+    setShowShare(true);
+  };
 
   return (
-    <Link href={`/app/plan/${plan.id}`}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.12)" }}
-        transition={{ duration: 0.3 }}
-        className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
-      >
-        {/* Creator */}
-        <div className="flex items-center justify-between p-3">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
-              {plan.creator_id?.image ? (
-                <S3Image fileKey={plan.creator_id.image} alt="" width={36} height={36} className="object-cover w-full h-full" />
-              ) : (
-                plan.creator_id?.name?.charAt(0)?.toUpperCase() || '?'
-              )}
-            </div>
-            <div>
-              <p className="text-sm">
-                <span className="font-bold">{plan.creator_id?.name}</span>
-                <span className="text-neutral-500"> shared a Plan</span>
-              </p>
-              <p className="text-xs text-neutral-400">{formatDate(plan.createdAt)}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Image */}
-        <div className="w-full h-48 bg-neutral-100 relative overflow-hidden">
-          {plan.pic_id ? (
-            <S3Image
-              fileKey={plan.pic_id}
-              alt={plan.name}
-              className="object-cover w-full h-full"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--brand-green)]/10 to-[var(--brand-green)]/5">
-              <Calendar className="w-12 h-12 text-[var(--brand-green)]/30" />
-            </div>
-          )}
-          {plan.city && (
-            <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-neutral-700 flex items-center gap-1">
-              <MapPin className="w-3 h-3" /> {plan.city}
-            </span>
-          )}
-        </div>
-
-        {/* Details */}
-        <div className="p-4">
-          <div className="flex items-start gap-3">
-            {/* Date badge */}
-            <div className="flex flex-col items-center justify-center px-3 py-2 bg-neutral-50 rounded-xl -mt-8 md:-mt-10 relative z-10 shadow-md min-w-[52px]">
-              <span className="text-lg font-bold text-neutral-800">{startDate.getDate()}</span>
-              <span className="text-xs font-bold text-red-500">
-                {startDate.toLocaleString('default', { month: 'short' })}
-              </span>
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold text-neutral-800 truncate">{plan.name}</h3>
-              {plan.venue_string && (
-                <p className="text-sm text-neutral-500 flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate">{plan.venue_string}</span>
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Participants + Slots */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100">
+    <>
+      <Link href={`/app/plan/${plan.id}`}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.12)" }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
+        >
+          {/* Creator */}
+          <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {plan.participants.slice(0, 4).map((p, i) => (
-                  <div key={p._id} className="w-7 h-7 rounded-full border-2 border-white bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-[10px] font-semibold overflow-hidden" style={{ zIndex: 4 - i }}>
-                    {p.image ? (
-                      <S3Image fileKey={p.image} alt="" width={28} height={28} className="object-cover w-full h-full" />
-                    ) : (
-                      p.name?.charAt(0)?.toUpperCase() || '?'
-                    )}
-                  </div>
-                ))}
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
+                {plan.creator_id?.image ? (
+                  <S3Image fileKey={plan.creator_id.image} alt="" width={36} height={36} className="object-cover w-full h-full" />
+                ) : (
+                  plan.creator_id?.name?.charAt(0)?.toUpperCase() || '?'
+                )}
               </div>
-              {plan.participants.length > 4 && (
-                <span className="text-xs text-neutral-500">+{plan.participants.length - 4}</span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {slotsLeft > 0 ? (
-                <span className="text-xs font-medium text-red-500">
-                  {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
-                </span>
-              ) : (
-                <span className="text-xs font-medium text-neutral-400">Full</span>
-              )}
-              <Heart className="w-4 h-4 text-neutral-300" />
+              <div>
+                <p className="text-sm">
+                  <span className="font-bold">{plan.creator_id?.name}</span>
+                  <span className="text-neutral-500"> shared a Plan</span>
+                </p>
+                <p className="text-xs text-neutral-400">{formatDate(plan.createdAt)}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </Link>
+
+          {/* Image */}
+          <div className="w-full h-48 bg-neutral-100 relative overflow-hidden">
+            {plan.pic_id ? (
+              <S3Image
+                fileKey={plan.pic_id}
+                alt={plan.name}
+                className="object-cover w-full h-full"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--brand-green)]/10 to-[var(--brand-green)]/5">
+                <Calendar className="w-12 h-12 text-[var(--brand-green)]/30" />
+              </div>
+            )}
+            {plan.city && (
+              <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-neutral-700 flex items-center gap-1">
+                <MapPin className="w-3 h-3" /> {plan.city}
+              </span>
+            )}
+          </div>
+
+          {/* Details */}
+          <div className="p-4">
+            <div className="flex items-start gap-3">
+              {/* Date badge */}
+              <div className="flex flex-col items-center justify-center px-3 py-2 bg-neutral-50 rounded-xl -mt-8 md:-mt-10 relative z-10 shadow-md min-w-[52px]">
+                <span className="text-lg font-bold text-neutral-800">{startDate.getDate()}</span>
+                <span className="text-xs font-bold text-red-500">
+                  {startDate.toLocaleString('default', { month: 'short' })}
+                </span>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-neutral-800 truncate">{plan.name}</h3>
+                {plan.venue_string && (
+                  <p className="text-sm text-neutral-500 flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">{plan.venue_string}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Participants + Slots + Share */}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  {plan.participants.slice(0, 4).map((p, i) => (
+                    <div key={p._id} className="w-7 h-7 rounded-full border-2 border-white bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-[10px] font-semibold overflow-hidden" style={{ zIndex: 4 - i }}>
+                      {p.image ? (
+                        <S3Image fileKey={p.image} alt="" width={28} height={28} className="object-cover w-full h-full" />
+                      ) : (
+                        p.name?.charAt(0)?.toUpperCase() || '?'
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {plan.participants.length > 4 && (
+                  <span className="text-xs text-neutral-500">+{plan.participants.length - 4}</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {slotsLeft > 0 ? (
+                  <span className="text-xs font-medium text-red-500">
+                    {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium text-neutral-400">Full</span>
+                )}
+                <button
+                  onClick={handleShareClick}
+                  className="p-1.5 rounded-full hover:bg-neutral-100 transition-colors"
+                  title="Share this plan"
+                >
+                  <Share2 className="w-4 h-4 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </Link>
+
+      {showShare && (
+        <SharePlanCard
+          plan={plan}
+          planImageUrl={planImageUrl}
+          onClose={() => setShowShare(false)}
+        />
+      )}
+    </>
   );
 }
 
