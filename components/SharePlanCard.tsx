@@ -37,9 +37,9 @@ function loadImg(src: string, ms = 6000): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    const t = setTimeout(() => reject(new Error("img timeout")), ms);
+    const t = setTimeout(() => reject(new Error("timeout")), ms);
     img.onload = () => { clearTimeout(t); resolve(img); };
-    img.onerror = () => { clearTimeout(t); reject(new Error("img load error")); };
+    img.onerror = () => { clearTimeout(t); reject(new Error("load error")); };
     img.src = src;
   });
 }
@@ -69,60 +69,67 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
   return lines;
 }
 
-// -- Native Canvas card renderer (replaces html2canvas) --
+// -- Native Canvas renderer: story-sized (1080x1920) with solid bg --
 
 type PlanData = SharePlanCardProps["plan"];
 
 async function renderCard(plan: PlanData): Promise<Blob> {
   const S = 2;
-  const W = 360 * S;
-  const IMG_H = 180 * S;
+  const CW = 360 * S;
+  const CH = 375 * S;
+  const IH = 180 * S;
   const PX = 22 * S;
-  const H = 375 * S;
 
+  const SW = 1080, SH = 1920;
   const c = document.createElement("canvas");
-  c.width = W; c.height = H;
+  c.width = SW; c.height = SH;
   const ctx = c.getContext("2d")!;
 
-  // Clip to rounded card
-  rrect(ctx, 0, 0, W, H, 24 * S);
+  // Solid story background (no transparency = no black corners on JPG)
+  const storyBg = ctx.createLinearGradient(0, 0, 0, SH);
+  storyBg.addColorStop(0, "#2a2f20");
+  storyBg.addColorStop(0.5, "#1e2318");
+  storyBg.addColorStop(1, "#161a12");
+  ctx.fillStyle = storyBg;
+  ctx.fillRect(0, 0, SW, SH);
+
+  const cardX = (SW - CW) / 2;
+  const cardY = 460;
+
+  // Load all images in parallel (cache-bust to avoid CORS cache conflict)
+  const imgLoads: Promise<HTMLImageElement | null>[] = [];
+  imgLoads.push(
+    plan.pic_id ? loadImg(getS3Url(plan.pic_id) + "?v=c").catch(() => null) : Promise.resolve(null)
+  );
+  plan.participants.slice(0, 3).forEach((p) => {
+    imgLoads.push(
+      p.image ? loadImg(getS3Url(p.image) + "?v=c", 4000).catch(() => null) : Promise.resolve(null)
+    );
+  });
+  const [planImg, ...partImgs] = await Promise.all(imgLoads);
+
+  ctx.save();
+  ctx.translate(cardX, cardY);
+
+  rrect(ctx, 0, 0, CW, CH, 24 * S);
   ctx.clip();
 
-  // Background gradient
-  const bg = ctx.createLinearGradient(0, 0, W * 0.5, H);
+  const bg = ctx.createLinearGradient(0, 0, CW * 0.5, CH);
   bg.addColorStop(0, "#636B50");
   bg.addColorStop(0.4, "#4a5239");
   bg.addColorStop(1, "#2d3220");
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, CW, CH);
 
-  // Plan image
-  if (plan.pic_id) {
-    try {
-      const img = await loadImg(getS3Url(plan.pic_id));
-      coverDraw(ctx, img, 0, 0, W, IMG_H);
-    } catch { /* gradient bg shows through */ }
+  if (planImg) {
+    coverDraw(ctx, planImg, 0, 0, CW, IH);
   }
 
-  // Image bottom gradient overlay
-  const ov = ctx.createLinearGradient(0, IMG_H - 80 * S, 0, IMG_H);
+  const ov = ctx.createLinearGradient(0, IH - 80 * S, 0, IH);
   ov.addColorStop(0, "rgba(0,0,0,0)");
   ov.addColorStop(1, "rgba(0,0,0,0.5)");
   ctx.fillStyle = ov;
-  ctx.fillRect(0, IMG_H - 80 * S, W, 80 * S);
-
-  // Date badge
-  const badgeW = 56 * S, badgeH = 56 * S;
-  const badgeX = PX, badgeY = IMG_H - 36 * S;
-
-  ctx.save();
-  ctx.shadowColor = "rgba(0,0,0,0.25)";
-  ctx.shadowBlur = 14 * S;
-  ctx.shadowOffsetY = 4 * S;
-  rrect(ctx, badgeX, badgeY, badgeW, badgeH, 14 * S);
-  ctx.fillStyle = "#fff";
-  ctx.fill();
-  ctx.restore();
+  ctx.fillRect(0, IH - 80 * S, CW, 80 * S);
 
   const startDate = new Date(plan.start);
   const endDate = new Date(plan.end);
@@ -132,48 +139,48 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   const endTime = endDate.toLocaleString("default", { hour: "numeric", minute: "2-digit", hour12: true });
   const spotsLeft = plan.max_people - plan.participants.length;
 
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+  const bW = 56 * S, bH = 56 * S, bX = PX, bY = IH - 36 * S;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,0.25)";
+  ctx.shadowBlur = 14 * S;
+  ctx.shadowOffsetY = 4 * S;
+  rrect(ctx, bX, bY, bW, bH, 14 * S);
+  ctx.fillStyle = "#fff"; ctx.fill();
+  ctx.restore();
+
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.font = `800 ${22 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "#262626";
-  ctx.fillText(day, badgeX + badgeW / 2, badgeY + 22 * S);
-
+  ctx.fillText(day, bX + bW / 2, bY + 22 * S);
   ctx.font = `700 ${11 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "#ef4444";
-  ctx.fillText(month, badgeX + badgeW / 2, badgeY + 42 * S);
+  ctx.fillText(month, bX + bW / 2, bY + 42 * S);
 
-  // Title + venue
-  const titleX = badgeX + badgeW + 14 * S;
-  const titleMaxW = W - titleX - PX;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
+  const tX = bX + bW + 14 * S;
+  const tMaxW = CW - tX - PX;
+  ctx.textAlign = "left"; ctx.textBaseline = "top";
   ctx.font = `700 ${17 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "#fff";
-
-  const titleLines = wrapLines(ctx, plan.name, titleMaxW).slice(0, 2);
-  const titleY = badgeY + 6 * S;
-  titleLines.forEach((ln, i) => ctx.fillText(ln, titleX, titleY + i * 22 * S));
+  const titleLines = wrapLines(ctx, plan.name, tMaxW).slice(0, 2);
+  const tY = bY + 6 * S;
+  titleLines.forEach((ln: string, i: number) => ctx.fillText(ln, tX, tY + i * 22 * S));
 
   if (plan.venue_string) {
-    const venueY = titleY + titleLines.length * 22 * S + 4 * S;
+    const vY = tY + titleLines.length * 22 * S + 4 * S;
     ctx.font = `400 ${12 * S}px -apple-system, "Helvetica Neue", sans-serif`;
     ctx.fillStyle = "rgba(255,255,255,0.7)";
     let vt = plan.venue_string;
-    while (ctx.measureText(vt).width > titleMaxW - 20 * S && vt.length > 5) vt = vt.slice(0, -4) + "\u2026";
-    ctx.fillText("\uD83D\uDCCD " + vt, titleX, venueY);
+    while (ctx.measureText(vt).width > tMaxW - 20 * S && vt.length > 5) vt = vt.slice(0, -4) + "…";
+    ctx.fillText("📍 " + vt, tX, vY);
   }
 
-  // Time + City pills
-  const pillY = badgeY + badgeH + 16 * S;
-  const pillH = 30 * S;
-  const pillR = 10 * S;
-  const pillPX = 12 * S;
+  const pillY = bY + bH + 16 * S;
+  const pillH = 30 * S, pillR = 10 * S, pillPX = 12 * S;
   let px = PX;
-
   ctx.font = `500 ${12 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.textBaseline = "middle";
 
-  const timeTxt = `\uD83D\uDD50 ${timeStr} \u2014 ${endTime}`;
+  const timeTxt = `🕐 ${timeStr} — ${endTime}`;
   const tw = ctx.measureText(timeTxt).width + pillPX * 2;
   rrect(ctx, px, pillY, tw, pillH, pillR);
   ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fill();
@@ -182,7 +189,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   px += tw + 8 * S;
 
   if (plan.city) {
-    const cityTxt = `\uD83D\uDCCD ${plan.city}`;
+    const cityTxt = `📍 ${plan.city}`;
     const cw = ctx.measureText(cityTxt).width + pillPX * 2;
     rrect(ctx, px, pillY, cw, pillH, pillR);
     ctx.fillStyle = "rgba(255,255,255,0.12)"; ctx.fill();
@@ -190,25 +197,41 @@ async function renderCard(plan: PlanData): Promise<Blob> {
     ctx.fillText(cityTxt, px + pillPX, pillY + pillH / 2);
   }
 
-  // Separator
   const sepY = pillY + pillH + 14 * S;
   ctx.strokeStyle = "rgba(255,255,255,0.1)";
   ctx.lineWidth = S;
-  ctx.beginPath(); ctx.moveTo(PX, sepY); ctx.lineTo(W - PX, sepY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX, sepY); ctx.lineTo(CW - PX, sepY); ctx.stroke();
 
-  // Participants
   const partY = sepY + 14 * S;
   const cr = 13 * S;
   plan.participants.slice(0, 3).forEach((p, i) => {
-    const cx = PX + cr + i * (cr * 2 - 7 * S);
-    ctx.beginPath(); ctx.arc(cx, partY + cr, cr, 0, Math.PI * 2);
-    ctx.fillStyle = "#636B50"; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx, partY + cr, cr - 2 * S, 0, Math.PI * 2);
-    ctx.fillStyle = `hsl(${(i * 60 + 120) % 360}, 40%, 50%)`; ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.font = `700 ${10 * S}px -apple-system, "Helvetica Neue", sans-serif`;
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(p.name?.charAt(0)?.toUpperCase() || "?", cx, partY + cr);
+    const pcx = PX + cr + i * (cr * 2 - 7 * S);
+    const pcy = partY + cr;
+
+    if (partImgs[i]) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(pcx, pcy, cr, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      const imgSize = cr * 2;
+      coverDraw(ctx, partImgs[i]!, pcx - cr, pcy - cr, imgSize, imgSize);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(pcx, pcy, cr, 0, Math.PI * 2);
+      ctx.strokeStyle = "#636B50";
+      ctx.lineWidth = 2 * S;
+      ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.arc(pcx, pcy, cr, 0, Math.PI * 2);
+      ctx.fillStyle = "#636B50"; ctx.fill();
+      ctx.beginPath(); ctx.arc(pcx, pcy, cr - 2 * S, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${(i * 60 + 120) % 360}, 40%, 50%)`; ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = `700 ${10 * S}px -apple-system, "Helvetica Neue", sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(p.name?.charAt(0)?.toUpperCase() || "?", pcx, pcy);
+    }
   });
 
   const n = Math.min(plan.participants.length, 3);
@@ -216,16 +239,16 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.textAlign = "left";
   ctx.font = `400 ${12 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.7)";
+  ctx.textBaseline = "middle";
   ctx.fillText(`${plan.participants.length} joined`, joinX, partY + cr);
 
   if (spotsLeft > 0) {
     ctx.textAlign = "right";
     ctx.font = `600 ${11 * S}px -apple-system, "Helvetica Neue", sans-serif`;
     ctx.fillStyle = "#fbbf24";
-    ctx.fillText(`${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`, W - PX, partY + cr);
+    ctx.fillText(`${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`, CW - PX, partY + cr);
   }
 
-  // Branding
   const brandY = partY + cr * 2 + 16 * S;
   ctx.textAlign = "left"; ctx.textBaseline = "top";
   ctx.font = `700 ${15 * S}px -apple-system, "Helvetica Neue", sans-serif`;
@@ -234,11 +257,17 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   const slW = ctx.measureText("slanup'").width;
   ctx.font = `600 ${7 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillText("beta", PX + slW + 2 * S, brandY);
-
   ctx.textAlign = "right";
   ctx.font = `400 ${10 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.4)";
-  ctx.fillText("slanup.com", W - PX, brandY + 4 * S);
+  ctx.fillText("slanup.com", CW - PX, brandY + 4 * S);
+
+  ctx.restore();
+
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.font = `500 24px -apple-system, "Helvetica Neue", sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.fillText("Join this plan on slanup.com", SW / 2, cardY + CH + 50);
 
   return new Promise((resolve, reject) => {
     c.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
@@ -285,7 +314,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
       if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
         await navigator.share({
           title: plan.name,
-          text: `Check out this plan on Slanup \u2014 ${plan.name}`,
+          text: `Check out this plan on Slanup — ${plan.name}`,
           url: `https://www.slanup.com/app/plan/${plan.id}`,
           files: [shareFile],
         });
@@ -316,27 +345,20 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="flex flex-col items-center gap-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
 
-        {/* Visual preview (HTML only — Canvas API generates the actual share image) */}
+        {/* Visual preview */}
         <div style={{ width: 360, padding: 0 }}>
-          <div
-            style={{
-              width: 360, borderRadius: 24, overflow: "hidden",
-              background: "linear-gradient(145deg, #636B50 0%, #4a5239 40%, #2d3220 100%)",
-              fontFamily: "-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            }}
-          >
+          <div style={{ width: 360, borderRadius: 24, overflow: "hidden", background: "linear-gradient(145deg, #636B50 0%, #4a5239 40%, #2d3220 100%)", fontFamily: "-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" }}>
             <div style={{ width: "100%", height: 180, position: "relative", overflow: "hidden" }}>
               {planImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={planImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <img src={planImageUrl} crossOrigin="anonymous" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               ) : (
                 <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #7a8460, #4a5239)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 40, opacity: 0.3 }}>{"\uD83D\uDCC5"}</span>
+                  <span style={{ fontSize: 40, opacity: 0.3 }}>{"📅"}</span>
                 </div>
               )}
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 70, background: "linear-gradient(transparent, rgba(0,0,0,0.5))" }} />
             </div>
-
             <div style={{ padding: "18px 22px 22px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginTop: -36, position: "relative", zIndex: 2 }}>
                 <div style={{ background: "#fff", borderRadius: 14, padding: "10px 14px", textAlign: "center", minWidth: 54, boxShadow: "0 4px 14px rgba(0,0,0,0.2)" }}>
@@ -346,22 +368,20 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                 <div style={{ flex: 1, paddingTop: 6 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.25 }}>{plan.name}</div>
                   {plan.venue_string && (
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>{"\uD83D\uDCCD"} {plan.venue_string}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>📍 {plan.venue_string}</div>
                   )}
                 </div>
               </div>
-
               <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", fontSize: 12, color: "rgba(255,255,255,0.9)", fontWeight: 500 }}>
-                  {"\uD83D\uDD50"} {timeStr} {"\u2014"} {endTimeStr}
+                  🕐 {timeStr} — {endTimeStr}
                 </div>
                 {plan.city && (
                   <div style={{ background: "rgba(255,255,255,0.12)", borderRadius: 10, padding: "7px 12px", fontSize: 12, color: "rgba(255,255,255,0.9)", fontWeight: 500 }}>
-                    {"\uD83D\uDCCD"} {plan.city}
+                    📍 {plan.city}
                   </div>
                 )}
               </div>
-
               <div style={{ marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ display: "flex" }}>
@@ -375,7 +395,6 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                 </div>
                 {slotsLeft > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: "#fbbf24" }}>{slotsLeft} spot{slotsLeft !== 1 ? "s" : ""} left</span>}
               </div>
-
               <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: -0.5 }}>slanup&apos;<sup style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>beta</sup></div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>slanup.com</div>
@@ -392,21 +411,13 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
         )}
 
         <div className="flex gap-3 w-full max-w-[360px]">
-          <button
-            onClick={handleShare}
-            disabled={generating || !shareFile}
-            className="flex-1 bg-white text-neutral-800 font-semibold py-3 rounded-xl text-sm hover:bg-neutral-100 transition-colors disabled:opacity-50"
-          >
-            {generating ? "Generating..." : "\uD83D\uDCE4 Share to Story"}
+          <button onClick={handleShare} disabled={generating || !shareFile} className="flex-1 bg-white text-neutral-800 font-semibold py-3 rounded-xl text-sm hover:bg-neutral-100 transition-colors disabled:opacity-50">
+            {generating ? "Generating..." : "📤 Share to Story"}
           </button>
-          <button
-            onClick={handleCopyLink}
-            className="flex-1 bg-white/20 text-white font-semibold py-3 rounded-xl text-sm hover:bg-white/30 transition-colors"
-          >
-            {"\uD83D\uDD17"} Copy Link
+          <button onClick={handleCopyLink} className="flex-1 bg-white/20 text-white font-semibold py-3 rounded-xl text-sm hover:bg-white/30 transition-colors">
+            🔗 Copy Link
           </button>
         </div>
-
         <button onClick={onClose} className="text-white/60 text-sm hover:text-white transition-colors mt-1">Close</button>
       </div>
     </div>
