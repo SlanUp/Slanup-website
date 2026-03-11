@@ -164,6 +164,10 @@ export const api = {
   // Admin
   getAdminPlans: (status = 'pending') =>
     apiFetch(`/api/web/admin/plans?status=${status}`),
+  getAdminStats: () =>
+    apiFetch('/api/web/admin/stats'),
+  getAdminUsers: (page = 1, search?: string) =>
+    apiFetch(`/api/web/admin/users?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ''}`),
   approvePlan: (id: string) =>
     apiFetch(`/api/web/admin/plans/${id}/approve`, { method: 'PATCH' }),
   rejectPlan: (id: string, reason?: string) =>

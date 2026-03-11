@@ -141,15 +141,15 @@ export default function CreatePlanPage() {
               />
             </motion.svg>
           </div>
-          <h1 className="text-2xl font-bold text-neutral-800 mb-2">Plan Submitted! 🎉</h1>
+          <h1 className="text-2xl font-bold text-neutral-800 mb-2">Your Plan is Live! 🎉</h1>
           <p className="text-neutral-500 mb-6">
-            Your plan is under review. We&apos;ll notify you via email once it&apos;s approved and visible to others.
+            Your plan is now visible in the feed. Share it with friends and let people join!
           </p>
           <Link
             href="/app/feed"
             className="inline-block bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-8 rounded-2xl transition-colors"
           >
-            Back to Feed
+            Check it out →
           </Link>
         </motion.div>
       </div>
