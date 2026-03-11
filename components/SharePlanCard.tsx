@@ -43,6 +43,23 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
     setSharing(true);
 
     try {
+      // Pre-convert cross-origin images to data URLs so html2canvas doesn't choke
+      const imgs = cardRef.current.querySelectorAll("img");
+      for (const img of Array.from(imgs)) {
+        try {
+          const resp = await fetch(img.src);
+          const blob = await resp.blob();
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          img.src = dataUrl;
+        } catch {
+          // If fetch fails, let html2canvas try on its own
+        }
+      }
+
       const canvas = await html2canvas(cardRef.current, {
         scale: 3,
         useCORS: true,
