@@ -57,7 +57,8 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
     setSharing(true);
 
     try {
-      // Convert plan image to data URL if not already done
+      // Convert plan image to data URL to avoid CORS/tainted canvas
+      let dataUrlReady = !!planImgData;
       if (planImageUrl && !imgResolved) {
         setImgLoading(true);
         try {
@@ -66,55 +67,69 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
           const dataUrl = await toDataUrl(planImageUrl, controller.signal);
           clearTimeout(timeout);
           setPlanImgData(dataUrl);
+          dataUrlReady = true;
         } catch {
-          // Image failed — html2canvas will try with direct URL
+          // Image conversion failed
         }
         setImgResolved(true);
         setImgLoading(false);
-        // Wait for React to re-render with data URL
         await new Promise((r) => setTimeout(r, 150));
       }
 
       if (!cardRef.current) throw new Error("Card ref not ready");
 
-      // Use scale 2 on mobile (less memory), 3 on desktop
-      const isMobile = window.innerWidth < 768;
+      // If we couldn't convert to data URL, temporarily hide the image
+      // so html2canvas doesn't taint the canvas
+      const imgEl = cardRef.current.querySelector("img");
+      let hiddenImg = false;
+      if (imgEl && !dataUrlReady) {
+        imgEl.style.display = "none";
+        hiddenImg = true;
+      }
 
-      const canvas = await html2canvas(cardRef.current, {
-        scale: isMobile ? 2 : 3,
-        backgroundColor: null,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-      });
-
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/png", 0.92)
-      );
-      if (!blob) throw new Error("Failed to generate image");
-
-      const file = new File(
-        [blob],
-        `slanup-${plan.name.replace(/\s+/g, "-").toLowerCase()}.png`,
-        { type: "image/png" }
-      );
-
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: plan.name,
-          text: `Check out this plan on Slanup — ${plan.name}`,
-          url: `https://www.slanup.com/app/plan/${plan.id}`,
-          files: [file],
+      try {
+        const isMobile = window.innerWidth < 768;
+        const canvas = await html2canvas(cardRef.current, {
+          scale: isMobile ? 2 : 3,
+          backgroundColor: null,
+          logging: false,
+          useCORS: false,
+          allowTaint: false,
         });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, "image/png", 0.92)
+        );
+        if (!blob) throw new Error("Failed to generate image");
+
+        const file = new File(
+          [blob],
+          `slanup-${plan.name.replace(/\s+/g, "-").toLowerCase()}.png`,
+          { type: "image/png" }
+        );
+
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          await navigator.share({
+            title: plan.name,
+            text: `Check out this plan on Slanup — ${plan.name}`,
+            url: `https://www.slanup.com/app/plan/${plan.id}`,
+            files: [file],
+          });
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = file.name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      } finally {
+        // Restore image if we hid it
+        if (hiddenImg && imgEl) {
+          imgEl.style.display = "";
+        }
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== "AbortError") {
