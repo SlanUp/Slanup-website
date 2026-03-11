@@ -24,8 +24,8 @@ interface SharePlanCardProps {
 
 // Convert a remote URL to a data URL via fetch → blob → FileReader
 // This avoids CORS issues with html2canvas since data URLs are same-origin
-async function toDataUrl(url: string): Promise<string> {
-  const resp = await fetch(url);
+async function toDataUrl(url: string, signal?: AbortSignal): Promise<string> {
+  const resp = await fetch(url, { signal });
   const blob = await resp.blob();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -61,28 +61,35 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
       if (planImageUrl && !imgResolved) {
         setImgLoading(true);
         try {
-          const dataUrl = await toDataUrl(planImageUrl);
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 4000);
+          const dataUrl = await toDataUrl(planImageUrl, controller.signal);
+          clearTimeout(timeout);
           setPlanImgData(dataUrl);
         } catch {
-          // Image failed — will use gradient fallback
+          // Image failed — html2canvas will try with direct URL
         }
         setImgResolved(true);
         setImgLoading(false);
-        // Wait a tick for React to re-render with data URL
-        await new Promise((r) => setTimeout(r, 100));
+        // Wait for React to re-render with data URL
+        await new Promise((r) => setTimeout(r, 150));
       }
 
       if (!cardRef.current) throw new Error("Card ref not ready");
 
+      // Use scale 2 on mobile (less memory), 3 on desktop
+      const isMobile = window.innerWidth < 768;
+
       const canvas = await html2canvas(cardRef.current, {
-        scale: 3,
+        scale: isMobile ? 2 : 3,
         backgroundColor: null,
         logging: false,
-        useCORS: false, // Not needed — images are data URLs
+        useCORS: true,
+        allowTaint: true,
       });
 
       const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/png", 1.0)
+        canvas.toBlob(resolve, "image/png", 0.92)
       );
       if (!blob) throw new Error("Failed to generate image");
 
