@@ -84,8 +84,9 @@ function MentionText({ text, participants, isOwn }: { text: string; participants
   );
 }
 
-// Check if two messages are in the same batch (same sender, within 1 minute)
+// Check if two messages are in the same batch (same sender, within 1 minute, no system messages)
 function isSameBatch(a: AnyObj, b: AnyObj): boolean {
+  if (a.type === 'system' || b.type === 'system') return false;
   const aId = typeof a.sender_id === 'object' ? a.sender_id?._id : a.sender_id;
   const bId = typeof b.sender_id === 'object' ? b.sender_id?._id : b.sender_id;
   if (aId !== bId) return false;
@@ -193,10 +194,23 @@ export default function ChatPage() {
     socket.on("receiveMessage", (msg: AnyObj) => {
       const senderId = msg.senderId?._id || msg.senderId;
       const isOwnMessage = senderId === userId;
+      const msgType = msg.type || 'message';
 
       setMessages((prev) => {
         // Deduplicate by real _id
         if (msg._id && prev.some(m => m._id === msg._id)) return prev;
+
+        // System messages — always just append
+        if (msgType === 'system') {
+          return [...prev, {
+            _id: msg._id,
+            text: msg.content || msg.text,
+            type: 'system',
+            sender_id: msg.senderId || msg.sender_id,
+            readBy: msg.readBy || [],
+            createdAt: msg.createdAt,
+          }];
+        }
 
         if (isOwnMessage) {
           // Replace the oldest optimistic message with the real server message
@@ -206,6 +220,7 @@ export default function ChatPage() {
             updated[optIdx] = {
               _id: msg._id,
               text: msg.content || msg.text,
+              type: msgType,
               sender_id: msg.senderId || msg.sender_id,
               readBy: msg.readBy || [],
               createdAt: msg.createdAt,
@@ -219,6 +234,7 @@ export default function ChatPage() {
         return [...prev, {
           _id: msg._id,
           text: msg.content || msg.text,
+          type: msgType,
           sender_id: msg.senderId || msg.sender_id,
           readBy: msg.readBy || [],
           createdAt: msg.createdAt,
@@ -372,6 +388,22 @@ export default function ChatPage() {
             </div>
           ) : (
             messages.map((msg, i) => {
+              // System messages — centered gray text, no bubble
+              if (msg.type === 'system') {
+                return (
+                  <motion.div
+                    key={msg._id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-center mt-4 mb-2"
+                  >
+                    <span className="text-xs text-neutral-400 bg-neutral-100 px-3 py-1 rounded-full">
+                      {msg.text}
+                    </span>
+                  </motion.div>
+                );
+              }
+
               const isMe = getSenderId(msg) === userId;
               const senderName = typeof msg.sender_id === "object" ? msg.sender_id?.name : "";
 

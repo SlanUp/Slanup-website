@@ -188,9 +188,15 @@ export default function FeedPage() {
 
     // Socket connection for realtime badge updates
     const token = getStoredToken();
+    if (!token) return;
+
     const socket = io(API_URL, {
       auth: { token },
       transports: ["websocket", "polling"],
+    });
+
+    socket.on("connect", () => {
+      console.log("[Feed] Socket connected, listening for badge updates");
     });
 
     // conversationUpdated fires on every new message (emitted to personal room)
@@ -202,9 +208,19 @@ export default function FeedPage() {
       }).catch(() => {});
     });
 
-    // Listen for new join request notifications
+    // Listen for new join request notifications (from socket events)
     socket.on("chatRequestReceivedNotification", () => {
       setUnreadNotifs(prev => prev + 1);
+    });
+    socket.on("newJoinRequest", () => {
+      setUnreadNotifs(prev => prev + 1);
+    });
+    socket.on("newPlanNearby", () => {
+      setUnreadNotifs(prev => prev + 1);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("[Feed] Socket connect error:", err.message);
     });
 
     socketRef.current = socket;
