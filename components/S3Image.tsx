@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://d2oulqfcyna7a4.cloudfront.net";
+// Direct public S3 URL — no signing needed
+// Dev: slanup-dev-content.s3.us-east-1.amazonaws.com
+// Prod: slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com
+const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL || "https://slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com";
 
 // Extract S3 key from full URL or return as-is
 function toS3Key(value: string): string {
   const match = value.match(/amazonaws\.com\/(.+)$/);
   return match ? match[1] : value;
+}
+
+// Build a public S3 URL from a file key
+export function getS3Url(fileKey: string): string {
+  const key = toS3Key(fileKey);
+  return `${S3_BASE}/${key}`;
 }
 
 interface S3ImageProps {
@@ -19,34 +26,10 @@ interface S3ImageProps {
   fallback?: React.ReactNode;
 }
 
-// Fetches a signed URL from the backend and displays the image
 export default function S3Image({ fileKey, alt = "", className = "", width, height, fallback }: S3ImageProps) {
-  const [src, setSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!fileKey) return;
-
-    const key = toS3Key(fileKey);
-    const url = `${API_BASE}/api/upload/get-file-url?fileKey=${encodeURIComponent(key)}`;
-
-    // Try fetching without auth first (get-file-url might not require it when Redis is down)
-    const token = typeof window !== "undefined" ? localStorage.getItem("slanup_token") : null;
-
-    fetch(url, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.url) setSrc(data.url);
-      })
-      .catch(() => {
-        // Fallback: try direct S3 URL (might work for public buckets)
-        if (fileKey.startsWith("http")) setSrc(fileKey);
-      });
-  }, [fileKey]);
-
   if (!fileKey) return fallback || null;
-  if (!src) return fallback || <div className={className} style={{ width, height }} />;
+
+  const src = getS3Url(fileKey);
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

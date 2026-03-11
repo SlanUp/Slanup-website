@@ -41,31 +41,15 @@ function PlanCard({ plan }: { plan: Plan }) {
   const slotsLeft = plan.max_people - plan.participants.length;
   const startDate = new Date(plan.start);
   const [showShare, setShowShare] = useState(false);
-  const [planImageUrl, setPlanImageUrl] = useState<string | undefined>();
 
-  const handleShareClick = async (e: React.MouseEvent) => {
+  const handleShareClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Resolve S3 image URL for the share card
-    if (plan.pic_id && !planImageUrl) {
-      try {
-        const token = getStoredToken();
-        const key = plan.pic_id.includes("amazonaws.com")
-          ? plan.pic_id.split(".com/").pop() || plan.pic_id
-          : plan.pic_id;
-        const res = await fetch(
-          `${API_URL}/api/upload/get-file-url?fileKey=${encodeURIComponent(key)}`,
-          { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-        );
-        const data = await res.json();
-        if (data.url) setPlanImageUrl(data.url);
-      } catch {}
-    }
     setShowShare(true);
   };
 
   return (
-    <>
+    <div className="relative">
       <Link href={`/app/plan/${plan.id}`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -163,27 +147,29 @@ function PlanCard({ plan }: { plan: Plan }) {
                 ) : (
                   <span className="text-xs font-medium text-neutral-400">Full</span>
                 )}
-                <button
-                  onClick={handleShareClick}
-                  className="p-1.5 rounded-full hover:bg-neutral-100 transition-colors"
-                  title="Share this plan"
-                >
-                  <Share2 className="w-4 h-4 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
-                </button>
+                <div className="w-4 h-4" /> {/* spacer for share button */}
               </div>
             </div>
           </div>
         </motion.div>
       </Link>
 
+      {/* Share button — positioned outside Link to prevent navigation */}
+      <button
+        onClick={handleShareClick}
+        className="absolute bottom-[18px] right-4 p-1.5 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        title="Share this plan"
+      >
+        <Share2 className="w-4 h-4 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
+      </button>
+
       {showShare && (
         <SharePlanCard
           plan={plan}
-          planImageUrl={planImageUrl}
           onClose={() => setShowShare(false)}
         />
       )}
-    </>
+    </div>
   );
 }
 
