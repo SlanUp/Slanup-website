@@ -48,7 +48,7 @@ export default function Home() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50 text-center"
           >
-            Join the Waitlist
+            Try Slanup
           </motion.a>
           
           {/* Full Moon Party button - hidden until launch

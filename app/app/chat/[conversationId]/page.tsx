@@ -37,20 +37,33 @@ function MiniAvatar({ user: u, size = 16 }: { user: AnyObj; size?: number }) {
 // Find participant by name match and return their _id
 function findParticipantId(name: string, participants: AnyObj[]): string | null {
   const lower = name.toLowerCase();
-  const match = participants.find(p => p.name?.toLowerCase() === lower || p.name?.toLowerCase().startsWith(lower));
+  const match = participants.find(p => p.name?.toLowerCase() === lower);
   return match?._id || null;
 }
 
-// Render message text with clickable @mentions
+// Parse message text and replace @mentions with clickable links
+// Matches full participant names (including spaces/surnames)
 function MentionText({ text, participants, isOwn }: { text: string; participants: AnyObj[]; isOwn: boolean }) {
   if (!text) return null;
-  const parts = text.split(/(@[\w][\w\s]*?)(?=\s@|\s|$)/g);
+
+  // Build a regex that matches @FullName for each participant
+  const names = participants
+    .filter(p => p.name)
+    .map(p => p.name)
+    .sort((a: string, b: string) => b.length - a.length); // longest first to avoid partial matches
+
+  if (names.length === 0) return <>{text}</>;
+
+  const escaped = names.map((n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const mentionRegex = new RegExp(`(@(?:${escaped.join('|')}))`, 'gi');
+
+  const parts = text.split(mentionRegex);
 
   return (
     <>
       {parts.map((part, i) => {
         if (part.startsWith('@')) {
-          const mentionName = part.slice(1).trim();
+          const mentionName = part.slice(1);
           const pId = findParticipantId(mentionName, participants);
           if (pId) {
             return (
@@ -260,7 +273,7 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  // @mention handling
+  // @mention handling — supports full names with spaces
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setText(val);
@@ -271,9 +284,13 @@ export default function ChatPage() {
 
     if (atIndex !== -1 && (atIndex === 0 || textBeforeCursor[atIndex - 1] === ' ')) {
       const query = textBeforeCursor.slice(atIndex + 1);
-      if (!query.includes(' ') || query.length < 20) {
+      if (query.length < 30) {
         setMentionFilter(query.toLowerCase());
-        setShowMentions(true);
+        // Show dropdown if any participant matches
+        const hasMatch = participants.some(
+          p => typeof p === 'object' && p._id !== userId && p.name?.toLowerCase().includes(query.toLowerCase())
+        );
+        setShowMentions(hasMatch && query.length > 0);
         return;
       }
     }
