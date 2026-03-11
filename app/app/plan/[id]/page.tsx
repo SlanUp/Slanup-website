@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
 
 
 function formatDate(d: string) {
@@ -15,6 +16,20 @@ function formatDate(d: string) {
 }
 function formatTime(d: string) {
   return new Date(d).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+
+function toDateInputValue(d: string) {
+  const date = new Date(d);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+function toTimeInputValue(d: string) {
+  const date = new Date(d);
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 function Avatar({ image, name, size = 40 }: { image?: string; name?: string; size?: number }) {
@@ -48,6 +63,14 @@ export default function PlanDetailPage() {
   const [requests, setRequests] = useState<AnyObj[]>([]);
   const [showRequests, setShowRequests] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '', desc: '', city: '', startDate: '', startTime: '',
+    endDate: '', endTime: '', venue_string: '', max_people: 1, tags: [] as string[],
+  });
 
   const userId = (user as AnyObj)?._id;
   const isHost = plan?.creator_id?._id === userId;
@@ -112,6 +135,69 @@ export default function PlanDetailPage() {
     }
   };
 
+  const updateEditForm = (field: string, value: string | number | string[]) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const enterEditMode = () => {
+    if (!plan) return;
+    setEditForm({
+      name: plan.name || '',
+      desc: plan.desc || '',
+      city: plan.city || '',
+      startDate: toDateInputValue(plan.start),
+      startTime: toTimeInputValue(plan.start),
+      endDate: toDateInputValue(plan.end),
+      endTime: toTimeInputValue(plan.end),
+      venue_string: plan.venue_string || '',
+      max_people: plan.max_people || 1,
+      tags: plan.tags || [],
+    });
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!editForm.name.trim()) { alert('Plan name is required'); return; }
+    const startDateTime = new Date(`${editForm.startDate}T${editForm.startTime}`);
+    const endDateTime = new Date(`${editForm.endDate}T${editForm.endTime}`);
+    if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+      alert('Please fill in all date and time fields'); return;
+    }
+    if (endDateTime <= startDateTime) {
+      alert('End date/time must be after start date/time'); return;
+    }
+    setSaving(true);
+    try {
+      await api.updatePlan(planId, {
+        name: editForm.name.trim(),
+        desc: editForm.desc.trim(),
+        city: editForm.city,
+        start: startDateTime.toISOString(),
+        end: endDateTime.toISOString(),
+        venue_string: editForm.venue_string.trim(),
+        max_people: editForm.max_people,
+        tags: editForm.tags,
+      });
+      await fetchPlan();
+      setIsEditing(false);
+    } catch {
+      alert('Failed to update plan');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await api.deletePlan(planId);
+      router.push('/app/feed');
+    } catch {
+      alert('Failed to delete plan');
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
@@ -162,50 +248,225 @@ export default function PlanDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-lg p-6"
         >
-          <h1 className="text-2xl font-bold text-neutral-800">{plan.name}</h1>
-
-          <div className="flex flex-col gap-3 mt-4">
-            <div className="flex items-center gap-3 text-neutral-600">
-              <Calendar className="w-5 h-5 text-[var(--brand-green)]" />
-              <span className="text-sm">{formatDate(plan.start)}</span>
-            </div>
-            <div className="flex items-center gap-3 text-neutral-600">
-              <Clock className="w-5 h-5 text-[var(--brand-green)]" />
-              <span className="text-sm">{formatTime(plan.start)} — {formatTime(plan.end)}</span>
-            </div>
-            {plan.venue_string && (
-              <div className="flex items-center gap-3 text-neutral-600">
-                <MapPin className="w-5 h-5 text-[var(--brand-green)]" />
-                <span className="text-sm">{plan.venue_string}</span>
+          {isEditing ? (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-lg font-bold text-neutral-800">Edit Plan</h2>
+                <button onClick={() => setIsEditing(false)} className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors">
+                  <X className="w-4 h-4 text-neutral-500" />
+                </button>
               </div>
-            )}
-            {plan.city && (
-              <div className="flex items-center gap-3 text-neutral-600">
-                <MapPin className="w-5 h-5 text-[var(--brand-green)]" />
-                <span className="text-sm font-medium">{plan.city}</span>
+
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-1">Plan Name</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={e => updateEditForm('name', e.target.value)}
+                  className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  placeholder="Plan name"
+                />
               </div>
-            )}
-            <div className="flex items-center gap-3 text-neutral-600">
-              <Users className="w-5 h-5 text-[var(--brand-green)]" />
-              <span className="text-sm">{plan.participants?.length || 0} / {plan.max_people} people</span>
-            </div>
-          </div>
 
-          {plan.desc && (
-            <div className="mt-5 pt-5 border-t border-neutral-100">
-              <h2 className="text-sm font-bold text-neutral-700 mb-2">About this plan</h2>
-              <p className="text-neutral-600 text-sm leading-relaxed whitespace-pre-wrap">{plan.desc}</p>
-            </div>
-          )}
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-1">Description</label>
+                <textarea
+                  value={editForm.desc}
+                  onChange={e => updateEditForm('desc', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)] resize-none"
+                  placeholder="What's the plan about?"
+                />
+              </div>
 
-          {plan.tags?.length > 0 && (
-            <div className="flex gap-2 flex-wrap mt-4">
-              {plan.tags.map((tag: string) => (
-                <span key={tag} className="px-3 py-1 bg-[var(--brand-green)]/8 text-[var(--brand-green)] text-xs rounded-full font-medium">
-                  {tag}
-                </span>
-              ))}
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-1">City</label>
+                <select
+                  value={editForm.city}
+                  onChange={e => updateEditForm('city', e.target.value)}
+                  className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                >
+                  <option value="">Select city</option>
+                  {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 block mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={editForm.startDate}
+                    onChange={e => updateEditForm('startDate', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 block mb-1">Start Time</label>
+                  <input
+                    type="time"
+                    value={editForm.startTime}
+                    onChange={e => updateEditForm('startTime', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 block mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={editForm.endDate}
+                    onChange={e => updateEditForm('endDate', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 block mb-1">End Time</label>
+                  <input
+                    type="time"
+                    value={editForm.endTime}
+                    onChange={e => updateEditForm('endTime', e.target.value)}
+                    className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-1">Venue</label>
+                <input
+                  type="text"
+                  value={editForm.venue_string}
+                  onChange={e => updateEditForm('venue_string', e.target.value)}
+                  className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  placeholder="Where is it happening?"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-1">Max People</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={editForm.max_people}
+                  onChange={e => updateEditForm('max_people', Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-2">Tags</label>
+                {editForm.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {editForm.tags.map(tag => (
+                      <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-green)] text-white text-xs font-medium rounded-full">
+                        {tag}
+                        <button type="button" onClick={() => updateEditForm('tags', editForm.tags.filter(t => t !== tag))}>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1.5">
+                  {PLAN_TAGS.filter(t => !editForm.tags.includes(t)).map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => updateEditForm('tags', [...editForm.tags, tag])}
+                      className="px-2.5 py-1 bg-neutral-100 text-neutral-600 text-xs font-medium rounded-full hover:bg-neutral-200 transition-colors"
+                    >
+                      + {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex-1 py-2.5 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-60"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="text-2xl font-bold text-neutral-800">{plan.name}</h1>
+                {isHost && (
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    <button
+                      onClick={enterEditMode}
+                      className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
+                      title="Edit plan"
+                    >
+                      <Pencil className="w-4 h-4 text-neutral-500" />
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteModal(true)}
+                      className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition-colors"
+                      title="Delete plan"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3 mt-4">
+                <div className="flex items-center gap-3 text-neutral-600">
+                  <Calendar className="w-5 h-5 text-[var(--brand-green)]" />
+                  <span className="text-sm">{formatDate(plan.start)}</span>
+                </div>
+                <div className="flex items-center gap-3 text-neutral-600">
+                  <Clock className="w-5 h-5 text-[var(--brand-green)]" />
+                  <span className="text-sm">{formatTime(plan.start)} — {formatTime(plan.end)}</span>
+                </div>
+                {plan.venue_string && (
+                  <div className="flex items-center gap-3 text-neutral-600">
+                    <MapPin className="w-5 h-5 text-[var(--brand-green)]" />
+                    <span className="text-sm">{plan.venue_string}</span>
+                  </div>
+                )}
+                {plan.city && (
+                  <div className="flex items-center gap-3 text-neutral-600">
+                    <MapPin className="w-5 h-5 text-[var(--brand-green)]" />
+                    <span className="text-sm font-medium">{plan.city}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3 text-neutral-600">
+                  <Users className="w-5 h-5 text-[var(--brand-green)]" />
+                  <span className="text-sm">{plan.participants?.length || 0} / {plan.max_people} people</span>
+                </div>
+              </div>
+
+              {plan.desc && (
+                <div className="mt-5 pt-5 border-t border-neutral-100">
+                  <h2 className="text-sm font-bold text-neutral-700 mb-2">About this plan</h2>
+                  <p className="text-neutral-600 text-sm leading-relaxed whitespace-pre-wrap">{plan.desc}</p>
+                </div>
+              )}
+
+              {plan.tags?.length > 0 && (
+                <div className="flex gap-2 flex-wrap mt-4">
+                  {plan.tags.map((tag: string) => (
+                    <span key={tag} className="px-3 py-1 bg-[var(--brand-green)]/8 text-[var(--brand-green)] text-xs rounded-full font-medium">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </motion.div>
 
@@ -358,6 +619,48 @@ export default function PlanDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => !deleting && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
+            >
+              <h3 className="text-lg font-bold text-neutral-800">Delete Plan</h3>
+              <p className="text-sm text-neutral-600 mt-2">
+                Are you sure you want to delete <span className="font-semibold">{plan.name}</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -214,7 +214,7 @@ export default function ChatPage() {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-3 bg-neutral-100 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] text-sm"
+            className="flex-1 px-4 py-3 bg-neutral-100 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] text-base"
           />
           <button
             onClick={handleSend}

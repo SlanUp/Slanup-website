@@ -94,6 +94,7 @@ export default function OnboardingPage() {
         <Link href="/" className="flex items-end hover:opacity-80 transition-opacity">
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
+          <sup className="text-[10px] font-semibold text-[var(--brand-green)] ml-0.5 relative -top-4">beta</sup>
         </Link>
       </header>
 

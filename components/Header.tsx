@@ -13,7 +13,7 @@ export default function Header() {
         <span className="font-[family-name:var(--font-display)] text-3xl md:text-4xl font-bold text-[var(--brand-green)] -ml-0.5">
           &apos;
         </span>
-        <sup className="text-xs font-semibold text-[var(--brand-green)] ml-0.5 relative -top-3">
+        <sup className="text-xs font-semibold text-[var(--brand-green)] ml-0.5 relative -top-5">
           beta
         </sup>
       </Link>
