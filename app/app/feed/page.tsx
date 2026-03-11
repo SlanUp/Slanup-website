@@ -296,92 +296,139 @@ export default function FeedPage() {
           </div>
         )}
 
-        {/* Filter Panel */}
+        {/* Filter Panel — Bottom sheet on mobile, inline on desktop */}
         <AnimatePresence>
           {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden mb-4"
-            >
-              <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-4 space-y-4">
-                {/* City Filter */}
-                <div>
-                  <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" /> City
-                  </label>
-                  <input
-                    type="text"
-                    value={citySearch}
-                    onChange={(e) => setCitySearch(e.target.value)}
-                    placeholder="Search cities..."
-                    className="w-full px-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent mb-2"
-                  />
-                  <div className="flex flex-wrap gap-1.5 max-h-48 overflow-auto">
-                    <button
-                      onClick={() => setCityFilter("")}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                        !cityFilter
-                          ? 'bg-[var(--brand-green)] text-white'
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                      }`}
-                    >
-                      All Cities
-                    </button>
-                    {filteredCities.map(c => (
-                      <button
-                        key={c}
-                        onClick={() => setCityFilter(cityFilter === c ? "" : c)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                          cityFilter === c
-                            ? 'bg-[var(--brand-green)] text-white'
-                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <>
+              {/* Mobile backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/30 z-50 md:hidden"
+                onClick={() => setShowFilters(false)}
+              />
 
-                {/* Tag Filter */}
-                <div>
-                  <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5" /> Tags
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 max-h-40 overflow-auto">
-                    {PLAN_TAGS.map(tag => (
+              {/* Panel */}
+              <motion.div
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="fixed inset-x-0 bottom-0 z-50 md:relative md:inset-auto md:z-auto md:mb-4"
+              >
+                <div className="bg-white rounded-t-3xl md:rounded-2xl border border-neutral-200 shadow-xl md:shadow-sm max-h-[75vh] md:max-h-none flex flex-col">
+                  {/* Sheet header */}
+                  <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-neutral-500" />
+                      <span className="text-sm font-bold text-neutral-800">Filters</span>
+                      {activeFilterCount > 0 && (
+                        <span className="w-5 h-5 rounded-full bg-[var(--brand-green)] text-white text-[10px] font-bold flex items-center justify-center">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {activeFilterCount > 0 && (
+                        <button onClick={clearFilters} className="text-xs text-neutral-400 hover:text-neutral-600">
+                          Clear all
+                        </button>
+                      )}
                       <button
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
-                        className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                          tagFilters.includes(tag)
-                            ? 'bg-[var(--brand-green)] text-white'
-                            : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
-                        }`}
+                        onClick={() => setShowFilters(false)}
+                        className="px-4 py-1.5 bg-[var(--brand-green)] text-white text-xs font-semibold rounded-full hover:bg-[var(--brand-green-dark)] transition-colors"
                       >
-                        {tag}
+                        Done
                       </button>
-                    ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Clear + Close */}
-                <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
-                  <button onClick={clearFilters} className="text-xs text-neutral-400 hover:text-neutral-600">
-                    Clear all filters
-                  </button>
-                  <button
-                    onClick={() => setShowFilters(false)}
-                    className="text-xs font-semibold text-[var(--brand-green)] hover:underline"
-                  >
-                    Done
-                  </button>
+                  {/* Scrollable content */}
+                  <div className="overflow-y-auto overscroll-contain px-5 py-4 space-y-5">
+                    {/* City Filter */}
+                    <div>
+                      <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" /> City
+                      </label>
+                      <div className="relative mb-2.5">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+                        <input
+                          type="text"
+                          value={citySearch}
+                          onChange={(e) => setCitySearch(e.target.value)}
+                          placeholder="Search cities..."
+                          className="w-full pl-9 pr-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setCityFilter("")}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                            !cityFilter
+                              ? 'bg-[var(--brand-green)] text-white border-[var(--brand-green)]'
+                              : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300'
+                          }`}
+                        >
+                          All Cities
+                        </button>
+                        {filteredCities.map(c => (
+                          <button
+                            key={c}
+                            onClick={() => setCityFilter(cityFilter === c ? "" : c)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                              cityFilter === c
+                                ? 'bg-[var(--brand-green)] text-white border-[var(--brand-green)]'
+                                : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <hr className="border-neutral-100" />
+
+                    {/* Tag Filter */}
+                    <div>
+                      <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5" /> Tags
+                        {tagFilters.length > 0 && (
+                          <span className="text-[10px] text-[var(--brand-green)] font-bold">({tagFilters.length} selected)</span>
+                        )}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {/* Selected tags first */}
+                        {PLAN_TAGS.filter(t => tagFilters.includes(t)).map(tag => (
+                          <button
+                            key={tag}
+                            onClick={() => toggleTag(tag)}
+                            className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border bg-[var(--brand-green)] text-white border-[var(--brand-green)]"
+                          >
+                            ✓ {tag}
+                          </button>
+                        ))}
+                        {/* Then unselected */}
+                        {PLAN_TAGS.filter(t => !tagFilters.includes(t)).map(tag => (
+                          <button
+                            key={tag}
+                            onClick={() => toggleTag(tag)}
+                            className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile safe-area spacer */}
+                  <div className="h-[env(safe-area-inset-bottom)] md:hidden shrink-0" />
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </>
           )}
         </AnimatePresence>
 
