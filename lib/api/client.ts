@@ -121,6 +121,9 @@ export const api = {
   handleRequest: (requestId: string, action: 'accepted' | 'rejected') =>
     apiFetch(`/api/web/requests/${requestId}`, { method: 'PATCH', body: { status: action } }),
 
+  // Notifications
+  getNotifications: () => apiFetch('/api/web/notifications'),
+
   // Upload via S3 signed URL (two-step: get URL, then PUT to S3)
   getSignedUrl: (section: string, fileType = 'image/jpeg') =>
     apiFetch<{ uploadUrl: string; fileUrl: string }>(
@@ -146,6 +149,9 @@ export const api = {
 
     return data.fileUrl; // S3 key to store in DB
   },
+
+  // Conversations
+  getConversations: () => apiFetch(`/api/chat/conversations`),
 
   // Messages (reuse existing backend)
   getMessages: (conversationId: string) =>

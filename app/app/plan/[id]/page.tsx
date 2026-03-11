@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
@@ -44,6 +44,7 @@ export default function PlanDetailPage() {
   const [plan, setPlan] = useState<AnyObj | null>(null);
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState(false);
+  const [hasRequested, setHasRequested] = useState(false);
   const [requests, setRequests] = useState<AnyObj[]>([]);
   const [showRequests, setShowRequests] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -56,8 +57,11 @@ export default function PlanDetailPage() {
   const fetchPlan = useCallback(async () => {
     try {
       setLoading(true);
-      const res = (await api.getPlan(planId)) as { data: { plan: AnyObj } };
+      const res = (await api.getPlan(planId)) as { data: { plan: AnyObj; userRequestStatus?: string } };
       setPlan(res.data.plan);
+      if (res.data.userRequestStatus) {
+        setHasRequested(true);
+      }
     } catch {
       // plan not found
     } finally {
@@ -87,7 +91,7 @@ export default function PlanDetailPage() {
     setRequesting(true);
     try {
       await api.requestJoin(planId);
-      alert("Request sent! The host will be notified.");
+      setHasRequested(true);
     } catch {
       alert("Could not send request. You may have already requested.");
     } finally {
@@ -128,7 +132,7 @@ export default function PlanDetailPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Hero Image */}
-      <div className="relative w-full h-64 md:h-80 bg-neutral-200">
+      <div className="relative w-full h-48 md:h-64 lg:h-80 bg-neutral-200">
         {plan.pic_id ? (
           <S3Image
             fileKey={plan.pic_id}
@@ -145,13 +149,13 @@ export default function PlanDetailPage() {
 
         <button
           onClick={() => router.back()}
-          className="absolute top-4 left-4 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md z-10"
+          className="absolute top-4 left-4 w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md z-10"
         >
           <ArrowLeft className="w-5 h-5 text-neutral-800" />
         </button>
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 -mt-12 relative z-10 pb-32">
+      <main className="max-w-2xl mx-auto px-4 -mt-12 relative z-10 pb-24 md:pb-32">
         {/* Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -318,26 +322,35 @@ export default function PlanDetailPage() {
 
       {/* Bottom Action Bar */}
       {!isHost && !isParticipant && slotsLeft > 0 && new Date(plan.end) > new Date() && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <div className="max-w-2xl mx-auto flex gap-3">
             <button
               onClick={handleJoinRequest}
-              disabled={requesting}
-              className="flex-1 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3.5 rounded-2xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              disabled={requesting || hasRequested}
+              className={`flex-1 font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2 ${
+                hasRequested
+                  ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed'
+                  : 'bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white disabled:opacity-60'
+              }`}
             >
-              <Send className="w-5 h-5" />
-              {requesting ? "Sending..." : "Request to Join"}
+              {hasRequested ? (
+                <><CheckCircle className="w-5 h-5" /> Requested</>
+              ) : requesting ? (
+                "Sending..."
+              ) : (
+                <><Send className="w-5 h-5" /> Request to Join</>
+              )}
             </button>
           </div>
         </div>
       )}
 
       {(isParticipant || isHost) && plan.conversation_id && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <div className="max-w-2xl mx-auto">
             <Link
               href={`/app/chat/${typeof plan.conversation_id === 'object' ? plan.conversation_id._id : plan.conversation_id}`}
-              className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />
               Open Group Chat

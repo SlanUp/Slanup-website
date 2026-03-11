@@ -123,10 +123,10 @@ export default function ProfilePage() {
           className="bg-white rounded-2xl shadow-lg overflow-hidden"
         >
           {/* Banner */}
-          <div className="h-32 bg-gradient-to-br from-[var(--brand-green)] to-green-700 relative" />
+          <div className="h-24 md:h-32 bg-gradient-to-br from-[var(--brand-green)] to-green-700 relative" />
 
           {/* Avatar */}
-          <div className="relative px-6 -mt-14">
+          <div className="relative px-5 md:px-6 -mt-12 md:-mt-14">
             <div
               className={`w-28 h-28 rounded-full border-4 border-white bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-4xl font-bold overflow-hidden shadow-lg relative ${isOwnProfile ? 'cursor-pointer' : ''}`}
               onClick={() => isOwnProfile && photoInputRef.current?.click()}
