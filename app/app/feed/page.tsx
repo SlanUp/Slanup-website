@@ -219,6 +219,7 @@ export default function FeedPage() {
           <Link href="/app/feed" className="flex items-end hover:opacity-80 transition-opacity">
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight text-neutral-800">slanup</span>
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
+            <sup className="text-[10px] font-semibold text-[var(--brand-green)] ml-0.5 relative -top-4">beta</sup>
           </Link>
 
           <div className="flex items-center gap-1">
@@ -241,16 +242,9 @@ export default function FeedPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6">
-        {/* Greeting */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6"
-        >
-          <h1 className="text-2xl font-bold text-neutral-800">Hey {userName} 👋</h1>
-          <p className="text-neutral-500 text-sm mt-0.5">Active plans</p>
-        </motion.div>
+      <main className="max-w-3xl mx-auto px-4 py-4">
+        {/* Section title */}
+        <p className="text-neutral-500 text-sm mb-4 font-medium">Active plans</p>
 
         {/* Search + Filter Toggle */}
         <div className="flex gap-2 mb-3">
