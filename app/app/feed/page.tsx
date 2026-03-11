@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, MapPin, Calendar, Heart, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag } from "lucide-react";import Link from "next/link";
+import { Search, Plus, MapPin, Calendar, Heart, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -90,7 +90,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <div className="p-4">
           <div className="flex items-start gap-3">
             {/* Date badge */}
-            <div className="flex flex-col items-center justify-center px-3 py-2 bg-neutral-50 rounded-xl -mt-10 relative z-10 shadow-md min-w-[52px]">
+            <div className="flex flex-col items-center justify-center px-3 py-2 bg-neutral-50 rounded-xl -mt-8 md:-mt-10 relative z-10 shadow-md min-w-[52px]">
               <span className="text-lg font-bold text-neutral-800">{startDate.getDate()}</span>
               <span className="text-xs font-bold text-red-500">
                 {startDate.toLocaleString('default', { month: 'short' })}
@@ -164,13 +164,7 @@ export default function FeedPage() {
     }
   }, [isLoading, isLoggedIn, isNewUser, router]);
 
-  // Set default city from user profile once
-  useEffect(() => {
-    if (isLoggedIn && !isNewUser && !cityFilter) {
-      const userCity = (user as Record<string, unknown>)?.city as string || '';
-      if (userCity) setCityFilter(userCity);
-    }
-  }, [isLoggedIn, isNewUser, user, cityFilter]);
+  // No default city filter — always start with "All Cities"
 
   const fetchPlans = useCallback(async (q?: string, city?: string, tags?: string[]) => {
     try {
@@ -227,7 +221,13 @@ export default function FeedPage() {
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <Link href="/app/chats" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Chats">
+              <MessageCircle className="w-5 h-5 text-neutral-600" />
+            </Link>
+            <Link href="/app/notifications" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Notifications">
+              <Bell className="w-5 h-5 text-neutral-600" />
+            </Link>
             <Link href="/app/my-plans" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="My Plans">
               <LayoutList className="w-5 h-5 text-neutral-600" />
             </Link>
@@ -430,7 +430,7 @@ export default function FeedPage() {
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] rounded-full shadow-lg flex items-center justify-center text-white z-50"
+          className="fixed bottom-8 right-5 md:bottom-6 md:right-6 w-14 h-14 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] rounded-full shadow-lg flex items-center justify-center text-white z-50"
         >
           <Plus className="w-6 h-6" />
         </motion.button>

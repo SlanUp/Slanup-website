@@ -133,10 +133,10 @@ export default function ChatPage() {
   const planName = conversation?.plan_id?.name || "Group Chat";
 
   return (
-    <div className="h-screen flex flex-col bg-neutral-50">
+    <div className="h-[100dvh] flex flex-col bg-neutral-50">
       {/* Header */}
-      <header className="bg-white shadow-sm z-10 flex-shrink-0">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+      <header className="bg-white shadow-sm z-10 flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="max-w-2xl mx-auto px-4 py-2 md:py-3 flex items-center gap-3">
           <button onClick={() => router.back()} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
@@ -150,7 +150,7 @@ export default function ChatPage() {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4">
         <div className="max-w-2xl mx-auto space-y-3">
           {loading ? (
             <div className="flex justify-center py-20">
@@ -205,8 +205,8 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t border-neutral-100 flex-shrink-0">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div className="bg-white border-t border-neutral-100 flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-3 flex items-center gap-2 md:gap-3">
           <input
             ref={inputRef}
             type="text"

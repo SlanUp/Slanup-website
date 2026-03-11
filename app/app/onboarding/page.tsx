@@ -38,8 +38,8 @@ export default function OnboardingPage() {
     reader.readAsDataURL(file);
 
     try {
-      const fileUrl = await api.uploadToS3("profile", file);
-      setProfileImage(fileUrl);
+      await api.uploadToS3("profile", file);
+      // Keep the local data URL preview — S3 key can't render directly
     } catch {
       // Keep local preview
     }
@@ -92,23 +92,23 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <header className="py-4 px-6 md:px-10 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-end hover:opacity-80 transition-opacity">
-          <span className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
-          <span className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
+          <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
+          <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
         </Link>
       </header>
 
-      <main className="flex-grow flex items-center justify-center px-4 py-8">
+      <main className="flex-grow flex items-center justify-center px-4 py-4 md:py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-lg"
         >
-          <h1 className="text-3xl font-bold text-neutral-800 mb-2 text-center">Set up your profile</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-neutral-800 mb-2 text-center">Set up your profile</h1>
           <p className="text-neutral-500 text-center mb-8">
             Tell people a bit about yourself — {(user as Record<string, unknown>)?.email as string}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             {/* Profile Photo */}
             <div className="flex justify-center">
               <label className="relative cursor-pointer group">

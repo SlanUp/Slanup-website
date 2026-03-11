@@ -31,6 +31,22 @@ export default function CreatePlanPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Compute validation issues
+  const validationIssues: string[] = [];
+  if (!name) validationIssues.push("Plan name is required");
+  if (!city) validationIssues.push("City is required");
+  if (!startDate || !startTime) validationIssues.push("Start date & time are required");
+  if (!endDate || !endTime) validationIssues.push("End date & time are required");
+  if (startDate && startTime && new Date(`${startDate}T${startTime}`) < new Date()) {
+    validationIssues.push("Start must be in the future");
+  }
+  if (startDate && startTime && endDate && endTime) {
+    const s = new Date(`${startDate}T${startTime}`);
+    const e = new Date(`${endDate}T${endTime}`);
+    if (e <= s) validationIssues.push("End must be after start");
+  }
+  const canSubmit = validationIssues.length === 0 && !submitting && !uploading;
+
   useEffect(() => {
     if (!isLoading && !isLoggedIn) router.replace("/app");
   }, [isLoading, isLoggedIn, router]);
@@ -61,18 +77,28 @@ export default function CreatePlanPage() {
       return;
     }
 
+    const start = new Date(`${startDate}T${startTime}`);
+    const end = new Date(`${endDate}T${endTime}`);
+
+    if (end <= start) {
+      alert("End date/time must be after the start date/time.");
+      return;
+    }
+
+    if (start < new Date()) {
+      alert("Start date/time cannot be in the past.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
-      const start = new Date(`${startDate}T${startTime}`).toISOString();
-      const end = new Date(`${endDate}T${endTime}`).toISOString();
-
       await api.createPlan({
         name,
         desc,
         city,
-        start,
-        end,
+        start: start.toISOString(),
+        end: end.toISOString(),
         max_people: parseInt(maxPeople) || 10,
         tags,
         pic_id: coverKey || undefined,
@@ -142,14 +168,14 @@ export default function CreatePlanPage() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 pb-32">
+      <main className="max-w-2xl mx-auto px-4 py-4 md:py-6 pb-24 md:pb-32">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Cover Image */}
           <div>
             <label className="text-sm font-semibold text-neutral-700 block mb-2">Cover Photo</label>
             <div
               onClick={() => fileRef.current?.click()}
-              className="w-full h-48 rounded-2xl border-2 border-dashed border-neutral-200 hover:border-[var(--brand-green)] bg-white cursor-pointer flex items-center justify-center overflow-hidden transition-colors relative"
+              className="w-full h-40 md:h-48 rounded-2xl border-2 border-dashed border-neutral-200 hover:border-[var(--brand-green)] bg-white cursor-pointer flex items-center justify-center overflow-hidden transition-colors relative"
             >
               {coverPreview ? (
                 <>
@@ -230,10 +256,11 @@ export default function CreatePlanPage() {
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+            <p className="text-xs text-neutral-400 mt-1.5">Your plan will be visible to people browsing this city</p>
           </div>
 
           {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-semibold text-neutral-700 block mb-2">
                 <Calendar className="w-4 h-4 inline mr-1 -mt-0.5" /> Start Date <span className="text-red-400">*</span>
@@ -329,10 +356,21 @@ export default function CreatePlanPage() {
             </div>
           </div>
 
+          {/* Validation hints */}
+          {validationIssues.length > 0 && (name || city || startDate || endDate) && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <ul className="text-xs text-amber-700 space-y-0.5">
+                {validationIssues.map((issue) => (
+                  <li key={issue}>• {issue}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Submit */}
           <motion.button
             type="submit"
-            disabled={submitting || uploading || !name || !startDate || !startTime || !endDate || !endTime || !city}
+            disabled={!canSubmit}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-4 rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
