@@ -41,15 +41,15 @@ export default function Home() {
         </motion.h2>
 
         <div className="flex flex-col gap-4 my-5">
-          <motion.button
+          <motion.a
+            href="/app"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            onClick={() => setIsWaitlistOpen(true)}
-            className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50"
+            className="bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-colors duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:ring-opacity-50 text-center"
           >
-            join the waitlist
-          </motion.button>
+            Join the Waitlist
+          </motion.a>
           
           {/* Full Moon Party button - hidden until launch
           <motion.a
