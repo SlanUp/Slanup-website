@@ -161,6 +161,9 @@ export const api = {
   getMessages: (conversationId: string) =>
     apiFetch(`/api/web/chat/${conversationId}`),
 
+  // Unread count
+  getUnreadCount: () => apiFetch('/api/web/chat/unread-total'),
+
   // Admin
   getAdminPlans: (status = 'pending') =>
     apiFetch(`/api/web/admin/plans?status=${status}`),

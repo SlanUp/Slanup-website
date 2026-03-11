@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, MapPin, Calendar, Heart, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
-import { api } from "@/lib/api/client";
+import { api, getStoredToken } from "@/lib/api/client";
+import { io, Socket } from "socket.io-client";
 import S3Image from "@/components/S3Image";
 import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://d2oulqfcyna7a4.cloudfront.net";
 
 interface Plan {
   id: string;
@@ -154,6 +157,9 @@ export default function FeedPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [citySearch, setCitySearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [unreadChats, setUnreadChats] = useState(0);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
@@ -163,6 +169,50 @@ export default function FeedPage() {
       router.replace("/app/onboarding");
     }
   }, [isLoading, isLoggedIn, isNewUser, router]);
+
+  // Fetch unread chat count + notification count, then listen for realtime updates
+  useEffect(() => {
+    if (!isLoggedIn || isNewUser) return;
+
+    // Initial fetch
+    api.getUnreadCount().then((res: unknown) => {
+      const data = res as { data?: { unreadCount?: number } };
+      setUnreadChats(data.data?.unreadCount || 0);
+    }).catch(() => {});
+
+    api.getNotifications().then((res: unknown) => {
+      const data = res as { data?: { incoming?: { status: string }[] } };
+      const pending = (data.data?.incoming || []).filter((r: { status: string }) => r.status === 'pending').length;
+      setUnreadNotifs(pending);
+    }).catch(() => {});
+
+    // Socket connection for realtime badge updates
+    const token = getStoredToken();
+    const socket = io(API_URL, {
+      auth: { token },
+      transports: ["websocket", "polling"],
+    });
+
+    // conversationUpdated fires on every new message (emitted to personal room)
+    // Refetch real unread count each time
+    socket.on("conversationUpdated", () => {
+      api.getUnreadCount().then((res: unknown) => {
+        const data = res as { data?: { unreadCount?: number } };
+        setUnreadChats(data.data?.unreadCount || 0);
+      }).catch(() => {});
+    });
+
+    // Listen for new join request notifications
+    socket.on("chatRequestReceivedNotification", () => {
+      setUnreadNotifs(prev => prev + 1);
+    });
+
+    socketRef.current = socket;
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [isLoggedIn, isNewUser]);
 
   // No default city filter — always start with "All Cities"
 
@@ -223,11 +273,21 @@ export default function FeedPage() {
           </Link>
 
           <div className="flex items-center gap-1">
-            <Link href="/app/chats" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Chats">
+            <Link href="/app/chats" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors relative" title="Chats">
               <MessageCircle className="w-5 h-5 text-neutral-600" />
+              {unreadChats > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                  {unreadChats > 99 ? '99+' : unreadChats}
+                </span>
+              )}
             </Link>
-            <Link href="/app/notifications" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Notifications">
+            <Link href="/app/notifications" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors relative" title="Notifications">
               <Bell className="w-5 h-5 text-neutral-600" />
+              {unreadNotifs > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                  {unreadNotifs > 99 ? '99+' : unreadNotifs}
+                </span>
+              )}
             </Link>
             <Link href="/app/my-plans" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="My Plans">
               <LayoutList className="w-5 h-5 text-neutral-600" />
