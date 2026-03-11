@@ -71,11 +71,7 @@ function MentionText({ text, participants, isOwn }: { text: string; participants
                 key={i}
                 href={`/app/profile/${pId}`}
                 onClick={(e) => e.stopPropagation()}
-                className={`font-semibold rounded px-0.5 ${
-                  isOwn
-                    ? 'text-blue-200 bg-blue-500/20 hover:bg-blue-500/30'
-                    : 'text-[var(--brand-green)] bg-[var(--brand-green)]/10 hover:bg-[var(--brand-green)]/20'
-                } transition-colors`}
+                className="font-bold underline decoration-1 underline-offset-2 hover:opacity-80 transition-opacity"
               >
                 {part}
               </Link>
