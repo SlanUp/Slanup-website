@@ -110,6 +110,10 @@ export const api = {
   getPlan: (id: string) => apiFetch(`/api/web/plans/${id}`),
   createPlan: (data: Record<string, unknown>) =>
     apiFetch('/api/web/plans', { method: 'POST', body: data }),
+  updatePlan: (planId: string, data: Record<string, unknown>) =>
+    apiFetch(`/api/web/plans/${planId}`, { method: 'PUT', body: data }),
+  deletePlan: (planId: string) =>
+    apiFetch(`/api/web/plans/${planId}`, { method: 'DELETE' }),
   getMyPlans: (tab = 'created') => apiFetch(`/api/web/my-plans?tab=${tab}`),
   getCompletedPlans: () => apiFetch('/api/web/plans-completed'),
 
