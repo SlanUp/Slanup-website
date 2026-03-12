@@ -265,9 +265,9 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.restore();
 
   ctx.textAlign = "center"; ctx.textBaseline = "top";
-  ctx.font = `500 24px -apple-system, "Helvetica Neue", sans-serif`;
+  ctx.font = `500 ${Math.round(24 * S / 2)}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.25)";
-  ctx.fillText("Join this plan on slanup.com", SW / 2, cardY + CH + 50);
+  ctx.fillText("Join this plan on slanup.com", SW / 2, cardY + CH + Math.round(50 * S / 2));
 
   return new Promise((resolve, reject) => {
     c.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png");
@@ -386,8 +386,13 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ display: "flex" }}>
                     {plan.participants.slice(0, 3).map((p, i) => (
-                      <div key={p._id} style={{ width: 26, height: 26, borderRadius: "50%", background: `hsl(${(i * 60 + 120) % 360}, 40%, 50%)`, border: "2px solid #636B50", marginLeft: i > 0 ? -7 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#fff" }}>
-                        {p.name?.charAt(0)?.toUpperCase() || "?"}
+                      <div key={p._id} style={{ width: 26, height: 26, borderRadius: "50%", background: `hsl(${(i * 60 + 120) % 360}, 40%, 50%)`, border: "2px solid #636B50", marginLeft: i > 0 ? -7 : 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "#fff", overflow: "hidden", position: "relative" }}>
+                        {p.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={getS3Url(p.image)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+                        ) : (
+                          p.name?.charAt(0)?.toUpperCase() || "?"
+                        )}
                       </div>
                     ))}
                   </div>
