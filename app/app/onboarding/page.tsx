@@ -15,6 +15,7 @@ export default function OnboardingPage() {
   const [name, setName] = useState("");
   const [about, setAbout] = useState("");
   const [instagram, setInstagram] = useState("");
+  const [phone, setPhone] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [notificationCities, setNotificationCities] = useState<string[]>([]);
@@ -74,6 +75,7 @@ export default function OnboardingPage() {
         name: name.trim(),
         about: about.trim(),
         instagramHandle: instagram.trim().replace('@', ''),
+        mobileNumber: phone.trim() || undefined,
         city,
         notificationCities: notificationCities.length > 0 ? notificationCities : [city],
         emailDigest,
@@ -154,6 +156,18 @@ export default function OnboardingPage() {
                   className="w-full pl-11 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
                 />
               </div>
+            </div>
+
+            {/* Mobile Number */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Mobile Number</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 98765 43210"
+                className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+              />
             </div>
 
             {/* City */}

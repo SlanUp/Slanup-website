@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Calendar, TrendingUp, MapPin, Search,
-  ChevronRight, ArrowUpRight, Clock, Instagram, ExternalLink
+  ChevronRight, ArrowUpRight, Clock, Instagram, ExternalLink, Phone
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -35,7 +35,10 @@ function StatCard({ label, value, sub, icon: Icon, color }: { label: string; val
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function AdminDashboard() {
@@ -306,32 +309,37 @@ export default function AdminDashboard() {
             {/* User list */}
             <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 divide-y divide-neutral-100 overflow-hidden">
               {users.map((u) => (
-                <div key={u._id} className="flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden flex-shrink-0">
-                    {u.image ? (
-                      <S3Image fileKey={u.image} alt="" width={40} height={40} className="object-cover w-full h-full" />
-                    ) : (
-                      u.name?.charAt(0)?.toUpperCase() || '?'
-                    )}
+                <div key={u._id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden flex-shrink-0">
+                      {u.image ? (
+                        <S3Image fileKey={u.image} alt="" width={40} height={40} className="object-cover w-full h-full" />
+                      ) : (
+                        u.name?.charAt(0)?.toUpperCase() || '?'
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-neutral-800 truncate">{u.name}</p>
+                        {u.plansCreated > 0 && (
+                          <span className="text-[10px] font-medium bg-[var(--brand-green)]/10 text-[var(--brand-green)] px-1.5 py-0.5 rounded-full flex-shrink-0">{u.plansCreated} plan{u.plansCreated !== 1 ? 's' : ''}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-500 truncate">{u.email || '—'}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-neutral-800 truncate">{u.name}</p>
-                      {u.plansCreated > 0 && (
-                        <span className="text-[10px] font-medium bg-[var(--brand-green)]/10 text-[var(--brand-green)] px-1.5 py-0.5 rounded-full">{u.plansCreated} plan{u.plansCreated !== 1 ? 's' : ''}</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-neutral-500 truncate">{u.email}</p>
-                    <div className="flex items-center gap-3 mt-0.5 text-[11px] text-neutral-400">
-                      {u.city && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" /> {u.city}</span>}
-                      {u.instagramHandle && (
-                        <a href={`https://instagram.com/${u.instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 hover:text-[var(--brand-green)]">
-                          <Instagram className="w-3 h-3" /> @{u.instagramHandle}
-                          <ExternalLink className="w-2.5 h-2.5" />
-                        </a>
-                      )}
-                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> Joined {formatDate(u.createdAt)}</span>
-                    </div>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:ml-auto text-[11px] text-neutral-400 pl-[52px] sm:pl-0">
+                    {u.mobileNumber && (
+                      <span className="flex items-center gap-0.5"><Phone className="w-3 h-3" /> {u.mobileNumber}</span>
+                    )}
+                    {u.city && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" /> {u.city}</span>}
+                    {u.instagramHandle && (
+                      <a href={`https://instagram.com/${u.instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 hover:text-[var(--brand-green)]">
+                        <Instagram className="w-3 h-3" /> @{u.instagramHandle}
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                    <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" /> Joined {formatDate(u.createdAt)}</span>
                   </div>
                 </div>
               ))}
