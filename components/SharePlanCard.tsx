@@ -76,7 +76,6 @@ type PlanData = SharePlanCardProps["plan"];
 async function renderCard(plan: PlanData): Promise<Blob> {
   const S = 2.4;
   const CW = Math.round(360 * S);
-  const CH = Math.round(375 * S);
   const IH = Math.round(180 * S);
   const PX = Math.round(22 * S);
 
@@ -93,9 +92,6 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.fillStyle = storyBg;
   ctx.fillRect(0, 0, SW, SH);
 
-  const cardX = (SW - CW) / 2;
-  const cardY = 400;
-
   // Load all images in parallel (cache-bust to avoid CORS cache conflict)
   const imgLoads: Promise<HTMLImageElement | null>[] = [];
   imgLoads.push(
@@ -108,6 +104,33 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   });
   const [planImg, ...partImgs] = await Promise.all(imgLoads);
 
+  // --- Compute layout to match preview ---
+  // Preview: padding "18px 22px 22px", flex row marginTop: -36, title paddingTop: 40
+  const bW = 56 * S, bH = 56 * S;
+  const bX = PX;
+  const bY = IH - 18 * S; // image + 18px padding - 36px marginTop
+
+  const tX = bX + bW + 14 * S;
+  const tMaxW = CW - tX - PX;
+  ctx.font = `700 ${17 * S}px -apple-system, "Helvetica Neue", sans-serif`;
+  const titleLines = wrapLines(ctx, plan.name, tMaxW).slice(0, 2);
+  const tY = bY + 40 * S; // paddingTop: 40 from section top
+  const titleTextBottom = tY + titleLines.length * 22 * S;
+  const venueH = plan.venue_string ? 4 * S + 16 * S : 0;
+  const sectionBottom = Math.max(bY + bH, titleTextBottom + venueH);
+
+  const pillY = sectionBottom + 14 * S;
+  const pillH = 30 * S;
+  const sepY = pillY + pillH + 14 * S;
+  const partY = sepY + 14 * S;
+  const cr = 13 * S;
+  const brandY = partY + cr * 2 + 14 * S;
+  const CH = Math.round(brandY + 20 * S + 22 * S);
+
+  const cardX = (SW - CW) / 2;
+  const cardY = Math.round((SH - CH) / 2 - 40);
+
+  // --- Draw card ---
   ctx.save();
   ctx.translate(cardX, cardY);
 
@@ -139,7 +162,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   const endTime = endDate.toLocaleString("default", { hour: "numeric", minute: "2-digit", hour12: true });
   const spotsLeft = plan.max_people - plan.participants.length;
 
-  const bW = 56 * S, bH = 56 * S, bX = PX, bY = IH - 36 * S;
+  // Date box
   ctx.save();
   ctx.shadowColor = "rgba(0,0,0,0.25)";
   ctx.shadowBlur = 14 * S;
@@ -156,17 +179,14 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.fillStyle = "#ef4444";
   ctx.fillText(month, bX + bW / 2, bY + 42 * S);
 
-  const tX = bX + bW + 14 * S;
-  const tMaxW = CW - tX - PX;
+  // Title
   ctx.textAlign = "left"; ctx.textBaseline = "top";
   ctx.font = `700 ${17 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "#fff";
-  const titleLines = wrapLines(ctx, plan.name, tMaxW).slice(0, 2);
-  const tY = IH + 2 * S;
   titleLines.forEach((ln: string, i: number) => ctx.fillText(ln, tX, tY + i * 22 * S));
 
   if (plan.venue_string) {
-    const vY = tY + titleLines.length * 22 * S + 4 * S;
+    const vY = titleTextBottom + 4 * S;
     ctx.font = `400 ${12 * S}px -apple-system, "Helvetica Neue", sans-serif`;
     ctx.fillStyle = "rgba(255,255,255,0.7)";
     let vt = plan.venue_string;
@@ -174,8 +194,8 @@ async function renderCard(plan: PlanData): Promise<Blob> {
     ctx.fillText("📍 " + vt, tX, vY);
   }
 
-  const pillY = bY + bH + 16 * S;
-  const pillH = 30 * S, pillR = 10 * S, pillPX = 12 * S;
+  // Time/city pills
+  const pillR = 10 * S, pillPX = 12 * S;
   let px = PX;
   ctx.font = `500 ${12 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.textBaseline = "middle";
@@ -197,13 +217,12 @@ async function renderCard(plan: PlanData): Promise<Blob> {
     ctx.fillText(cityTxt, px + pillPX, pillY + pillH / 2);
   }
 
-  const sepY = pillY + pillH + 14 * S;
+  // Separator
   ctx.strokeStyle = "rgba(255,255,255,0.1)";
   ctx.lineWidth = S;
   ctx.beginPath(); ctx.moveTo(PX, sepY); ctx.lineTo(CW - PX, sepY); ctx.stroke();
 
-  const partY = sepY + 14 * S;
-  const cr = 13 * S;
+  // Participants
   plan.participants.slice(0, 3).forEach((p, i) => {
     const pcx = PX + cr + i * (cr * 2 - 7 * S);
     const pcy = partY + cr;
@@ -249,7 +268,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
     ctx.fillText(`${spotsLeft} spot${spotsLeft !== 1 ? "s" : ""} left`, CW - PX, partY + cr);
   }
 
-  const brandY = partY + cr * 2 + 16 * S;
+  // Brand
   ctx.textAlign = "left"; ctx.textBaseline = "top";
   ctx.font = `700 ${15 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "#fff";
