@@ -381,7 +381,7 @@ export default function CreatePlanPage() {
                 Submitting...
               </div>
             ) : (
-              "Submit Plan for Review"
+              "Post Plan"
             )}
           </motion.button>
 
