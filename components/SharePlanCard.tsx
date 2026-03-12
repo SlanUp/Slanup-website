@@ -162,7 +162,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.font = `700 ${17 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "#fff";
   const titleLines = wrapLines(ctx, plan.name, tMaxW).slice(0, 2);
-  const tY = bY + 6 * S;
+  const tY = IH + 2 * S;
   titleLines.forEach((ln: string, i: number) => ctx.fillText(ln, tX, tY + i * 22 * S));
 
   if (plan.venue_string) {
@@ -256,7 +256,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.fillText("slanup'", PX, brandY);
   const slW = ctx.measureText("slanup'").width;
   ctx.font = `600 ${7 * S}px -apple-system, "Helvetica Neue", sans-serif`;
-  ctx.fillText("beta", PX + slW + 2 * S, brandY);
+  ctx.fillText("beta", PX + slW + 2 * S, brandY + 3 * S);
   ctx.textAlign = "right";
   ctx.font = `400 ${10 * S}px -apple-system, "Helvetica Neue", sans-serif`;
   ctx.fillStyle = "rgba(255,255,255,0.4)";
@@ -365,7 +365,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                   <div style={{ fontSize: 22, fontWeight: 800, color: "#262626", lineHeight: 1 }}>{dayStr}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 2 }}>{monthStr}</div>
                 </div>
-                <div style={{ flex: 1, paddingTop: 6 }}>
+                <div style={{ flex: 1, paddingTop: 40 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.25 }}>{plan.name}</div>
                   {plan.venue_string && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>📍 {plan.venue_string}</div>
@@ -401,7 +401,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                 {slotsLeft > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: "#fbbf24" }}>{slotsLeft} spot{slotsLeft !== 1 ? "s" : ""} left</span>}
               </div>
               <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: -0.5 }}>slanup&apos;<sup style={{ fontSize: 7, verticalAlign: "super", marginLeft: 1 }}>beta</sup></div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", letterSpacing: -0.5 }}>slanup&apos;<span style={{ fontSize: 7, fontWeight: 600, marginLeft: 1, position: "relative" as const, top: -4 }}>beta</span></div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>slanup.com</div>
               </div>
             </div>
