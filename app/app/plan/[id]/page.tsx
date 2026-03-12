@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, Share2, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import SharePlanCard from "@/components/SharePlanCard";
 import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
 
 
@@ -53,7 +54,7 @@ type AnyObj = Record<string, any>;
 export default function PlanDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const planId = params.id as string;
 
   const [plan, setPlan] = useState<AnyObj | null>(null);
@@ -71,6 +72,7 @@ export default function PlanDetailPage() {
     name: '', desc: '', city: '', startDate: '', startTime: '',
     endDate: '', endTime: '', venue_string: '', max_people: 1, tags: [] as string[],
   });
+  const [showShare, setShowShare] = useState(false);
 
   const userId = (user as AnyObj)?._id;
   const isHost = plan?.creator_id?._id === userId;
@@ -234,10 +236,24 @@ export default function PlanDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 
         <button
-          onClick={() => router.back()}
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push('/app/feed');
+            }
+          }}
           className="absolute top-4 left-4 w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md z-10"
         >
           <ArrowLeft className="w-5 h-5 text-neutral-800" />
+        </button>
+
+        {/* Share button */}
+        <button
+          onClick={() => setShowShare(true)}
+          className="absolute top-4 right-4 w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md z-10"
+        >
+          <Share2 className="w-5 h-5 text-neutral-800" />
         </button>
       </div>
 
@@ -582,7 +598,20 @@ export default function PlanDetailPage() {
       </main>
 
       {/* Bottom Action Bar */}
-      {!isHost && !isParticipant && slotsLeft > 0 && new Date(plan.end) > new Date() && (
+      {!isLoggedIn && slotsLeft > 0 && new Date(plan.end) > new Date() && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+          <div className="max-w-2xl mx-auto flex gap-3">
+            <Link
+              href="/app"
+              className="flex-1 font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white"
+            >
+              <LogIn className="w-5 h-5" /> Log in to Request
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {isLoggedIn && !isHost && !isParticipant && slotsLeft > 0 && new Date(plan.end) > new Date() && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <div className="max-w-2xl mx-auto flex gap-3">
             <button
@@ -618,6 +647,11 @@ export default function PlanDetailPage() {
             </Link>
           </div>
         </div>
+      )}
+
+      {/* Share Card Modal */}
+      {showShare && plan && (
+        <SharePlanCard plan={plan as Parameters<typeof SharePlanCard>[0]['plan']} onClose={() => setShowShare(false)} />
       )}
 
       {/* Delete Confirmation Modal */}
