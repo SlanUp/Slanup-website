@@ -74,11 +74,11 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
 type PlanData = SharePlanCardProps["plan"];
 
 async function renderCard(plan: PlanData): Promise<Blob> {
-  const S = 2;
-  const CW = 360 * S;
-  const CH = 375 * S;
-  const IH = 180 * S;
-  const PX = 22 * S;
+  const S = 2.4;
+  const CW = Math.round(360 * S);
+  const CH = Math.round(375 * S);
+  const IH = Math.round(180 * S);
+  const PX = Math.round(22 * S);
 
   const SW = 1080, SH = 1920;
   const c = document.createElement("canvas");
@@ -94,7 +94,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.fillRect(0, 0, SW, SH);
 
   const cardX = (SW - CW) / 2;
-  const cardY = 460;
+  const cardY = 400;
 
   // Load all images in parallel (cache-bust to avoid CORS cache conflict)
   const imgLoads: Promise<HTMLImageElement | null>[] = [];
@@ -351,7 +351,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
             <div style={{ width: "100%", height: 180, position: "relative", overflow: "hidden" }}>
               {planImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={planImageUrl} crossOrigin="anonymous" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                <img src={planImageUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               ) : (
                 <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #7a8460, #4a5239)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 40, opacity: 0.3 }}>{"📅"}</span>
