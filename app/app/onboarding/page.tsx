@@ -18,6 +18,7 @@ export default function OnboardingPage() {
   const [phone, setPhone] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [city, setCity] = useState("");
+  const [gender, setGender] = useState("");
   const [notificationCities, setNotificationCities] = useState<string[]>([]);
   const [emailDigest, setEmailDigest] = useState(true);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -77,6 +78,7 @@ export default function OnboardingPage() {
         instagramHandle: instagram.trim().replace('@', ''),
         mobileNumber: phone.trim() || undefined,
         city,
+        gender: gender || undefined,
         notificationCities: notificationCities.length > 0 ? notificationCities : [city],
         emailDigest,
         ...(profileImage && !profileImage.startsWith('data:') && { image: profileImage }),
@@ -190,6 +192,27 @@ export default function OnboardingPage() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Gender</label>
+              <div className="flex gap-3">
+                {(['male', 'female'] as const).map(g => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGender(gender === g ? '' : g)}
+                    className={`flex-1 py-3 rounded-xl font-medium text-sm border-2 transition-all ${
+                      gender === g
+                        ? 'border-[var(--brand-green)] bg-[var(--brand-green)]/10 text-[var(--brand-green)]'
+                        : 'border-neutral-200 bg-neutral-50 text-neutral-500 hover:border-neutral-300'
+                    }`}
+                  >
+                    {g === 'male' ? '♂ Male' : '♀ Female'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Bio */}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const profileId = params.id as string;
 
   const [profile, setProfile] = useState<AnyObj | null>(null);
+  const [stats, setStats] = useState<{ created: number; joined: number; completed: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -49,8 +50,9 @@ export default function ProfilePage() {
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const res = (await api.getProfile(profileId)) as { data: { user: AnyObj } };
+      const res = (await api.getProfile(profileId)) as { data: { user: AnyObj; stats?: { created: number; joined: number; completed: number } } };
       setProfile(res.data.user);
+      if (res.data.stats) setStats(res.data.stats);
     } catch {
       // not found
     } finally {
@@ -277,6 +279,57 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
+          </motion.div>
+        )}
+
+        {/* Plan Stats */}
+        {stats && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-white rounded-2xl shadow-lg p-5 mt-4"
+          >
+            <h3 className="text-sm font-bold text-neutral-700 mb-3 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" /> Plan Stats
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center bg-neutral-50 rounded-xl py-3">
+                <p className="text-2xl font-bold text-[var(--brand-green)]">{stats.created}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Created</p>
+              </div>
+              <div className="text-center bg-neutral-50 rounded-xl py-3">
+                <p className="text-2xl font-bold text-[var(--brand-green)]">{stats.joined}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Joined</p>
+              </div>
+              <div className="text-center bg-neutral-50 rounded-xl py-3">
+                <p className="text-2xl font-bold text-[var(--brand-green)]">{stats.completed}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Completed</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Feedback / Bug Report */}
+        {isOwnProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-4 mb-6"
+          >
+            <a
+              href="mailto:hey@slanup.com?subject=Slanup Feedback"
+              className="flex items-center gap-3 bg-white rounded-2xl shadow-lg p-4 hover:bg-neutral-50 transition-colors"
+            >
+              <div className="w-10 h-10 bg-[var(--brand-green)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <MessageSquarePlus className="w-5 h-5 text-[var(--brand-green)]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-800">File a bug or suggestion</p>
+                <p className="text-xs text-neutral-500">Help us make Slanup better</p>
+              </div>
+            </a>
           </motion.div>
         )}
       </main>

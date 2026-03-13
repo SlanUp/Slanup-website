@@ -287,6 +287,9 @@ export default function CreatePlanPage() {
                 className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
                 required
               />
+              {startDate && startTime && new Date(`${startDate}T${startTime}`) < new Date() && (
+                <p className="text-xs text-red-500 mt-1.5">Start must be in the future</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-semibold text-neutral-700 block mb-2">End Date <span className="text-red-400">*</span></label>
@@ -307,6 +310,9 @@ export default function CreatePlanPage() {
                 className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
                 required
               />
+              {startDate && startTime && endDate && endTime && new Date(`${endDate}T${endTime}`) <= new Date(`${startDate}T${startTime}`) && (
+                <p className="text-xs text-red-500 mt-1.5">End must be after start</p>
+              )}
             </div>
           </div>
 
@@ -357,10 +363,10 @@ export default function CreatePlanPage() {
           </div>
 
           {/* Validation hints */}
-          {validationIssues.length > 0 && (name || city || startDate || endDate) && (
+          {validationIssues.filter(i => !i.includes('Start must') && !i.includes('End must')).length > 0 && (name || city || startDate || endDate) && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
               <ul className="text-xs text-amber-700 space-y-0.5">
-                {validationIssues.map((issue) => (
+                {validationIssues.filter(i => !i.includes('Start must') && !i.includes('End must')).map((issue) => (
                   <li key={issue}>• {issue}</li>
                 ))}
               </ul>

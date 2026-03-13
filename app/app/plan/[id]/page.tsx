@@ -70,7 +70,7 @@ export default function PlanDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '', desc: '', city: '', startDate: '', startTime: '',
-    endDate: '', endTime: '', venue_string: '', max_people: 1, tags: [] as string[],
+    endDate: '', endTime: '', max_people: 1, tags: [] as string[],
   });
   const [showShare, setShowShare] = useState(false);
 
@@ -151,7 +151,6 @@ export default function PlanDetailPage() {
       startTime: toTimeInputValue(plan.start),
       endDate: toDateInputValue(plan.end),
       endTime: toTimeInputValue(plan.end),
-      venue_string: plan.venue_string || '',
       max_people: plan.max_people || 1,
       tags: plan.tags || [],
     });
@@ -176,7 +175,6 @@ export default function PlanDetailPage() {
         city: editForm.city,
         start: startDateTime.toISOString(),
         end: endDateTime.toISOString(),
-        venue_string: editForm.venue_string.trim(),
         max_people: editForm.max_people,
         tags: editForm.tags,
       });
@@ -249,12 +247,6 @@ export default function PlanDetailPage() {
         </button>
 
         {/* Share button */}
-        <button
-          onClick={() => setShowShare(true)}
-          className="absolute top-4 right-4 w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-md z-10"
-        >
-          <Share2 className="w-5 h-5 text-neutral-800" />
-        </button>
       </div>
 
       <main className="max-w-2xl mx-auto px-4 -mt-12 relative z-10 pb-24 md:pb-32">
@@ -350,17 +342,6 @@ export default function PlanDetailPage() {
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-neutral-700 block mb-1">Venue</label>
-                <input
-                  type="text"
-                  value={editForm.venue_string}
-                  onChange={e => updateEditForm('venue_string', e.target.value)}
-                  className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
-                  placeholder="Where is it happening?"
-                />
-              </div>
-
-              <div>
                 <label className="text-sm font-semibold text-neutral-700 block mb-1">Max People</label>
                 <input
                   type="number"
@@ -419,24 +400,33 @@ export default function PlanDetailPage() {
             <>
               <div className="flex items-start justify-between gap-3">
                 <h1 className="text-2xl font-bold text-neutral-800">{plan.name}</h1>
-                {isHost && (
-                  <div className="flex gap-1.5 flex-shrink-0">
-                    <button
-                      onClick={enterEditMode}
-                      className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
-                      title="Edit plan"
-                    >
-                      <Pencil className="w-4 h-4 text-neutral-500" />
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteModal(true)}
-                      className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition-colors"
-                      title="Delete plan"
-                    >
-                      <Trash2 className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => setShowShare(true)}
+                    className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
+                    title="Share plan"
+                  >
+                    <Share2 className="w-4 h-4 text-neutral-500" />
+                  </button>
+                  {isHost && (
+                    <>
+                      <button
+                        onClick={enterEditMode}
+                        className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
+                        title="Edit plan"
+                      >
+                        <Pencil className="w-4 h-4 text-neutral-500" />
+                      </button>
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition-colors"
+                        title="Delete plan"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col gap-3 mt-4">
