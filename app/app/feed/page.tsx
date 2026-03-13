@@ -207,9 +207,16 @@ export default function FeedPage() {
     }).catch(() => {});
 
     api.getNotifications().then((res: unknown) => {
-      const data = res as { data?: { incoming?: { status: string }[] } };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = res as { data?: { incoming?: { status: string }[]; plansToRate?: any[] } };
       const pending = (data.data?.incoming || []).filter((r: { status: string }) => r.status === 'pending').length;
-      setUnreadNotifs(pending);
+      // Only count plansToRate that arrived after user last visited notifications
+      const lastSeen = parseInt(localStorage.getItem('lastNotifSeenAt') || '0', 10);
+      const newRateCount = (data.data?.plansToRate || []).filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (p: any) => new Date(p.end).getTime() > lastSeen
+      ).length;
+      setUnreadNotifs(pending + newRateCount);
     }).catch(() => {});
 
     // Socket connection for realtime badge updates
@@ -242,6 +249,9 @@ export default function FeedPage() {
       setUnreadNotifs(prev => prev + 1);
     });
     socket.on("newPlanNearby", () => {
+      setUnreadNotifs(prev => prev + 1);
+    });
+    socket.on("planCompletedRate", () => {
       setUnreadNotifs(prev => prev + 1);
     });
 

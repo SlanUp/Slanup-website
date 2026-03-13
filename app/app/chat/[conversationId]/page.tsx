@@ -472,7 +472,9 @@ export default function ChatPage() {
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <div className="min-w-0 flex-1">
-            <h1 className="text-base font-bold text-neutral-800 truncate">{planName}</h1>
+            <Link href={`/app/plan/${conversation?.plan_id?.id || conversation?.plan_id?._id || ''}`}>
+              <h1 className="text-base font-bold text-neutral-800 truncate hover:text-[var(--brand-green)] transition-colors">{planName}</h1>
+            </Link>
             {participants.length > 0 && (
               <p className="text-xs text-neutral-400 truncate">
                 {participants.length} members · {participants.filter(p => typeof p === 'object').map(p => p.name?.split(' ')[0]).join(', ')}

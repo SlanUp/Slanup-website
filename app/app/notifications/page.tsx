@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Bell, BellOff, Check, X, Loader2, MapPin, Calendar } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Check, X, Loader2, MapPin, Calendar, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -117,6 +117,8 @@ export default function NotificationsPage() {
   const [incoming, setIncoming] = useState<NotificationItem[]>([]);
   const [outgoing, setOutgoing] = useState<NotificationItem[]>([]);
   const [nearbyPlans, setNearbyPlans] = useState<NearbyPlan[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [plansToRate, setPlansToRate] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -125,12 +127,14 @@ export default function NotificationsPage() {
       setLoading(true);
       const res = await api.getNotifications() as {
         success: boolean;
-        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[] };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[] };
       };
       if (res.success) {
         setIncoming(res.data.incoming);
         setOutgoing(res.data.outgoing);
         setNearbyPlans(res.data.nearbyPlans || []);
+        setPlansToRate(res.data.plansToRate || []);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -146,6 +150,8 @@ export default function NotificationsPage() {
     }
     if (isLoggedIn) {
       fetchNotifications();
+      // Mark notifications as seen so feed red dot clears
+      localStorage.setItem('lastNotifSeenAt', Date.now().toString());
     }
   }, [authLoading, isLoggedIn, router, fetchNotifications]);
 
@@ -231,13 +237,43 @@ export default function NotificationsPage() {
             <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
           </div>
         ) : tab === "activity" ? (
-          allActivity.length === 0 ? (
+          <>
+            {/* Plans to rate — for women after plan completion */}
+            {plansToRate.length > 0 && (
+              <div className="mb-4 space-y-3">
+                {plansToRate.map((plan) => (
+                  <motion.div key={plan._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Link href={`/app/plan/${plan.id || plan._id}`}>
+                      <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl shadow-sm p-4 border border-emerald-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-neutral-800">
+                              🎉 You completed &quot;{plan.name}&quot;!
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                              Mark the kind ones as Safe 🛡️ and flag anyone who made you uncomfortable ⚠️ — your feedback is 100% anonymous and helps make Slanup a safer space for all women.
+                            </p>
+                            <span className="inline-block mt-2 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                              Share Your Experience →
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+            {allActivity.length === 0 && plansToRate.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
               <BellOff className="w-12 h-12 mb-3 stroke-[1.5]" />
               <p className="text-sm font-medium">No activity yet</p>
               <p className="text-xs mt-1">Join or create a plan to get started</p>
             </motion.div>
-          ) : (
+           ) : allActivity.length > 0 ? (
             <div className="flex flex-col gap-3">
               <AnimatePresence mode="popLayout">
                 {allActivity.map((item, i) => {
@@ -307,7 +343,8 @@ export default function NotificationsPage() {
                 })}
               </AnimatePresence>
             </div>
-          )
+          ) : null}
+          </>
         ) : (
           nearbyPlans.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
