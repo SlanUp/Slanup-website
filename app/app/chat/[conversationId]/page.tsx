@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, X, Reply } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
@@ -112,6 +112,10 @@ export default function ChatPage() {
   const [readReceipts, setReadReceipts] = useState<Record<string, AnyObj[]>>({});
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState("");
+  const [replyTo, setReplyTo] = useState<AnyObj | null>(null);
+  const [activeReactionMsg, setActiveReactionMsg] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -195,6 +199,7 @@ export default function ChatPage() {
       const senderId = msg.senderId?._id || msg.senderId;
       const isOwnMessage = senderId === userId;
       const msgType = msg.type || 'message';
+      const replyData = msg.replyTo ? { _id: msg.replyTo._id, text: msg.replyTo.content || msg.replyTo.text, sender_id: msg.replyTo.senderId || msg.replyTo.sender_id } : null;
 
       setMessages((prev) => {
         // Deduplicate by real _id
@@ -208,6 +213,7 @@ export default function ChatPage() {
             type: 'system',
             sender_id: msg.senderId || msg.sender_id,
             readBy: msg.readBy || [],
+            reactions: [],
             createdAt: msg.createdAt,
           }];
         }
@@ -223,6 +229,8 @@ export default function ChatPage() {
               type: msgType,
               sender_id: msg.senderId || msg.sender_id,
               readBy: msg.readBy || [],
+              reactions: msg.reactions || [],
+              replyTo: replyData,
               createdAt: msg.createdAt,
             };
             return updated;
@@ -237,6 +245,8 @@ export default function ChatPage() {
           type: msgType,
           sender_id: msg.senderId || msg.sender_id,
           readBy: msg.readBy || [],
+          reactions: msg.reactions || [],
+          replyTo: replyData,
           createdAt: msg.createdAt,
         }];
       });
@@ -266,6 +276,12 @@ export default function ChatPage() {
           return m;
         });
       });
+    });
+
+    socket.on("reactionUpdate", (data: AnyObj) => {
+      setMessages((prev) =>
+        prev.map((m) => m._id === data.messageId ? { ...m, reactions: data.reactions } : m)
+      );
     });
 
     socketRef.current = socket;
@@ -330,6 +346,7 @@ export default function ChatPage() {
     socketRef.current.emit("sendMessage", {
       conversationId,
       content: text.trim(),
+      ...(replyTo && { replyTo: replyTo._id }),
     }, (response: AnyObj) => {
       if (response?.error) {
         console.error("Send failed:", response.error);
@@ -344,14 +361,66 @@ export default function ChatPage() {
         text: text.trim(),
         sender_id: { _id: userId, name: (user as AnyObj)?.name, image: (user as AnyObj)?.image },
         readBy: [],
+        reactions: [],
+        replyTo: replyTo ? { _id: replyTo._id, text: replyTo.text, sender_id: replyTo.sender_id } : null,
         createdAt: new Date().toISOString(),
         optimistic: true,
       },
     ]);
 
     setText("");
+    setReplyTo(null);
     setShowMentions(false);
     inputRef.current?.focus();
+  };
+
+  const QUICK_EMOJIS = ["❤️", "😂", "👍", "😮", "😢", "🔥"];
+
+  const handleReact = (messageId: string, emoji: string) => {
+    if (!socketRef.current) return;
+    socketRef.current.emit("reactToMessage", { messageId, emoji });
+    // Optimistic toggle
+    setMessages((prev) =>
+      prev.map((m) => {
+        if (m._id !== messageId) return m;
+        const reactions = [...(m.reactions || [])];
+        const idx = reactions.findIndex((r: AnyObj) => r.userId === userId && r.emoji === emoji);
+        if (idx !== -1) reactions.splice(idx, 1);
+        else reactions.push({ emoji, userId });
+        return { ...m, reactions };
+      })
+    );
+    setActiveReactionMsg(null);
+  };
+
+  const handleReply = (msg: AnyObj) => {
+    setReplyTo(msg);
+    setActiveReactionMsg(null);
+    inputRef.current?.focus();
+  };
+
+  const onTouchStart = (msgId: string, e: React.TouchEvent) => {
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    longPressTimer.current = setTimeout(() => {
+      setActiveReactionMsg(msgId);
+    }, 500);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || !longPressTimer.current) return;
+    const dx = Math.abs(e.touches[0].clientX - touchStartPos.current.x);
+    const dy = Math.abs(e.touches[0].clientY - touchStartPos.current.y);
+    if (dx > 10 || dy > 10) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   };
 
   const planName = conversation?.plan_id?.name || "Group Chat";
@@ -376,7 +445,11 @@ export default function ChatPage() {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4">
+      <div
+        className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4"
+        onScroll={() => { inputRef.current?.blur(); setActiveReactionMsg(null); }}
+        onClick={() => setActiveReactionMsg(null)}
+      >
         <div className="max-w-2xl mx-auto">
           {loading ? (
             <div className="flex justify-center py-20">
@@ -422,17 +495,46 @@ export default function ChatPage() {
               // Read receipts only on the last message of a batch
               const receipts = isLastInBatch ? (readReceipts[msg._id] || []) : [];
 
+              // Group reactions by emoji
+              const reactionGroups: Record<string, string[]> = {};
+              (msg.reactions || []).forEach((r: AnyObj) => {
+                if (!reactionGroups[r.emoji]) reactionGroups[r.emoji] = [];
+                reactionGroups[r.emoji].push(r.userId);
+              });
+
+              const replyName = msg.replyTo?.sender_id?.name || msg.replyTo?.sender_id;
+              const replyPreview = msg.replyTo?.text?.slice(0, 60) + (msg.replyTo?.text?.length > 60 ? "…" : "");
+
               return (
                 <motion.div
                   key={msg._id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${isMe ? "justify-end" : "justify-start"} ${isFirstInBatch ? "mt-3" : "mt-0.5"}`}
+                  className={`flex ${isMe ? "justify-end" : "justify-start"} ${isFirstInBatch ? "mt-3" : "mt-0.5"} relative group`}
                 >
-                  <div className={`max-w-[80%] ${isMe ? "items-end" : "items-start"} flex flex-col`}>
+                  <div
+                    className={`max-w-[80%] ${isMe ? "items-end" : "items-start"} flex flex-col relative`}
+                    onTouchStart={(e) => onTouchStart(msg._id, e)}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    onDoubleClick={() => handleReact(msg._id, "❤️")}
+                  >
                     {showName && senderName && (
                       <span className="text-[11px] text-neutral-400 mb-0.5 ml-3 font-medium">{senderName}</span>
                     )}
+
+                    {/* Reply preview */}
+                    {msg.replyTo && (
+                      <div className={`mx-1 mb-0.5 px-3 py-1.5 rounded-xl text-[11px] border-l-2 ${
+                        isMe
+                          ? "bg-[var(--brand-green)]/20 border-white/40 text-white/70"
+                          : "bg-neutral-100 border-[var(--brand-green)] text-neutral-500"
+                      }`}>
+                        <span className="font-semibold">{replyName}</span>
+                        <p className="truncate opacity-80">{replyPreview}</p>
+                      </div>
+                    )}
+
                     <div
                       className={`px-4 py-2 rounded-2xl text-sm leading-relaxed ${
                         isMe
@@ -442,6 +544,82 @@ export default function ChatPage() {
                     >
                       <MentionText text={msg.text} participants={participants} isOwn={isMe} />
                     </div>
+
+                    {/* Reactions display */}
+                    {Object.keys(reactionGroups).length > 0 && (
+                      <div className={`flex flex-wrap gap-1 mt-0.5 mx-1 ${isMe ? "justify-end" : "justify-start"}`}>
+                        {Object.entries(reactionGroups).map(([emoji, users]) => {
+                          const names = users.map((uid) => {
+                            if (uid === userId) return "You";
+                            const p = participants.find((pp: AnyObj) => pp._id === uid);
+                            return p?.name?.split(" ")[0] || "Someone";
+                          });
+                          return (
+                            <button
+                              key={emoji}
+                              onClick={(e) => { e.stopPropagation(); handleReact(msg._id, emoji); }}
+                              title={names.join(", ")}
+                              className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors ${
+                                users.includes(userId)
+                                  ? "bg-[var(--brand-green)]/10 border-[var(--brand-green)]/30"
+                                  : "bg-white border-neutral-200"
+                              }`}
+                            >
+                              <span>{emoji}</span>
+                              {users.length > 1 && <span className="text-[10px] text-neutral-500">{users.length}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Hover actions (desktop) */}
+                    <div className={`hidden group-hover:flex absolute top-0 ${isMe ? "-left-16" : "-right-16"} gap-0.5`}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleReply(msg); }}
+                        className="w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors"
+                        title="Reply"
+                      >
+                        <Reply className="w-3.5 h-3.5 text-neutral-500" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setActiveReactionMsg(activeReactionMsg === msg._id ? null : msg._id); }}
+                        className="w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-neutral-50 transition-colors text-xs"
+                        title="React"
+                      >
+                        😊
+                      </button>
+                    </div>
+
+                    {/* Reaction picker (mobile long-press or desktop click) */}
+                    <AnimatePresence>
+                      {activeReactionMsg === msg._id && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8, y: 4 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, y: 4 }}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`absolute ${isMe ? "right-0" : "left-0"} -top-10 z-20 bg-white rounded-full shadow-lg border border-neutral-100 px-2 py-1 flex gap-1`}
+                        >
+                          {QUICK_EMOJIS.map((emoji) => (
+                            <button
+                              key={emoji}
+                              onClick={() => handleReact(msg._id, emoji)}
+                              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors text-lg"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                          <button
+                            onClick={() => { handleReply(msg); }}
+                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors"
+                          >
+                            <Reply className="w-4 h-4 text-neutral-500" />
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     {/* Time + read receipts — only on last message of batch */}
                     {(showTime || receipts.length > 0) && (
                       <div className={`flex items-center gap-1 mt-0.5 mx-3 ${isMe ? "flex-row-reverse" : ""}`}>
@@ -491,6 +669,31 @@ export default function ChatPage() {
                   <span className="text-sm font-medium text-neutral-700">{p.name}</span>
                 </button>
               ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reply banner */}
+      <AnimatePresence>
+        {replyTo && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-white border-t border-neutral-100 overflow-hidden"
+          >
+            <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3">
+              <div className="w-0.5 h-8 bg-[var(--brand-green)] rounded-full flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-[var(--brand-green)]">
+                  {typeof replyTo.sender_id === 'object' ? replyTo.sender_id?.name : 'Message'}
+                </p>
+                <p className="text-xs text-neutral-500 truncate">{replyTo.text}</p>
+              </div>
+              <button onClick={() => setReplyTo(null)} className="p-1 rounded-full hover:bg-neutral-100 flex-shrink-0">
+                <X className="w-4 h-4 text-neutral-400" />
+              </button>
             </div>
           </motion.div>
         )}
