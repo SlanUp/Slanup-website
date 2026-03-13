@@ -75,6 +75,9 @@ export default function PlanDetailPage() {
   const [showShare, setShowShare] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [leaveStep, setLeaveStep] = useState<'reason' | 'rate' | null>(null);
+  const [leaveReason, setLeaveReason] = useState<'unavailable' | 'uncomfortable' | null>(null);
+  const [flaggedUserIds, setFlaggedUserIds] = useState<string[]>([]);
   const [feltSafeIds, setFeltSafeIds] = useState<string[]>([]);
   const [feltSafeLoading, setFeltSafeLoading] = useState<string | null>(null);
 
@@ -688,7 +691,7 @@ export default function PlanDetailPage() {
           <div className="max-w-2xl mx-auto flex gap-3">
             {isParticipant && !isHost && !isPlanEnded && (
               <button
-                onClick={() => setShowLeaveModal(true)}
+                onClick={() => { setShowLeaveModal(true); setLeaveStep(userGender === 'female' ? 'reason' : null); }}
                 className="px-4 py-3 md:py-3.5 border-2 border-red-200 text-red-500 font-semibold rounded-2xl transition-colors hover:bg-red-50 flex items-center gap-2"
               >
                 <DoorOpen className="w-5 h-5" />
@@ -760,7 +763,7 @@ export default function PlanDetailPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-            onClick={() => !leaving && setShowLeaveModal(false)}
+            onClick={() => !leaving && (() => { setShowLeaveModal(false); setLeaveStep(null); setLeaveReason(null); setFlaggedUserIds([]); })()}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -769,26 +772,143 @@ export default function PlanDetailPage() {
               onClick={e => e.stopPropagation()}
               className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
             >
-              <h3 className="text-lg font-bold text-neutral-800">Leave Plan</h3>
-              <p className="text-sm text-neutral-600 mt-2">
-                Are you sure you want to leave <span className="font-semibold">{plan.name}</span>? The host will be notified.
-              </p>
-              <div className="flex gap-3 mt-5">
-                <button
-                  onClick={() => setShowLeaveModal(false)}
-                  disabled={leaving}
-                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
-                >
-                  Stay
-                </button>
-                <button
-                  onClick={handleLeave}
-                  disabled={leaving}
-                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
-                >
-                  {leaving ? 'Leaving...' : 'Leave Plan'}
-                </button>
-              </div>
+              {/* Step 1 for women: Why are you leaving? */}
+              {userGender === 'female' && leaveStep === 'reason' && (
+                <>
+                  <h3 className="text-lg font-bold text-neutral-800">Why are you leaving?</h3>
+                  <p className="text-xs text-neutral-400 mt-1">This helps us keep Slanup safe for everyone</p>
+                  <div className="flex flex-col gap-2.5 mt-4">
+                    <button
+                      onClick={() => { setLeaveReason('unavailable'); setLeaveStep('rate'); }}
+                      className="w-full text-left px-4 py-3 border border-neutral-200 rounded-xl text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                    >
+                      📅 Not available anymore
+                    </button>
+                    <button
+                      onClick={() => { setLeaveReason('uncomfortable'); setLeaveStep('rate'); }}
+                      className="w-full text-left px-4 py-3 border border-red-200 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      ⚠️ Someone made me uncomfortable
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => { setShowLeaveModal(false); setLeaveStep(null); }}
+                    className="w-full mt-3 py-2.5 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+
+              {/* Step 2 for women: Rate male participants */}
+              {userGender === 'female' && leaveStep === 'rate' && (() => {
+                const maleParticipants = (plan.participants || []).filter((p: AnyObj) => p.gender === 'male' && p._id !== userId);
+                const hostIsMale = plan.creator_id?.gender === 'male' && plan.creator_id?._id !== userId;
+                const allMales = hostIsMale ? [plan.creator_id, ...maleParticipants] : maleParticipants;
+                return allMales.length > 0 ? (
+                  <>
+                    <h3 className="text-lg font-bold text-neutral-800">
+                      {leaveReason === 'uncomfortable' ? 'Who made you uncomfortable?' : 'Before you go...'}
+                    </h3>
+                    <p className="text-xs text-neutral-400 mt-1">
+                      {leaveReason === 'uncomfortable'
+                        ? 'Flag anyone who misbehaved — this is 100% anonymous'
+                        : 'Let others know who made you feel safe — 100% anonymous'}
+                    </p>
+                    <div className="flex flex-col gap-2 mt-4 max-h-60 overflow-auto">
+                      {allMales.map((p: AnyObj) => (
+                        <div key={p._id} className="flex items-center justify-between py-2">
+                          <div className="flex items-center gap-2">
+                            <Avatar image={p.image} name={p.name} size={32} />
+                            <span className="text-sm text-neutral-700">{p.name}</span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => {
+                                if (!feltSafeIds.includes(p._id)) handleFeltSafe(p._id);
+                              }}
+                              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                                feltSafeIds.includes(p._id)
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-neutral-100 text-neutral-500 hover:bg-emerald-50 hover:text-emerald-600'
+                              }`}
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              {feltSafeIds.includes(p._id) ? '✓' : 'Safe'}
+                            </button>
+                            <button
+                              onClick={() => setFlaggedUserIds(prev =>
+                                prev.includes(p._id) ? prev.filter(id => id !== p._id) : [...prev, p._id]
+                              )}
+                              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                                flaggedUserIds.includes(p._id)
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-neutral-100 text-neutral-500 hover:bg-red-50 hover:text-red-600'
+                              }`}
+                            >
+                              ⚠️ {flaggedUserIds.includes(p._id) ? 'Flagged' : 'Flag'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => setLeaveStep('reason')}
+                        disabled={leaving}
+                        className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors"
+                      >
+                        Back
+                      </button>
+                      <button
+                        onClick={handleLeave}
+                        disabled={leaving}
+                        className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                      >
+                        {leaving ? 'Leaving...' : 'Leave Plan'}
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 text-center mt-2">Your ratings are completely anonymous</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-bold text-neutral-800">Leave Plan</h3>
+                    <p className="text-sm text-neutral-600 mt-2">
+                      Are you sure you want to leave <span className="font-semibold">{plan.name}</span>?
+                    </p>
+                    <div className="flex gap-3 mt-5">
+                      <button onClick={() => { setShowLeaveModal(false); setLeaveStep(null); }} className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors">Stay</button>
+                      <button onClick={handleLeave} disabled={leaving} className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60">{leaving ? 'Leaving...' : 'Leave Plan'}</button>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {/* Non-female users: simple confirmation */}
+              {userGender !== 'female' && !leaveStep && (
+                <>
+                  <h3 className="text-lg font-bold text-neutral-800">Leave Plan</h3>
+                  <p className="text-sm text-neutral-600 mt-2">
+                    Are you sure you want to leave <span className="font-semibold">{plan.name}</span>? The host will be notified.
+                  </p>
+                  <div className="flex gap-3 mt-5">
+                    <button
+                      onClick={() => setShowLeaveModal(false)}
+                      disabled={leaving}
+                      className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+                    >
+                      Stay
+                    </button>
+                    <button
+                      onClick={handleLeave}
+                      disabled={leaving}
+                      className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                    >
+                      {leaving ? 'Leaving...' : 'Leave Plan'}
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
