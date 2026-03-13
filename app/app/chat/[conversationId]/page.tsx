@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Send, X, Reply } from "lucide-react";
+import { ArrowLeft, Send, X, Reply, Copy } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
@@ -399,28 +399,66 @@ export default function ChatPage() {
     inputRef.current?.focus();
   };
 
-  const onTouchStart = (msgId: string, e: React.TouchEvent) => {
-    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setActiveReactionMsg(null);
+  };
+
+  const swipeMsgRef = useRef<{ id: string; startX: number; el: HTMLElement } | null>(null);
+
+  const onTouchStart = (msg: AnyObj, e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touchStartPos.current = { x: t.clientX, y: t.clientY };
+    swipeMsgRef.current = { id: msg._id, startX: t.clientX, el: e.currentTarget as HTMLElement };
     longPressTimer.current = setTimeout(() => {
-      setActiveReactionMsg(msgId);
+      longPressTimer.current = null;
+      setActiveReactionMsg(msg._id);
+      // Haptic feedback if available
+      if (navigator.vibrate) navigator.vibrate(10);
     }, 500);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartPos.current || !longPressTimer.current) return;
-    const dx = Math.abs(e.touches[0].clientX - touchStartPos.current.x);
-    const dy = Math.abs(e.touches[0].clientY - touchStartPos.current.y);
-    if (dx > 10 || dy > 10) {
+    if (!touchStartPos.current) return;
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartPos.current.x;
+    const dy = Math.abs(t.clientY - touchStartPos.current.y);
+
+    // Cancel long-press on any movement
+    if (longPressTimer.current && (Math.abs(dx) > 8 || dy > 8)) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
+
+    // Swipe right detection (only positive direction, not for own messages handled at render)
+    if (swipeMsgRef.current && dx > 10 && dy < 30) {
+      const offset = Math.min(dx - 10, 60);
+      swipeMsgRef.current.el.style.transform = `translateX(${offset}px)`;
+      swipeMsgRef.current.el.style.transition = 'none';
+    }
   };
 
-  const onTouchEnd = () => {
+  const onTouchEnd = (msg: AnyObj) => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
+
+    // Check if swiped far enough to trigger reply
+    if (swipeMsgRef.current && touchStartPos.current) {
+      const el = swipeMsgRef.current.el;
+      const currentTransform = el.style.transform;
+      el.style.transition = 'transform 0.2s ease';
+      el.style.transform = 'translateX(0)';
+
+      const match = currentTransform.match(/translateX\((\d+)/);
+      if (match && parseInt(match[1]) > 40) {
+        handleReply(msg);
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+    }
+    swipeMsgRef.current = null;
+    touchStartPos.current = null;
   };
 
   const planName = conversation?.plan_id?.name || "Group Chat";
@@ -513,11 +551,12 @@ export default function ChatPage() {
                   className={`flex ${isMe ? "justify-end" : "justify-start"} ${isFirstInBatch ? "mt-3" : "mt-0.5"} relative group`}
                 >
                   <div
-                    className={`max-w-[80%] ${isMe ? "items-end" : "items-start"} flex flex-col relative`}
-                    onTouchStart={(e) => onTouchStart(msg._id, e)}
+                    className={`max-w-[80%] ${isMe ? "items-end" : "items-start"} flex flex-col relative select-none`}
+                    onTouchStart={(e) => onTouchStart(msg, e)}
                     onTouchMove={onTouchMove}
-                    onTouchEnd={onTouchEnd}
+                    onTouchEnd={() => onTouchEnd(msg)}
                     onDoubleClick={() => handleReact(msg._id, "❤️")}
+                    onContextMenu={(e) => e.preventDefault()}
                   >
                     {showName && senderName && (
                       <span className="text-[11px] text-neutral-400 mb-0.5 ml-3 font-medium">{senderName}</span>
@@ -599,23 +638,33 @@ export default function ChatPage() {
                           animate={{ opacity: 1, scale: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.8, y: 4 }}
                           onClick={(e) => e.stopPropagation()}
-                          className={`absolute ${isMe ? "right-0" : "left-0"} -top-10 z-20 bg-white rounded-full shadow-lg border border-neutral-100 px-2 py-1 flex gap-1`}
+                          className={`absolute ${isMe ? "right-0" : "left-0"} -top-12 z-20 flex flex-col items-center gap-1`}
                         >
-                          {QUICK_EMOJIS.map((emoji) => (
+                          <div className="bg-white rounded-2xl shadow-lg border border-neutral-100 px-2 py-1.5 flex gap-0.5">
+                            {QUICK_EMOJIS.map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => handleReact(msg._id, emoji)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 active:scale-110 transition-all text-lg"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="bg-white rounded-xl shadow-lg border border-neutral-100 overflow-hidden flex">
                             <button
-                              key={emoji}
-                              onClick={() => handleReact(msg._id, emoji)}
-                              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors text-lg"
+                              onClick={() => { handleReply(msg); }}
+                              className="flex items-center gap-1.5 px-3 py-2 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-xs font-medium text-neutral-600 border-r border-neutral-100"
                             >
-                              {emoji}
+                              <Reply className="w-3.5 h-3.5" /> Reply
                             </button>
-                          ))}
-                          <button
-                            onClick={() => { handleReply(msg); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors"
-                          >
-                            <Reply className="w-4 h-4 text-neutral-500" />
-                          </button>
+                            <button
+                              onClick={() => handleCopy(msg.text)}
+                              className="flex items-center gap-1.5 px-3 py-2 hover:bg-neutral-50 active:bg-neutral-100 transition-colors text-xs font-medium text-neutral-600"
+                            >
+                              <Copy className="w-3.5 h-3.5" /> Copy
+                            </button>
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
