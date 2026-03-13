@@ -125,6 +125,16 @@ export const api = {
   handleRequest: (requestId: string, action: 'accepted' | 'rejected') =>
     apiFetch(`/api/web/requests/${requestId}`, { method: 'PATCH', body: { status: action } }),
 
+  // Leave plan
+  leavePlan: (planId: string) =>
+    apiFetch(`/api/web/plans/${planId}/leave`, { method: 'DELETE' }),
+
+  // Felt Safe ratings
+  submitFeltSafe: (planId: string, ratedUserId: string) =>
+    apiFetch(`/api/web/plans/${planId}/felt-safe`, { method: 'POST', body: { ratedUserId } }),
+  getFeltSafeRatings: (planId: string) =>
+    apiFetch(`/api/web/plans/${planId}/felt-safe`),
+
   // Notifications
   getNotifications: () => apiFetch('/api/web/notifications'),
 

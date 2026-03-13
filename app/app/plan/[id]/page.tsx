@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, Share2, LogIn } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, Share2, LogIn, DoorOpen, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
@@ -73,11 +73,17 @@ export default function PlanDetailPage() {
     endDate: '', endTime: '', max_people: 1, tags: [] as string[],
   });
   const [showShare, setShowShare] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [feltSafeIds, setFeltSafeIds] = useState<string[]>([]);
+  const [feltSafeLoading, setFeltSafeLoading] = useState<string | null>(null);
 
   const userId = (user as AnyObj)?._id;
+  const userGender = (user as AnyObj)?.gender;
   const isHost = plan?.creator_id?._id === userId;
   const isParticipant = plan?.participants?.some((p: AnyObj) => p._id === userId);
   const slotsLeft = plan ? plan.max_people - (plan.participants?.length || 0) : 0;
+  const isPlanEnded = plan ? new Date(plan.end) < new Date() : false;
 
   const fetchPlan = useCallback(async () => {
     try {
@@ -197,6 +203,39 @@ export default function PlanDetailPage() {
       setDeleting(false);
     }
   };
+
+  const handleLeave = async () => {
+    setLeaving(true);
+    try {
+      await api.leavePlan(planId);
+      router.push('/app/feed');
+    } catch {
+      alert('Failed to leave plan');
+      setLeaving(false);
+    }
+  };
+
+  const handleFeltSafe = async (ratedUserId: string) => {
+    setFeltSafeLoading(ratedUserId);
+    try {
+      await api.submitFeltSafe(planId, ratedUserId);
+      setFeltSafeIds(prev => [...prev, ratedUserId]);
+    } catch {
+      alert('Failed to submit rating');
+    } finally {
+      setFeltSafeLoading(null);
+    }
+  };
+
+  // Fetch felt-safe ratings when plan is loaded and ended
+  useEffect(() => {
+    if (isPlanEnded && isLoggedIn && userGender === 'female') {
+      api.getFeltSafeRatings(planId).then((res: unknown) => {
+        const data = res as AnyObj;
+        if (data?.data?.ratedUserIds) setFeltSafeIds(data.data.ratedUserIds);
+      }).catch(() => {});
+    }
+  }, [isPlanEnded, isLoggedIn, userGender, planId]);
 
   if (loading) {
     return (
@@ -508,14 +547,33 @@ export default function PlanDetailPage() {
             <h2 className="text-sm font-bold text-neutral-700 mb-3">
               People going ({plan.participants.length})
             </h2>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col gap-2">
               {plan.participants.map((p: AnyObj) => (
-                <Link key={p._id} href={`/app/profile/${p._id}`} className="flex items-center gap-2 bg-neutral-50 rounded-full pr-3 hover:bg-neutral-100 transition-colors">
-                  <Avatar image={p.image} name={p.name} size={32} />
-                  <span className="text-sm text-neutral-700">{p.name}</span>
-                </Link>
+                <div key={p._id} className="flex items-center justify-between">
+                  <Link href={`/app/profile/${p._id}`} className="flex items-center gap-2 bg-neutral-50 rounded-full pr-3 hover:bg-neutral-100 transition-colors">
+                    <Avatar image={p.image} name={p.name} size={32} />
+                    <span className="text-sm text-neutral-700">{p.name}</span>
+                  </Link>
+                  {isPlanEnded && userGender === 'female' && p.gender === 'male' && p._id !== userId && (
+                    <button
+                      onClick={() => !feltSafeIds.includes(p._id) && handleFeltSafe(p._id)}
+                      disabled={feltSafeLoading === p._id || feltSafeIds.includes(p._id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                        feltSafeIds.includes(p._id)
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-neutral-100 text-neutral-500 hover:bg-emerald-50 hover:text-emerald-600'
+                      }`}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      {feltSafeLoading === p._id ? '...' : feltSafeIds.includes(p._id) ? 'Felt Safe ✓' : 'Felt Safe'}
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
+            {isPlanEnded && userGender === 'female' && plan.participants.some((p: AnyObj) => p.gender === 'male' && p._id !== userId) && (
+              <p className="text-[11px] text-neutral-400 mt-3">🛡️ Your ratings are 100% anonymous — help other women feel safe on Slanup</p>
+            )}
           </motion.div>
         )}
 
@@ -627,10 +685,18 @@ export default function PlanDetailPage() {
 
       {(isParticipant || isHost) && plan.conversation_id && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto flex gap-3">
+            {isParticipant && !isHost && !isPlanEnded && (
+              <button
+                onClick={() => setShowLeaveModal(true)}
+                className="px-4 py-3 md:py-3.5 border-2 border-red-200 text-red-500 font-semibold rounded-2xl transition-colors hover:bg-red-50 flex items-center gap-2"
+              >
+                <DoorOpen className="w-5 h-5" />
+              </button>
+            )}
             <Link
               href={`/app/chat/${typeof plan.conversation_id === 'object' ? plan.conversation_id._id : plan.conversation_id}`}
-              className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />
               Open Group Chat
@@ -679,6 +745,48 @@ export default function PlanDetailPage() {
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
                 >
                   {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Leave Plan Confirmation Modal */}
+      <AnimatePresence>
+        {showLeaveModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => !leaving && setShowLeaveModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
+            >
+              <h3 className="text-lg font-bold text-neutral-800">Leave Plan</h3>
+              <p className="text-sm text-neutral-600 mt-2">
+                Are you sure you want to leave <span className="font-semibold">{plan.name}</span>? The host will be notified.
+              </p>
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={() => setShowLeaveModal(false)}
+                  disabled={leaving}
+                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+                >
+                  Stay
+                </button>
+                <button
+                  onClick={handleLeave}
+                  disabled={leaving}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                >
+                  {leaving ? 'Leaving...' : 'Leave Plan'}
                 </button>
               </div>
             </motion.div>

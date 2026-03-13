@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -249,6 +249,13 @@ export default function ProfilePage() {
                   <p className="text-neutral-500 text-sm mt-2 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" /> {profile.city}
                   </p>
+                )}
+
+                {profile.gender === 'male' && profile.feltSafeCount > 0 && (
+                  <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-3.5 py-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span className="text-sm font-semibold text-emerald-700">{profile.feltSafeCount} women felt safe</span>
+                  </div>
                 )}
               </>
             )}
