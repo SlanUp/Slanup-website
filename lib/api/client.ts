@@ -134,6 +134,10 @@ export const api = {
     apiFetch(`/api/web/plans/${planId}/felt-safe`, { method: 'POST', body: { ratedUserId } }),
   getFeltSafeRatings: (planId: string) =>
     apiFetch(`/api/web/plans/${planId}/felt-safe`),
+  getMyFeltSafeRatings: () =>
+    apiFetch('/api/web/felt-safe/my-ratings'),
+  revokeFeltSafe: (ratedUserId: string) =>
+    apiFetch(`/api/web/felt-safe/${ratedUserId}`, { method: 'DELETE' }),
 
   // Notifications
   getNotifications: () => apiFetch('/api/web/notifications'),
@@ -185,4 +189,16 @@ export const api = {
     apiFetch(`/api/web/admin/plans/${id}/approve`, { method: 'PATCH' }),
   rejectPlan: (id: string, reason?: string) =>
     apiFetch(`/api/web/admin/plans/${id}/reject`, { method: 'PATCH', body: { reason } }),
+  adminDeletePlan: (id: string) =>
+    apiFetch(`/api/web/admin/plans/${id}`, { method: 'DELETE' }),
+  flagUsers: (planId: string, flaggedUserIds: string[], reason?: string, context?: string) =>
+    apiFetch('/api/web/flag-users', { method: 'POST', body: { planId, flaggedUserIds, reason, context } }),
+  revokeFlag: (ratedUserId: string) =>
+    apiFetch(`/api/web/flag-users/${ratedUserId}`, { method: 'DELETE' }),
+  getMyFlags: () =>
+    apiFetch('/api/web/flag-users/my-flags'),
+  getAdminFlaggedUsers: () =>
+    apiFetch('/api/web/admin/flagged-users'),
+  dismissFlag: (id: string, notes?: string) =>
+    apiFetch(`/api/web/admin/flagged-users/${id}/dismiss`, { method: 'PATCH', body: { notes } }),
 };

@@ -79,6 +79,7 @@ export default function PlanDetailPage() {
   const [leaveReason, setLeaveReason] = useState<'unavailable' | 'uncomfortable' | null>(null);
   const [flaggedUserIds, setFlaggedUserIds] = useState<string[]>([]);
   const [feltSafeIds, setFeltSafeIds] = useState<string[]>([]);
+  const [originalSafeIds, setOriginalSafeIds] = useState<string[]>([]);
   const [feltSafeLoading, setFeltSafeLoading] = useState<string | null>(null);
 
   const userId = (user as AnyObj)?._id;
@@ -210,6 +211,15 @@ export default function PlanDetailPage() {
   const handleLeave = async () => {
     setLeaving(true);
     try {
+      // Revoke ratings for users who were safe but now flagged/unmarked
+      const toRevoke = originalSafeIds.filter(id => !feltSafeIds.includes(id));
+      // Submit new safe ratings (not already in DB)
+      const toSubmit = feltSafeIds.filter(id => !originalSafeIds.includes(id));
+      await Promise.all([
+        ...toRevoke.map(id => api.revokeFeltSafe(id).catch(() => {})),
+        ...toSubmit.map(id => api.submitFeltSafe(planId, id).catch(() => {})),
+        ...(flaggedUserIds.length > 0 ? [api.flagUsers(planId, flaggedUserIds, leaveReason || undefined, 'leave')] : []),
+      ]);
       await api.leavePlan(planId);
       router.push('/app/feed');
     } catch {
@@ -218,27 +228,87 @@ export default function PlanDetailPage() {
     }
   };
 
+  const toggleSafe = (uid: string) => {
+    setFeltSafeIds(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
+    setFlaggedUserIds(prev => prev.filter(id => id !== uid));
+  };
+
+  const toggleFlag = (uid: string) => {
+    setFlaggedUserIds(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
+    setFeltSafeIds(prev => prev.filter(id => id !== uid));
+  };
+
   const handleFeltSafe = async (ratedUserId: string) => {
     setFeltSafeLoading(ratedUserId);
     try {
-      await api.submitFeltSafe(planId, ratedUserId);
-      setFeltSafeIds(prev => [...prev, ratedUserId]);
+      const alreadyRated = feltSafeIds.includes(ratedUserId);
+      if (alreadyRated) {
+        await api.revokeFeltSafe(ratedUserId);
+        setFeltSafeIds(prev => prev.filter(id => id !== ratedUserId));
+        setOriginalSafeIds(prev => prev.filter(id => id !== ratedUserId));
+      } else {
+        // If was flagged, revoke flag first
+        if (flaggedUserIds.includes(ratedUserId)) {
+          await api.revokeFlag(ratedUserId);
+          setFlaggedUserIds(prev => prev.filter(id => id !== ratedUserId));
+        }
+        await api.submitFeltSafe(planId, ratedUserId);
+        setFeltSafeIds(prev => [...prev, ratedUserId]);
+        setOriginalSafeIds(prev => [...prev, ratedUserId]);
+      }
     } catch {
-      alert('Failed to submit rating');
+      alert('Failed to update rating');
     } finally {
       setFeltSafeLoading(null);
     }
   };
 
-  // Fetch felt-safe ratings when plan is loaded and ended
+  const handleFlag = async (ratedUserId: string) => {
+    const alreadyFlagged = flaggedUserIds.includes(ratedUserId);
+    if (alreadyFlagged) {
+      // Revoke flag
+      try {
+        await api.revokeFlag(ratedUserId);
+        setFlaggedUserIds(prev => prev.filter(id => id !== ratedUserId));
+      } catch {
+        alert('Failed to revoke flag');
+      }
+      return;
+    }
+    // If was safe, revoke safe first
+    if (feltSafeIds.includes(ratedUserId)) {
+      try {
+        await api.revokeFeltSafe(ratedUserId);
+        setFeltSafeIds(prev => prev.filter(id => id !== ratedUserId));
+        setOriginalSafeIds(prev => prev.filter(id => id !== ratedUserId));
+      } catch { /* continue */ }
+    }
+    try {
+      await api.flagUsers(planId, [ratedUserId], 'uncomfortable', 'post-plan');
+      setFlaggedUserIds(prev => [...prev, ratedUserId]);
+    } catch {
+      alert('Failed to submit flag');
+    }
+  };
+
+  // Fetch global felt-safe ratings and flags for current user
   useEffect(() => {
-    if (isPlanEnded && isLoggedIn && userGender === 'female') {
-      api.getFeltSafeRatings(planId).then((res: unknown) => {
+    if (isLoggedIn && userGender === 'female') {
+      api.getMyFeltSafeRatings().then((res: unknown) => {
         const data = res as AnyObj;
-        if (data?.data?.ratedUserIds) setFeltSafeIds(data.data.ratedUserIds);
+        if (data?.data?.ratedUserIds) {
+          setFeltSafeIds(data.data.ratedUserIds);
+          setOriginalSafeIds(data.data.ratedUserIds);
+        }
+      }).catch(() => {});
+      api.getMyFlags().then((res: unknown) => {
+        const data = res as AnyObj;
+        if (data?.data?.flaggedUserIds) {
+          setFlaggedUserIds(data.data.flaggedUserIds);
+        }
       }).catch(() => {});
     }
-  }, [isPlanEnded, isLoggedIn, userGender, planId]);
+  }, [isLoggedIn, userGender]);
 
   if (loading) {
     return (
@@ -558,18 +628,31 @@ export default function PlanDetailPage() {
                     <span className="text-sm text-neutral-700">{p.name}</span>
                   </Link>
                   {isPlanEnded && userGender === 'female' && p.gender === 'male' && p._id !== userId && (
-                    <button
-                      onClick={() => !feltSafeIds.includes(p._id) && handleFeltSafe(p._id)}
-                      disabled={feltSafeLoading === p._id || feltSafeIds.includes(p._id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                        feltSafeIds.includes(p._id)
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : 'bg-neutral-100 text-neutral-500 hover:bg-emerald-50 hover:text-emerald-600'
-                      }`}
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      {feltSafeLoading === p._id ? '...' : feltSafeIds.includes(p._id) ? 'Felt Safe ✓' : 'Felt Safe'}
-                    </button>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={() => handleFeltSafe(p._id)}
+                        disabled={feltSafeLoading === p._id}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                          feltSafeIds.includes(p._id)
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-neutral-100 text-neutral-500 hover:bg-emerald-50 hover:text-emerald-600'
+                        }`}
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        {feltSafeLoading === p._id ? '...' : feltSafeIds.includes(p._id) ? '✓ Safe' : 'Safe'}
+                      </button>
+                      <button
+                        onClick={() => handleFlag(p._id)}
+                        disabled={feltSafeLoading === p._id}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                          flaggedUserIds.includes(p._id)
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-neutral-100 text-neutral-500 hover:bg-red-50 hover:text-red-600'
+                        }`}
+                      >
+                        ⚠️ {flaggedUserIds.includes(p._id) ? 'Flagged' : 'Flag'}
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
@@ -802,8 +885,9 @@ export default function PlanDetailPage() {
 
               {/* Step 2 for women: Rate male participants */}
               {userGender === 'female' && leaveStep === 'rate' && (() => {
-                const maleParticipants = (plan.participants || []).filter((p: AnyObj) => p.gender === 'male' && p._id !== userId);
-                const hostIsMale = plan.creator_id?.gender === 'male' && plan.creator_id?._id !== userId;
+                const creatorId = plan.creator_id?._id;
+                const maleParticipants = (plan.participants || []).filter((p: AnyObj) => p.gender === 'male' && p._id !== userId && p._id !== creatorId);
+                const hostIsMale = plan.creator_id?.gender === 'male' && creatorId !== userId;
                 const allMales = hostIsMale ? [plan.creator_id, ...maleParticipants] : maleParticipants;
                 return allMales.length > 0 ? (
                   <>
@@ -824,9 +908,7 @@ export default function PlanDetailPage() {
                           </div>
                           <div className="flex gap-1.5">
                             <button
-                              onClick={() => {
-                                if (!feltSafeIds.includes(p._id)) handleFeltSafe(p._id);
-                              }}
+                              onClick={() => toggleSafe(p._id)}
                               className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                                 feltSafeIds.includes(p._id)
                                   ? 'bg-emerald-100 text-emerald-700'
@@ -834,12 +916,10 @@ export default function PlanDetailPage() {
                               }`}
                             >
                               <ShieldCheck className="w-3.5 h-3.5" />
-                              {feltSafeIds.includes(p._id) ? '✓' : 'Safe'}
+                              {feltSafeIds.includes(p._id) ? '✓ Safe' : 'Safe'}
                             </button>
                             <button
-                              onClick={() => setFlaggedUserIds(prev =>
-                                prev.includes(p._id) ? prev.filter(id => id !== p._id) : [...prev, p._id]
-                              )}
+                              onClick={() => toggleFlag(p._id)}
                               className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                                 flaggedUserIds.includes(p._id)
                                   ? 'bg-red-100 text-red-700'

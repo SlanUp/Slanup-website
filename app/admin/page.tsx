@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Calendar, TrendingUp, MapPin, Search,
-  ChevronRight, ArrowUpRight, Clock, Instagram, ExternalLink, Phone
+  ChevronRight, ArrowUpRight, Clock, Instagram, ExternalLink, Phone, AlertTriangle, Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -44,13 +44,14 @@ function formatDate(d: string) {
 export default function AdminDashboard() {
   const router = useRouter();
   const { isLoggedIn, isLoading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "users">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "flagged">("overview");
   const [stats, setStats] = useState<AnyObj | null>(null);
   const [users, setUsers] = useState<AnyObj[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [userPage, setUserPage] = useState(1);
   const [userTotal, setUserTotal] = useState(0);
   const [userTotalPages, setUserTotalPages] = useState(1);
+  const [flaggedReports, setFlaggedReports] = useState<AnyObj[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
@@ -68,6 +69,15 @@ export default function AdminDashboard() {
       setUsers(res.data.users);
       setUserTotal(res.data.total);
       setUserTotalPages(res.data.totalPages);
+    } catch {
+      // not admin
+    }
+  }, []);
+
+  const fetchFlaggedUsers = useCallback(async () => {
+    try {
+      const res = (await api.getAdminFlaggedUsers()) as { data: { reports: AnyObj[] } };
+      setFlaggedReports(res.data.reports);
     } catch {
       // not admin
     }
@@ -91,11 +101,25 @@ export default function AdminDashboard() {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [tab, userPage, userSearch, fetchUsers]);
+    if (tab === "flagged") {
+      fetchFlaggedUsers();
+    }
+  }, [tab, userPage, userSearch, fetchUsers, fetchFlaggedUsers]);
+
+  const handleDismissFlag = async (reportId: string) => {
+    if (!confirm('Dismiss this report?')) return;
+    try {
+      await api.dismissFlag(reportId);
+      setFlaggedReports(prev => prev.filter(r => r._id !== reportId));
+    } catch {
+      alert('Failed to dismiss');
+    }
+  };
 
   const tabs = [
     { id: "overview" as const, label: "Overview" },
     { id: "users" as const, label: "Users" },
+    { id: "flagged" as const, label: "Flagged" },
   ];
 
   return (
@@ -366,6 +390,104 @@ export default function AdminDashboard() {
                 >
                   Next →
                 </button>
+              </div>
+            )}
+          </div>
+        ) : tab === "flagged" ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <h2 className="text-sm font-bold text-neutral-800">Flagged Users</h2>
+              <span className="text-xs text-neutral-400">({flaggedReports.filter(r => r.status === 'pending').length} pending)</span>
+            </div>
+
+            {flaggedReports.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 py-16 text-center">
+                <Shield className="w-10 h-10 text-green-300 mx-auto mb-3" />
+                <p className="text-sm text-neutral-400">No flagged users — all clear! 🎉</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {flaggedReports.map((report) => (
+                  <motion.div
+                    key={report._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`bg-white rounded-2xl shadow-sm border p-4 ${
+                      report.status === 'pending'
+                        ? report.priority === 'critical' ? 'border-red-300 bg-red-50/30'
+                          : report.priority === 'high' ? 'border-orange-200'
+                          : 'border-neutral-100'
+                        : 'border-neutral-100 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden flex-shrink-0">
+                          {report.user?.image ? (
+                            <S3Image fileKey={report.user.image} alt="" width={44} height={44} className="object-cover w-full h-full" />
+                          ) : (
+                            report.user?.name?.charAt(0)?.toUpperCase() || '?'
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-neutral-800">{report.user?.name || 'Unknown'}</p>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              report.priority === 'critical' ? 'bg-red-100 text-red-700'
+                                : report.priority === 'high' ? 'bg-orange-100 text-orange-700'
+                                : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {report.contentMetadata?.reportCount || 1} report{(report.contentMetadata?.reportCount || 1) !== 1 ? 's' : ''} · {report.priority}
+                            </span>
+                            {report.status !== 'pending' && (
+                              <span className="text-[10px] font-medium bg-green-100 text-green-700 px-2 py-0.5 rounded-full">dismissed</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-neutral-500 mt-0.5">{report.user?.email || ''}</p>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-neutral-400">
+                            {report.user?.mobileNumber && <span className="flex items-center gap-0.5"><Phone className="w-3 h-3" /> {report.user.mobileNumber}</span>}
+                            {report.user?.city && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" /> {report.user.city}</span>}
+                            {report.user?.instagramHandle && (
+                              <a href={`https://instagram.com/${report.user.instagramHandle}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 hover:text-[var(--brand-green)]">
+                                <Instagram className="w-3 h-3" /> @{report.user.instagramHandle}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {report.status === 'pending' && (
+                        <button
+                          onClick={() => handleDismissFlag(report._id)}
+                          className="text-xs font-medium text-neutral-400 hover:text-neutral-600 px-2 py-1 rounded-lg hover:bg-neutral-100 transition-colors flex-shrink-0"
+                        >
+                          Dismiss
+                        </button>
+                      )}
+                    </div>
+
+                    {report.contentMetadata?.flaggedBy?.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-neutral-100">
+                        <p className="text-[11px] font-semibold text-neutral-500 mb-1.5">Reports:</p>
+                        <div className="space-y-1.5">
+                          {report.contentMetadata.flaggedBy.map((f: AnyObj, i: number) => (
+                            <div key={i} className="flex items-center gap-2 text-xs text-neutral-500">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                              <span className="font-medium">{f.reason || 'uncomfortable'}</span>
+                              <span className="text-neutral-300">·</span>
+                              <span>{formatDate(f.timestamp)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {report.notes && (
+                      <p className="text-[11px] text-neutral-400 mt-2 italic">{report.notes}</p>
+                    )}
+                  </motion.div>
+                ))}
               </div>
             )}
           </div>
