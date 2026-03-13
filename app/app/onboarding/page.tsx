@@ -16,6 +16,7 @@ export default function OnboardingPage() {
   const [about, setAbout] = useState("");
   const [instagram, setInstagram] = useState("");
   const [phone, setPhone] = useState("");
+  const [dob, setDob] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [gender, setGender] = useState("");
@@ -61,8 +62,24 @@ export default function OnboardingPage() {
     e.preventDefault();
     setError("");
 
+    if (!profileImage) {
+      setError("Profile photo is required");
+      return;
+    }
     if (!name.trim()) {
       setError("Name is required");
+      return;
+    }
+    if (!phone.trim()) {
+      setError("Mobile number is required");
+      return;
+    }
+    if (!gender) {
+      setError("Please select your gender");
+      return;
+    }
+    if (!dob) {
+      setError("Date of birth is required");
       return;
     }
     if (!city) {
@@ -76,9 +93,10 @@ export default function OnboardingPage() {
         name: name.trim(),
         about: about.trim(),
         instagramHandle: instagram.trim().replace('@', ''),
-        mobileNumber: phone.trim() || undefined,
+        mobileNumber: phone.trim(),
+        birthdate: dob,
         city,
-        gender: gender || undefined,
+        gender,
         notificationCities: notificationCities.length > 0 ? notificationCities : [city],
         emailDigest,
         ...(profileImage && !profileImage.startsWith('data:') && { image: profileImage }),
@@ -115,9 +133,9 @@ export default function OnboardingPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
             {/* Profile Photo */}
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center">
               <label className="relative cursor-pointer group">
-                <div className="w-24 h-24 rounded-full bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center overflow-hidden group-hover:border-[var(--brand-green)] transition-colors">
+                <div className={`w-24 h-24 rounded-full bg-neutral-100 border-2 border-dashed flex items-center justify-center overflow-hidden group-hover:border-[var(--brand-green)] transition-colors ${profileImage ? 'border-[var(--brand-green)]' : 'border-neutral-300'}`}>
                   {profileImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={profileImage.startsWith('data:') ? profileImage : imageUrl(profileImage)} alt="Profile" className="w-full h-full object-cover" />
@@ -130,6 +148,7 @@ export default function OnboardingPage() {
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
               </label>
+              <p className="text-xs text-neutral-400 mt-2">Photo <span className="text-red-400">*</span></p>
             </div>
 
             {/* Name */}
@@ -162,7 +181,7 @@ export default function OnboardingPage() {
 
             {/* Mobile Number */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Mobile Number</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Mobile Number <span className="text-red-400">*</span></label>
               <input
                 type="tel"
                 value={phone}
@@ -196,7 +215,7 @@ export default function OnboardingPage() {
 
             {/* Gender */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Gender</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Gender <span className="text-red-400">*</span></label>
               <div className="flex gap-3">
                 {(['male', 'female'] as const).map(g => (
                   <button
@@ -213,6 +232,18 @@ export default function OnboardingPage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Date of Birth <span className="text-red-400">*</span></label>
+              <input
+                type="date"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+              />
             </div>
 
             {/* Bio */}
