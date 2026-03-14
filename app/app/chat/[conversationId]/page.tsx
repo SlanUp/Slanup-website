@@ -119,6 +119,7 @@ export default function ChatPage() {
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isAutoScrolling = useRef(false);
 
   const userId = (user as AnyObj)?._id;
   const participants: AnyObj[] = conversation?.participants || [];
@@ -128,7 +129,9 @@ export default function ChatPage() {
   }, [isLoading, isLoggedIn, router]);
 
   const scrollToBottom = useCallback(() => {
+    isAutoScrolling.current = true;
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => { isAutoScrolling.current = false; }, 500);
   }, []);
 
   // Build read receipt map: for each user, find the last message they read
@@ -487,7 +490,7 @@ export default function ChatPage() {
       {/* Messages */}
       <div
         className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4"
-        onScroll={() => { inputRef.current?.blur(); setActiveReactionMsg(null); }}
+        onScroll={() => { if (!isAutoScrolling.current) inputRef.current?.blur(); setActiveReactionMsg(null); }}
         onClick={() => setActiveReactionMsg(null)}
       >
         <div className="max-w-2xl mx-auto">
@@ -767,6 +770,7 @@ export default function ChatPage() {
           />
           <button
             onClick={handleSend}
+            onMouseDown={(e) => e.preventDefault()}
             disabled={!text.trim()}
             className="w-11 h-11 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-40 flex-shrink-0"
           >
