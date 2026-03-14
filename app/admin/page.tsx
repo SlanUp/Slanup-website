@@ -44,7 +44,7 @@ function formatDate(d: string) {
 export default function AdminDashboard() {
   const router = useRouter();
   const { isLoggedIn, isLoading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "users" | "flagged">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "plans" | "flagged">("overview");
   const [stats, setStats] = useState<AnyObj | null>(null);
   const [users, setUsers] = useState<AnyObj[]>([]);
   const [userSearch, setUserSearch] = useState("");
@@ -52,6 +52,9 @@ export default function AdminDashboard() {
   const [userTotal, setUserTotal] = useState(0);
   const [userTotalPages, setUserTotalPages] = useState(1);
   const [flaggedReports, setFlaggedReports] = useState<AnyObj[]>([]);
+  const [allPlans, setAllPlans] = useState<AnyObj[]>([]);
+  const [planSearch, setPlanSearch] = useState("");
+  const [deletingPlan, setDeletingPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
@@ -106,7 +109,33 @@ export default function AdminDashboard() {
     }
   }, [tab, userPage, userSearch, fetchUsers, fetchFlaggedUsers]);
 
-  const handleDismissFlag = async (reportId: string) => {
+  const fetchAllPlans = useCallback(async () => {
+    try {
+      const res = (await api.getAdminPlans('all')) as { data: { plans: AnyObj[] } };
+      setAllPlans(res.data.plans || []);
+    } catch {
+      // not admin
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "plans") fetchAllPlans();
+  }, [tab, fetchAllPlans]);
+
+  const handleDeletePlan = async (planId: string, planName: string) => {
+    if (!confirm(`Delete "${planName}"? This will remove the plan, its chat, and all related data permanently.`)) return;
+    setDeletingPlan(planId);
+    try {
+      await api.adminDeletePlan(planId);
+      setAllPlans(prev => prev.filter(p => (p._id || p.id) !== planId));
+    } catch {
+      alert("Failed to delete plan");
+    } finally {
+      setDeletingPlan(null);
+    }
+  };
+
+  const handleDismissFlag= async (reportId: string) => {
     if (!confirm('Dismiss this report?')) return;
     try {
       await api.dismissFlag(reportId);
@@ -118,6 +147,7 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: "overview" as const, label: "Overview" },
+    { id: "plans" as const, label: "Plans" },
     { id: "users" as const, label: "Users" },
     { id: "flagged" as const, label: "Flagged" },
   ];
@@ -313,6 +343,102 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          </div>
+        ) : tab === "plans" ? (
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <input
+                type="text"
+                value={planSearch}
+                onChange={(e) => setPlanSearch(e.target.value)}
+                placeholder="Search plans by name, creator or city..."
+                className="w-full pl-11 pr-4 py-3 bg-white border border-neutral-200 rounded-2xl text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent shadow-sm"
+              />
+            </div>
+
+            <p className="text-xs text-neutral-400">{allPlans.length} total plans</p>
+
+            {allPlans.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 py-16 text-center">
+                <Calendar className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
+                <p className="text-sm text-neutral-400">No plans yet</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {allPlans
+                  .filter(p => {
+                    if (!planSearch) return true;
+                    const q = planSearch.toLowerCase();
+                    return (
+                      p.name?.toLowerCase().includes(q) ||
+                      p.creator_id?.name?.toLowerCase().includes(q) ||
+                      p.city?.toLowerCase().includes(q)
+                    );
+                  })
+                  .map((p) => {
+                    const isEnded = new Date(p.end) < new Date();
+                    const planId = p._id || p.id;
+                    return (
+                      <motion.div
+                        key={planId}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-neutral-100 overflow-hidden flex-shrink-0">
+                            {p.pic_id ? (
+                              <S3Image fileKey={p.pic_id} alt="" width={48} height={48} className="object-cover w-full h-full" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Calendar className="w-5 h-5 text-neutral-300" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Link href={`/app/plan/${p.id || p._id}`} className="text-sm font-semibold text-neutral-800 truncate hover:text-[var(--brand-green)] transition-colors">
+                                {p.name}
+                              </Link>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                                p.status === 'approved' && !isEnded ? 'bg-green-100 text-green-700'
+                                  : p.status === 'approved' && isEnded ? 'bg-neutral-100 text-neutral-500'
+                                  : p.status === 'rejected' ? 'bg-red-100 text-red-700'
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {p.status === 'approved' && isEnded ? 'ended' : p.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-neutral-500 mt-0.5">by {p.creator_id?.name || 'Unknown'}</p>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-[11px] text-neutral-400">
+                              <span className="flex items-center gap-0.5">
+                                <Calendar className="w-3 h-3" /> {formatDate(p.start)}
+                              </span>
+                              <span className="flex items-center gap-0.5">
+                                <Users className="w-3 h-3" /> {(p.participants?.length || 0)}/{p.max_people}
+                              </span>
+                              {p.city && (
+                                <span className="flex items-center gap-0.5">
+                                  <MapPin className="w-3 h-3" /> {p.city}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeletePlan(planId, p.name)}
+                            disabled={deletingPlan === planId}
+                            className="flex-shrink-0 p-2 text-neutral-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
+                            title="Delete plan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
         ) : tab === "users" ? (
           <div className="space-y-4">
