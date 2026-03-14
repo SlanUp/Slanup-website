@@ -74,6 +74,10 @@ export default function OnboardingPage() {
       setError("Mobile number is required");
       return;
     }
+    if (!instagram.trim()) {
+      setError("Instagram handle is required");
+      return;
+    }
     if (!gender) {
       setError("Please select your gender");
       return;
@@ -166,7 +170,7 @@ export default function OnboardingPage() {
 
             {/* Instagram */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Instagram</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">Instagram <span className="text-red-400">*</span></label>
               <div className="relative">
                 <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
                 <input
