@@ -82,6 +82,7 @@ export default function PlanDetailPage() {
   const [originalSafeIds, setOriginalSafeIds] = useState<string[]>([]);
   const [feltSafeLoading, setFeltSafeLoading] = useState<string | null>(null);
   const [removingParticipant, setRemovingParticipant] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
 
   const userId = (user as AnyObj)?._id;
   const userGender = (user as AnyObj)?.gender;
@@ -293,14 +294,19 @@ export default function PlanDetailPage() {
   };
 
   const handleRemoveParticipant = async (participantId: string, participantName: string) => {
-    if (!confirm(`Remove ${participantName} from this plan?`)) return;
-    setRemovingParticipant(participantId);
+    setRemoveTarget({ id: participantId, name: participantName });
+  };
+
+  const confirmRemoveParticipant = async () => {
+    if (!removeTarget) return;
+    setRemovingParticipant(removeTarget.id);
     try {
-      await api.removeParticipant(planId, participantId);
+      await api.removeParticipant(planId, removeTarget.id);
       setPlan((prev: AnyObj | null) => prev ? {
         ...prev,
-        participants: prev.participants.filter((p: AnyObj) => p._id !== participantId),
+        participants: prev.participants.filter((p: AnyObj) => p._id !== removeTarget.id),
       } : prev);
+      setRemoveTarget(null);
     } catch {
       alert('Failed to remove participant');
     } finally {
@@ -858,6 +864,48 @@ export default function PlanDetailPage() {
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
                 >
                   {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Remove Participant Confirmation Modal */}
+      <AnimatePresence>
+        {removeTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => !removingParticipant && setRemoveTarget(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
+            >
+              <h3 className="text-lg font-bold text-neutral-800">Remove Participant</h3>
+              <p className="text-sm text-neutral-600 mt-2">
+                Remove <span className="font-semibold">{removeTarget.name}</span> from this plan? They&apos;ll be removed from the group chat as well.
+              </p>
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={() => setRemoveTarget(null)}
+                  disabled={!!removingParticipant}
+                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmRemoveParticipant}
+                  disabled={!!removingParticipant}
+                  className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
+                >
+                  {removingParticipant ? 'Removing...' : 'Remove'}
                 </button>
               </div>
             </motion.div>
