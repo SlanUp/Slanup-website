@@ -81,6 +81,7 @@ export default function PlanDetailPage() {
   const [feltSafeIds, setFeltSafeIds] = useState<string[]>([]);
   const [originalSafeIds, setOriginalSafeIds] = useState<string[]>([]);
   const [feltSafeLoading, setFeltSafeLoading] = useState<string | null>(null);
+  const [removingParticipant, setRemovingParticipant] = useState<string | null>(null);
 
   const userId = (user as AnyObj)?._id;
   const userGender = (user as AnyObj)?.gender;
@@ -288,6 +289,22 @@ export default function PlanDetailPage() {
       setFlaggedUserIds(prev => [...prev, ratedUserId]);
     } catch {
       alert('Failed to submit flag');
+    }
+  };
+
+  const handleRemoveParticipant = async (participantId: string, participantName: string) => {
+    if (!confirm(`Remove ${participantName} from this plan?`)) return;
+    setRemovingParticipant(participantId);
+    try {
+      await api.removeParticipant(planId, participantId);
+      setPlan((prev: AnyObj | null) => prev ? {
+        ...prev,
+        participants: prev.participants.filter((p: AnyObj) => p._id !== participantId),
+      } : prev);
+    } catch {
+      alert('Failed to remove participant');
+    } finally {
+      setRemovingParticipant(null);
     }
   };
 
@@ -653,6 +670,16 @@ export default function PlanDetailPage() {
                         ⚠️ {flaggedUserIds.includes(p._id) ? 'Flagged' : 'Flag'}
                       </button>
                     </div>
+                  )}
+                  {isHost && !isPlanEnded && p._id !== plan.creator_id?._id && (
+                    <button
+                      onClick={() => handleRemoveParticipant(p._id, p.name)}
+                      disabled={removingParticipant === p._id}
+                      className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition-colors disabled:opacity-50"
+                      title={`Remove ${p.name}`}
+                    >
+                      <X className="w-4 h-4 text-neutral-300 hover:text-red-500 transition-colors" />
+                    </button>
                   )}
                 </div>
               ))}

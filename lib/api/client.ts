@@ -128,6 +128,8 @@ export const api = {
   // Leave plan
   leavePlan: (planId: string) =>
     apiFetch(`/api/web/plans/${planId}/leave`, { method: 'DELETE' }),
+  removeParticipant: (planId: string, participantId: string) =>
+    apiFetch(`/api/web/plans/${planId}/remove/${participantId}`, { method: 'DELETE' }),
 
   // Felt Safe ratings
   submitFeltSafe: (planId: string, ratedUserId: string) =>
