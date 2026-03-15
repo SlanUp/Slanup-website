@@ -157,7 +157,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       {/* Share button — positioned outside Link to prevent navigation */}
       <button
         onClick={handleShareClick}
-        className="absolute bottom-[18px] right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        className="absolute bottom-[14px] right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors z-10"
         title="Share this plan"
       >
         <ArrowUpFromLine className="w-5 h-5 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
