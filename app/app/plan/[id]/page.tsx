@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, Share2, LogIn, DoorOpen, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
@@ -541,7 +541,7 @@ export default function PlanDetailPage() {
                     className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
                     title="Share plan"
                   >
-                    <Share2 className="w-4 h-4 text-neutral-500" />
+                    <ArrowUpFromLine className="w-4 h-4 text-neutral-500" />
                   </button>
                   {isHost && (
                     <>

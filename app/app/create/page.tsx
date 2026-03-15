@@ -223,9 +223,11 @@ export default function CreatePlanPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Weekend Hike, Rooftop Party, Coffee Meetup..."
+              maxLength={60}
               className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
               required
             />
+            <p className="text-xs text-neutral-400 text-right mt-1">{name.length}/60</p>
           </div>
 
           {/* Description */}

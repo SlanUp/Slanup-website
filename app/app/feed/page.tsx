@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell, Share2 } from "lucide-react";import Link from "next/link";
+import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell, ArrowUpFromLine } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
 import { io, Socket } from "socket.io-client";
@@ -110,7 +110,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-neutral-800 truncate">{plan.name}</h3>
+                <h3 className="text-base font-bold text-neutral-800 line-clamp-2">{plan.name}</h3>
                 {plan.venue_string && (
                   <p className="text-sm text-neutral-500 flex items-center gap-1 mt-0.5">
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
@@ -157,10 +157,10 @@ function PlanCard({ plan }: { plan: Plan }) {
       {/* Share button — positioned outside Link to prevent navigation */}
       <button
         onClick={handleShareClick}
-        className="absolute bottom-[18px] right-4 p-1.5 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        className="absolute bottom-[18px] right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors z-10"
         title="Share this plan"
       >
-        <Share2 className="w-4 h-4 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
+        <ArrowUpFromLine className="w-5 h-5 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
       </button>
 
       {showShare && (
