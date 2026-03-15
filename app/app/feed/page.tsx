@@ -147,7 +147,7 @@ function PlanCard({ plan }: { plan: Plan }) {
                 ) : (
                   <span className="text-xs font-medium text-neutral-400">Full</span>
                 )}
-                <div className="w-4 h-4" /> {/* spacer for share button */}
+                <div className="w-9 h-5" /> {/* spacer for share button */}
               </div>
             </div>
           </div>
