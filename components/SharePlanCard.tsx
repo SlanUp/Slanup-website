@@ -394,7 +394,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                   <div style={{ fontSize: 22, fontWeight: 800, color: "#262626", lineHeight: 1 }}>{dayStr}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 2 }}>{monthStr}</div>
                 </div>
-                <div style={{ flex: 1, paddingTop: 28 }}>
+                <div style={{ flex: 1, paddingTop: 28, minWidth: 0, overflow: "hidden" }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{plan.name}</div>
                   {plan.venue_string && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>📍 {plan.venue_string}</div>
