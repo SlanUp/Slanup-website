@@ -110,7 +110,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-neutral-800 line-clamp-2">{plan.name}</h3>
+                <h3 className="text-base font-bold text-neutral-800 line-clamp-2 break-words">{plan.name}</h3>
                 {plan.venue_string && (
                   <p className="text-sm text-neutral-500 flex items-center gap-1 mt-0.5">
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />

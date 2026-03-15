@@ -69,6 +69,16 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
   return lines;
 }
 
+function clampLines(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLines: number): string[] {
+  const all = wrapLines(ctx, text, maxW);
+  if (all.length <= maxLines) return all;
+  const clamped = all.slice(0, maxLines);
+  let last = clamped[maxLines - 1];
+  while (ctx.measureText(last + "…").width > maxW && last.length > 1) last = last.slice(0, -1).trimEnd();
+  clamped[maxLines - 1] = last + "…";
+  return clamped;
+}
+
 // -- Native Canvas renderer: story-sized (1080x1920) with solid bg --
 
 type PlanData = SharePlanCardProps["plan"];
@@ -113,7 +123,7 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   const tX = bX + bW + 14 * S;
   const tMaxW = CW - tX - PX;
   ctx.font = `700 ${17 * S}px -apple-system, "Helvetica Neue", sans-serif`;
-  const titleLines = wrapLines(ctx, plan.name, tMaxW).slice(0, 2);
+  const titleLines = clampLines(ctx, plan.name, tMaxW, 2);
   const tY = bY + 28 * S; // paddingTop: 28 from section top
   const titleTextBottom = tY + titleLines.length * 22 * S;
   const venueH = plan.venue_string ? 4 * S + 16 * S : 0;
@@ -385,7 +395,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 2 }}>{monthStr}</div>
                 </div>
                 <div style={{ flex: 1, paddingTop: 28 }}>
-                  <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.25, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{plan.name}</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", lineHeight: 1.25, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden", wordBreak: "break-word" as const }}>{plan.name}</div>
                   {plan.venue_string && (
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>📍 {plan.venue_string}</div>
                   )}
