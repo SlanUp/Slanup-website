@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { api, imageUrl } from "@/lib/api/client";
 import { ALL_CITIES } from "@/lib/config/cities";
 import { Camera, Loader2, AlertTriangle, MessageSquare, X, CheckCircle } from "lucide-react";
+import ImageCropper from "@/components/ImageCropper";
 
 const REQUIRED_FIELDS = [
   { key: "image", label: "Profile Photo" },
@@ -33,6 +34,7 @@ export default function ProfileGate({ children }: { children: React.ReactNode })
   const [concernSent, setConcernSent] = useState(false);
   const [sendingConcern, setSendingConcern] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -56,9 +58,17 @@ export default function ProfileGate({ children }: { children: React.ReactNode })
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCropImageSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = "";
+  };
+
+  const handleCroppedPhoto = async (croppedFile: File) => {
+    setCropImageSrc(null);
     setUploading(true);
     try {
-      const key = await api.uploadToS3("profile", file);
+      const key = await api.uploadToS3("profile", croppedFile);
       setProfileImage(key);
     } catch {
       alert("Upload failed, please try again.");
@@ -320,6 +330,14 @@ export default function ProfileGate({ children }: { children: React.ReactNode })
           </div>
         </div>
       </div>
+
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          onCropDone={handleCroppedPhoto}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
     </div>
   );
 }

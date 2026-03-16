@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, imageUrl } from "@/lib/api/client";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
+import ImageCropper from "@/components/ImageCropper";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
   if (!isLoading && !isLoggedIn) {
     router.replace("/app");
@@ -36,14 +38,19 @@ export default function OnboardingPage() {
   const handleImagePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCropImageSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = "";
+  };
 
+  const handleCroppedImage = async (croppedFile: File) => {
+    setCropImageSrc(null);
     const reader = new FileReader();
     reader.onload = () => setProfileImage(reader.result as string);
-    reader.readAsDataURL(file);
-
+    reader.readAsDataURL(croppedFile);
     try {
-      await api.uploadToS3("profile", file);
-      // Keep the local data URL preview — S3 key can't render directly
+      await api.uploadToS3("profile", croppedFile);
     } catch {
       // Keep local preview
     }
@@ -346,6 +353,14 @@ export default function OnboardingPage() {
           </form>
         </motion.div>
       </main>
+
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          onCropDone={handleCroppedImage}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, Messag
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import ImageCropper from "@/components/ImageCropper";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
 
 
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Digest preferences
@@ -53,10 +55,17 @@ export default function ProfilePage() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCropImageSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    if (e.target) e.target.value = "";
+  };
+
+  const handleCroppedUpload = async (croppedFile: File) => {
+    setCropImageSrc(null);
     setUploadingPhoto(true);
     try {
-      // section=profile auto-updates the user's image field on backend
-      await api.uploadToS3("profile", file);
+      await api.uploadToS3("profile", croppedFile);
       await refreshUser();
       fetchProfile();
     } catch {
@@ -605,6 +614,15 @@ export default function ProfilePage() {
           </motion.div>
         )}
       </main>
+
+      {/* Image Crop Modal */}
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          onCropDone={handleCroppedUpload}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
 
       {/* Image Preview Modal */}
       {showImagePreview && profile.image && (
