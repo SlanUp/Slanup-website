@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const [editInsta, setEditInsta] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Digest preferences
@@ -252,8 +253,11 @@ export default function ProfilePage() {
           {/* Avatar */}
           <div className="relative px-5 md:px-6 -mt-12 md:-mt-14">
             <div
-              className={`w-28 h-28 rounded-full border-4 border-white bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-4xl font-bold overflow-hidden shadow-lg relative ${isOwnProfile ? 'cursor-pointer' : ''}`}
-              onClick={() => isOwnProfile && photoInputRef.current?.click()}
+              className={`w-28 h-28 rounded-full border-4 border-white bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-4xl font-bold overflow-hidden shadow-lg relative ${isOwnProfile || profile.image ? 'cursor-pointer' : ''}`}
+              onClick={() => {
+                if (isOwnProfile) photoInputRef.current?.click();
+                else if (profile.image) setShowImagePreview(true);
+              }}
             >
               {profile.image ? (
                 <S3Image
@@ -601,6 +605,26 @@ export default function ProfilePage() {
           </motion.div>
         )}
       </main>
+
+      {/* Image Preview Modal */}
+      {showImagePreview && profile.image && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center"
+          onClick={() => setShowImagePreview(false)}
+        >
+          <button
+            onClick={() => setShowImagePreview(false)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <S3Image
+            fileKey={profile.image}
+            alt={profile.name || "Profile"}
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+          />
+        </div>
+      )}
     </div>
   );
 }

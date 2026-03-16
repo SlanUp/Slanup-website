@@ -160,6 +160,23 @@ export const api = {
 
   uploadToS3: async (section: string, file: File): Promise<string> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('slanup_token') : null;
+
+    // Compress image before upload
+    let fileToUpload: File | Blob = file;
+    if (file.type.startsWith('image/')) {
+      try {
+        const imageCompression = (await import('browser-image-compression')).default;
+        fileToUpload = await imageCompression(file, {
+          maxSizeMB: 0.8,
+          maxWidthOrHeight: 1200,
+          useWebWorker: true,
+        });
+      } catch {
+        // Fall back to original file if compression fails
+        fileToUpload = file;
+      }
+    }
+
     // Step 1: Get signed URL
     const res = await fetch(
       `${API_BASE}/api/upload/get-signed-url?section=${encodeURIComponent(section)}&fileType=${encodeURIComponent(file.type)}`,
@@ -168,11 +185,11 @@ export const api = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to get upload URL');
 
-    // Step 2: Upload directly to S3
+    // Step 2: Upload compressed file to S3
     await fetch(data.uploadUrl, {
       method: 'PUT',
       headers: { 'Content-Type': file.type },
-      body: file,
+      body: fileToUpload,
     });
 
     return data.fileUrl; // S3 key to store in DB
