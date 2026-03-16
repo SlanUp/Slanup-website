@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -374,9 +374,14 @@ export default function ProfilePage() {
                 )}
 
                 {profile.gender === 'male' && profile.feltSafeCount > 0 && (
-                  <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-3.5 py-1.5">
+                  <div className="mt-3 inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-3.5 py-1.5 relative group">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     <span className="text-sm font-semibold text-emerald-700">{profile.feltSafeCount} women felt safe</span>
+                    <Info className="w-3.5 h-3.5 text-emerald-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-neutral-800 text-white text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20 text-center leading-relaxed">
+                      Number of women who felt safe around him while interacting together in plans on Slanup
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-neutral-800" />
+                    </div>
                   </div>
                 )}
               </>
