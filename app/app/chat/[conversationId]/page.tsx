@@ -46,16 +46,16 @@ function findParticipantId(name: string, participants: AnyObj[]): string | null 
 function MentionText({ text, participants, isOwn }: { text: string; participants: AnyObj[]; isOwn: boolean }) {
   if (!text) return null;
 
-  // Build a regex that matches @FullName for each participant
   const names = participants
     .filter(p => p.name)
     .map(p => p.name)
-    .sort((a: string, b: string) => b.length - a.length); // longest first to avoid partial matches
+    .sort((a: string, b: string) => b.length - a.length);
 
-  if (names.length === 0) return <>{text}</>;
+  if (names.length === 0 && !text.includes('@everyone')) return <>{text}</>;
 
   const escaped = names.map((n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const mentionRegex = new RegExp(`(@(?:${escaped.join('|')}))`, 'gi');
+  const allPatterns = ['everyone', ...escaped];
+  const mentionRegex = new RegExp(`(@(?:${allPatterns.join('|')}))`, 'gi');
 
   const parts = text.split(mentionRegex);
 
@@ -63,6 +63,13 @@ function MentionText({ text, participants, isOwn }: { text: string; participants
     <>
       {parts.map((part, i) => {
         if (part.startsWith('@')) {
+          if (part.toLowerCase() === '@everyone') {
+            return (
+              <span key={i} className={`font-bold ${isOwn ? 'text-white' : 'text-[var(--brand-green)]'}`}>
+                @everyone
+              </span>
+            );
+          }
           const mentionName = part.slice(1);
           const pId = findParticipantId(mentionName, participants);
           if (pId) {
@@ -323,11 +330,11 @@ export default function ChatPage() {
       const query = textBeforeCursor.slice(atIndex + 1);
       if (query.length < 30) {
         setMentionFilter(query.toLowerCase());
-        // Show dropdown if any participant matches
         const hasMatch = participants.some(
           p => typeof p === 'object' && p._id !== userId && p.name?.toLowerCase().includes(query.toLowerCase())
         );
-        setShowMentions(hasMatch && query.length > 0);
+        const everyoneMatches = 'everyone'.includes(query.toLowerCase());
+        setShowMentions((hasMatch || everyoneMatches) && query.length >= 0);
         return;
       }
     }
@@ -601,14 +608,24 @@ export default function ChatPage() {
               });
 
               const replyName = msg.replyTo?.sender_id?.name || msg.replyTo?.sender_id;
-              const replyPreview = msg.replyTo?.text?.slice(0, 60) + (msg.replyTo?.text?.length > 60 ? "…" : "");
+              const replyPreview = msg.replyTo?.text?.slice(0, 40) + (msg.replyTo?.text?.length > 40 ? "…" : "");
+
+              const scrollToMessage = (msgId: string) => {
+                const el = document.getElementById(`msg-${msgId}`);
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  el.classList.add('bg-yellow-50');
+                  setTimeout(() => el.classList.remove('bg-yellow-50'), 1500);
+                }
+              };
 
               return (
                 <motion.div
                   key={msg._id}
+                  id={`msg-${msg._id}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${isMe ? "justify-end" : "justify-start"} ${isFirstInBatch ? "mt-3" : "mt-0.5"} relative group`}
+                  className={`flex ${isMe ? "justify-end" : "justify-start"} ${isFirstInBatch ? "mt-3" : "mt-0.5"} relative group transition-colors duration-500`}
                 >
                   <div
                     className={`max-w-[80%] ${isMe ? "items-end" : "items-start"} flex flex-col relative select-none`}
@@ -624,7 +641,9 @@ export default function ChatPage() {
 
                     {/* Reply preview */}
                     {msg.replyTo && (
-                      <div className={`mx-1 mb-0.5 px-3 py-1.5 rounded-xl text-[11px] border-l-2 ${
+                      <div
+                        onClick={() => msg.replyTo?._id && scrollToMessage(msg.replyTo._id)}
+                        className={`mx-1 mb-0.5 px-3 py-1.5 rounded-xl text-[11px] border-l-2 cursor-pointer max-w-[240px] ${
                         isMe
                           ? "bg-[var(--brand-green)]/20 border-white/40 text-white/70"
                           : "bg-neutral-100 border-[var(--brand-green)] text-neutral-500"
@@ -760,7 +779,7 @@ export default function ChatPage() {
 
       {/* @mention dropdown */}
       <AnimatePresence>
-        {showMentions && filteredMentions.length > 0 && (
+        {showMentions && (filteredMentions.length > 0 || 'everyone'.includes(mentionFilter)) && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -768,6 +787,16 @@ export default function ChatPage() {
             className="bg-white border-t border-neutral-200 shadow-lg max-h-40 overflow-y-auto"
           >
             <div className="max-w-2xl mx-auto px-3">
+              {'everyone'.includes(mentionFilter) && (
+                <button
+                  onClick={() => insertMention('everyone')}
+                  className="flex items-center gap-2.5 w-full px-2 py-2.5 hover:bg-neutral-50 transition-colors text-left"
+                >
+                  <div className="w-7 h-7 rounded-full bg-[var(--brand-green)] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">@</div>
+                  <span className="text-sm font-medium text-neutral-700">everyone</span>
+                  <span className="text-xs text-neutral-400 ml-auto">Notify all members</span>
+                </button>
+              )}
               {filteredMentions.map(p => (
                 <button
                   key={p._id}
