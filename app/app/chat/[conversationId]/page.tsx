@@ -654,7 +654,8 @@ export default function ChatPage() {
                     )}
 
                     <div
-                      className={`px-4 py-2 rounded-2xl text-sm leading-relaxed ${
+                      style={{ overflowWrap: 'anywhere' }}
+                      className={`px-4 py-2 rounded-2xl text-sm leading-relaxed break-words ${
                         isMe
                           ? "bg-[var(--brand-green)] text-white rounded-br-md"
                           : "bg-white text-neutral-800 shadow-sm rounded-bl-md"
