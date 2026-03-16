@@ -141,6 +141,14 @@ export const api = {
   revokeFeltSafe: (ratedUserId: string) =>
     apiFetch(`/api/web/felt-safe/${ratedUserId}`, { method: 'DELETE' }),
 
+  // Profile-based ratings
+  canRateProfile: (userId: string) =>
+    apiFetch(`/api/web/profile/${userId}/can-rate`),
+  profileFeltSafe: (userId: string) =>
+    apiFetch(`/api/web/profile/${userId}/felt-safe`, { method: 'POST' }),
+  profileFlag: (userId: string, reason?: string) =>
+    apiFetch(`/api/web/profile/${userId}/flag`, { method: 'POST', body: { reason } }),
+
   // Notifications
   getNotifications: () => apiFetch('/api/web/notifications'),
 

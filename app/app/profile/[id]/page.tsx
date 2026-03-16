@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -39,6 +39,13 @@ export default function ProfilePage() {
   const [prefsSaved, setPrefsSaved] = useState(false);
   const [prefsChanged, setPrefsChanged] = useState(false);
   const initialPrefs = useRef({ emailDigest: false, notificationCities: [] as string[] });
+
+  // Profile rating (female → male)
+  const [canRate, setCanRate] = useState(false);
+  const [hasRatedSafe, setHasRatedSafe] = useState(false);
+  const [hasFlagged, setHasFlagged] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [sharedPlanName, setSharedPlanName] = useState("");
 
   const isOwnProfile = (currentUser as AnyObj)?._id === profileId;
 
@@ -79,6 +86,67 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Check if current user can rate this profile
+  useEffect(() => {
+    if (!isOwnProfile && currentUser && profileId) {
+      api.canRateProfile(profileId).then((res) => {
+        const data = (res as AnyObj)?.data;
+        if (data) {
+          setCanRate(data.canRate);
+          setHasRatedSafe(data.hasRatedSafe || false);
+          setHasFlagged(data.hasFlagged || false);
+          setSharedPlanName(data.sharedPlanName || '');
+        }
+      }).catch(() => {});
+    }
+  }, [isOwnProfile, currentUser, profileId]);
+
+  const handleProfileFeltSafe = async () => {
+    setRatingLoading(true);
+    try {
+      if (hasRatedSafe) {
+        await api.revokeFeltSafe(profileId);
+        setHasRatedSafe(false);
+        if (profile) setProfile({ ...profile, feltSafeCount: Math.max(0, (profile.feltSafeCount || 0) - 1) });
+      } else {
+        await api.profileFeltSafe(profileId);
+        setHasRatedSafe(true);
+        setHasFlagged(false);
+        if (profile) setProfile({ ...profile, feltSafeCount: (profile.feltSafeCount || 0) + 1 });
+      }
+    } catch {
+      alert('Failed to update rating');
+    } finally {
+      setRatingLoading(false);
+    }
+  };
+
+  const handleProfileFlag = async () => {
+    setRatingLoading(true);
+    try {
+      if (hasFlagged) {
+        await api.revokeFlag(profileId);
+        setHasFlagged(false);
+      } else {
+        if (!confirm('Flag this person as someone who made you uncomfortable?')) {
+          setRatingLoading(false);
+          return;
+        }
+        await api.profileFlag(profileId, 'uncomfortable');
+        setHasFlagged(true);
+        setHasRatedSafe(false);
+        // feltSafeCount decremented on backend if safe was revoked
+        if (hasRatedSafe && profile) {
+          setProfile({ ...profile, feltSafeCount: Math.max(0, (profile.feltSafeCount || 0) - 1) });
+        }
+      }
+    } catch {
+      alert('Failed to update flag');
+    } finally {
+      setRatingLoading(false);
+    }
+  };
 
   const startEdit = () => {
     setEditName(profile?.name || "");
@@ -314,6 +382,49 @@ export default function ProfilePage() {
             )}
           </div>
         </motion.div>
+
+        {/* Rate This Person (female viewers on male profiles with shared plans) */}
+        {canRate && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="bg-white rounded-2xl shadow-lg p-5 mt-4"
+          >
+            <h3 className="text-sm font-bold text-neutral-700 mb-1 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" /> Rate This Person
+            </h3>
+            <p className="text-xs text-neutral-400 mb-4">
+              You were in <span className="font-medium text-neutral-600">&ldquo;{sharedPlanName}&rdquo;</span> together
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleProfileFeltSafe}
+                disabled={ratingLoading}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${
+                  hasRatedSafe
+                    ? 'bg-emerald-500 text-white shadow-md'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                }`}
+              >
+                <Shield className="w-4 h-4" />
+                {hasRatedSafe ? 'Felt Safe ✓' : 'Felt Safe'}
+              </button>
+              <button
+                onClick={handleProfileFlag}
+                disabled={ratingLoading}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 ${
+                  hasFlagged
+                    ? 'bg-red-500 text-white shadow-md'
+                    : 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-100'
+                }`}
+              >
+                <Flag className="w-4 h-4" />
+                {hasFlagged ? 'Flagged ✓' : 'Flag'}
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Photos */}
         {profile.photos?.length > 0 && (
