@@ -224,4 +224,12 @@ export const api = {
     apiFetch('/api/web/admin/waitlist/invite', { method: 'POST', body: { ids } }),
   deleteWaitlistEntry: (id: string) =>
     apiFetch(`/api/web/admin/waitlist/${id}`, { method: 'DELETE' }),
+
+  // Concerns
+  submitConcern: (message: string) =>
+    apiFetch('/api/web/concerns', { method: 'POST', body: { message } }),
+  getConcerns: (status?: string) =>
+    apiFetch(`/api/web/admin/concerns${status ? `?status=${status}` : ''}`),
+  updateConcern: (id: string, status: string) =>
+    apiFetch(`/api/web/admin/concerns/${id}`, { method: 'PUT', body: { status } }),
 };

@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/lib/context/AuthContext";
+import ProfileGate from "@/components/ProfileGate";
 
 export const metadata = {
   title: "Slanup — Squad Your Plans Up",
@@ -8,7 +9,9 @@ export const metadata = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      {children}
+      <ProfileGate>
+        {children}
+      </ProfileGate>
     </AuthProvider>
   );
 }
