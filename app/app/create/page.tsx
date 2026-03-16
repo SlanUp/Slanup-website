@@ -30,10 +30,12 @@ export default function CreatePlanPage() {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [safeSpaceAgreed, setSafeSpaceAgreed] = useState(false);
 
   // Compute validation issues
   const validationIssues: string[] = [];
   if (!name) validationIssues.push("Plan name is required");
+  if (!coverKey) validationIssues.push("Cover photo is required");
   if (!city) validationIssues.push("City is required");
   if (!startDate || !startTime) validationIssues.push("Start date & time are required");
   if (!endDate || !endTime) validationIssues.push("End date & time are required");
@@ -45,7 +47,7 @@ export default function CreatePlanPage() {
     const e = new Date(`${endDate}T${endTime}`);
     if (e <= s) validationIssues.push("End must be after start");
   }
-  const canSubmit = validationIssues.length === 0 && !submitting && !uploading;
+  const canSubmit = validationIssues.length === 0 && !submitting && !uploading && safeSpaceAgreed;
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) router.replace("/app");
@@ -172,7 +174,7 @@ export default function CreatePlanPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Cover Image */}
           <div>
-            <label className="text-sm font-semibold text-neutral-700 block mb-2">Cover Photo</label>
+            <label className="text-sm font-semibold text-neutral-700 block mb-2">Cover Photo <span className="text-red-400">*</span></label>
             <div
               onClick={() => fileRef.current?.click()}
               className="w-full h-40 md:h-48 rounded-2xl border-2 border-dashed border-neutral-200 hover:border-[var(--brand-green)] bg-white cursor-pointer flex items-center justify-center overflow-hidden transition-colors relative"
@@ -374,6 +376,19 @@ export default function CreatePlanPage() {
               </ul>
             </div>
           )}
+
+          {/* Safe Space Agreement */}
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={safeSpaceAgreed}
+              onChange={(e) => setSafeSpaceAgreed(e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-neutral-300 text-[var(--brand-green)] focus:ring-[var(--brand-green)]"
+            />
+            <span className="text-xs text-neutral-600 leading-relaxed">
+              I agree to create a <strong className="text-neutral-800">safe and respectful space</strong> for everyone. I understand that participants can rate their experience and flag inappropriate behaviour.
+            </span>
+          </label>
 
           {/* Submit */}
           <motion.button

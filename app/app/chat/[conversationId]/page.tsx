@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Send, X, Reply, Copy } from "lucide-react";
+import { ArrowLeft, Send, X, Reply, Copy, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
@@ -120,6 +120,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isAutoScrolling = useRef(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(true); // default true to avoid flash
 
   const userId = (user as AnyObj)?._id;
   const participants: AnyObj[] = conversation?.participants || [];
@@ -127,6 +128,11 @@ export default function ChatPage() {
   useEffect(() => {
     if (!isLoading && !isLoggedIn) router.replace("/app");
   }, [isLoading, isLoggedIn, router]);
+
+  useEffect(() => {
+    const accepted = localStorage.getItem("slanup_chat_disclaimer_accepted");
+    setDisclaimerAccepted(accepted === "true");
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     isAutoScrolling.current = true;
@@ -464,7 +470,56 @@ export default function ChatPage() {
     touchStartPos.current = null;
   };
 
+  const acceptDisclaimer = () => {
+    localStorage.setItem("slanup_chat_disclaimer_accepted", "true");
+    setDisclaimerAccepted(true);
+  };
+
   const planName = conversation?.plan_id?.name || "Group Chat";
+
+  if (!disclaimerAccepted) {
+    return (
+      <div className="h-[100dvh] flex flex-col items-center justify-center bg-neutral-50 px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+        >
+          <div className="bg-gradient-to-br from-[var(--brand-green)] to-green-700 px-6 py-8 text-center">
+            <ShieldCheck className="w-12 h-12 text-white mx-auto mb-3" />
+            <h2 className="text-xl font-bold text-white">Before you chat</h2>
+          </div>
+          <div className="px-6 py-6 space-y-4">
+            <p className="text-sm text-neutral-700 leading-relaxed">
+              Slanup is built for real-world plans with real people. This is <strong>not a dating app</strong> — it&apos;s a place to meet, plan, and have fun respectfully.
+            </p>
+            <div className="space-y-3">
+              <div className="flex gap-3 items-start">
+                <span className="text-lg">🛡️</span>
+                <p className="text-sm text-neutral-600"><strong className="text-neutral-800">Safety matters.</strong> Women can mark you as <span className="text-emerald-600 font-semibold">&quot;Felt Safe&quot;</span> or <span className="text-red-500 font-semibold">flag your profile</span> based on your behaviour.</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="text-lg">🤝</span>
+                <p className="text-sm text-neutral-600"><strong className="text-neutral-800">Be respectful.</strong> Treat everyone the way you&apos;d want to be treated. No creepy DMs, no harassment.</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="text-lg">🎉</span>
+                <p className="text-sm text-neutral-600"><strong className="text-neutral-800">Have fun!</strong> That&apos;s what this is all about. Great plans, great people, great memories.</p>
+              </div>
+            </div>
+          </div>
+          <div className="px-6 pb-6">
+            <button
+              onClick={acceptDisclaimer}
+              className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3.5 rounded-xl text-sm transition-colors"
+            >
+              I understand, let&apos;s go 🚀
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[100dvh] flex flex-col bg-neutral-50">
