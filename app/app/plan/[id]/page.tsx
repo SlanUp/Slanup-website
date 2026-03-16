@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
@@ -73,6 +74,10 @@ export default function PlanDetailPage() {
     endDate: '', endTime: '', max_people: 1, tags: [] as string[],
   });
   const [showShare, setShowShare] = useState(false);
+  const [editCoverPreview, setEditCoverPreview] = useState("");
+  const [editCoverKey, setEditCoverKey] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
+  const editCoverRef = useRef<HTMLInputElement>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [leaveStep, setLeaveStep] = useState<'reason' | 'rate' | null>(null);
@@ -167,6 +172,24 @@ export default function PlanDetailPage() {
       tags: plan.tags || [],
     });
     setIsEditing(true);
+    setEditCoverPreview("");
+    setEditCoverKey("");
+  };
+
+  const handleEditCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setEditCoverPreview(URL.createObjectURL(file));
+    setCoverUploading(true);
+    try {
+      const fileUrl = await api.uploadToS3("plan", file);
+      setEditCoverKey(fileUrl);
+    } catch {
+      alert("Upload failed. Please try again.");
+      setEditCoverPreview("");
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -181,7 +204,7 @@ export default function PlanDetailPage() {
     }
     setSaving(true);
     try {
-      await api.updatePlan(planId, {
+      const updateData: Record<string, unknown> = {
         name: editForm.name.trim(),
         desc: editForm.desc.trim(),
         city: editForm.city,
@@ -189,7 +212,9 @@ export default function PlanDetailPage() {
         end: endDateTime.toISOString(),
         max_people: editForm.max_people,
         tags: editForm.tags,
-      });
+      };
+      if (editCoverKey) updateData.pic_id = editCoverKey;
+      await api.updatePlan(planId, updateData);
       await fetchPlan();
       setIsEditing(false);
     } catch {
@@ -398,6 +423,49 @@ export default function PlanDetailPage() {
                 <button onClick={() => setIsEditing(false)} className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors">
                   <X className="w-4 h-4 text-neutral-500" />
                 </button>
+              </div>
+
+              {/* Cover Photo */}
+              <div>
+                <label className="text-sm font-semibold text-neutral-700 block mb-1">Cover Photo</label>
+                <div
+                  onClick={() => !coverUploading && editCoverRef.current?.click()}
+                  className="w-full h-36 rounded-xl border-2 border-dashed border-neutral-200 hover:border-[var(--brand-green)] bg-neutral-50 cursor-pointer flex items-center justify-center overflow-hidden transition-colors relative"
+                >
+                  {editCoverPreview ? (
+                    <>
+                      <Image src={editCoverPreview} alt="New cover" fill className="object-cover" />
+                      {coverUploading && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                      {!coverUploading && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setEditCoverPreview(""); setEditCoverKey(""); }}
+                          className="absolute top-2 right-2 w-7 h-7 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </>
+                  ) : plan.pic_id ? (
+                    <div className="relative w-full h-full">
+                      <S3Image fileKey={plan.pic_id} alt="Current cover" className="object-cover w-full h-full" />
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity">
+                        <ImageIcon className="w-5 h-5 text-white" />
+                        <span className="text-white text-sm font-medium">Change cover photo</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5 text-neutral-400">
+                      <Upload className="w-6 h-6" />
+                      <span className="text-xs">Add a cover photo</span>
+                    </div>
+                  )}
+                </div>
+                <input ref={editCoverRef} type="file" accept="image/*" onChange={handleEditCoverUpload} className="hidden" />
               </div>
 
               <div>
