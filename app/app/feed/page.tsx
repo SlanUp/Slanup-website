@@ -9,7 +9,7 @@ import { api, getStoredToken } from "@/lib/api/client";
 import { io, Socket } from "socket.io-client";
 import S3Image from "@/components/S3Image";
 import SharePlanCard from "@/components/SharePlanCard";
-import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
+import { ALL_CITIES, REGION_GROUP_NAMES, PLAN_TAGS } from "@/lib/config/cities";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://d2oulqfcyna7a4.cloudfront.net";
 
@@ -293,7 +293,8 @@ export default function FeedPage() {
     return () => clearTimeout(timer);
   }, [search, cityFilter, tagFilters, fetchPlans, isLoggedIn, isNewUser]);
 
-  const filteredCities = CITIES.filter(c =>
+  const feedCityOptions = [...ALL_CITIES, ...REGION_GROUP_NAMES].sort();
+  const filteredCities = feedCityOptions.filter(c =>
     c.toLowerCase().includes(citySearch.toLowerCase())
   );
 

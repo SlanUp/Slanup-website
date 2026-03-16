@@ -7,7 +7,7 @@ import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, Messag
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
-import { CITIES } from "@/lib/config/cities";
+import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,7 +188,8 @@ export default function ProfilePage() {
     );
   };
 
-  const filteredCities = CITIES.filter(c =>
+  const notifCityOptions = [...ALL_CITIES, ...REGION_GROUP_NAMES].sort();
+  const filteredCities = notifCityOptions.filter(c =>
     c.toLowerCase().includes(citySearch.toLowerCase())
   );
 

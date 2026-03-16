@@ -7,7 +7,7 @@ import { Camera, ArrowRight, Loader2, Instagram, MapPin, Bell, X } from "lucide-
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, imageUrl } from "@/lib/api/client";
-import { CITIES } from "@/lib/config/cities";
+import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -55,7 +55,8 @@ export default function OnboardingPage() {
     );
   };
 
-  const filteredCities = CITIES.filter(c =>
+  const notifCityOptions = [...ALL_CITIES, ...REGION_GROUP_NAMES].sort();
+  const filteredCities = notifCityOptions.filter(c =>
     c.toLowerCase().includes(citySearch.toLowerCase())
   );
 
@@ -202,7 +203,7 @@ export default function OnboardingPage() {
                 className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
               >
                 <option value="">Select your city</option>
-                {CITIES.map(c => (
+                {ALL_CITIES.map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>

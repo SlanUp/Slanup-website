@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
-import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
+import { PLAN_CITIES, PLAN_TAGS, REGION_GROUPS } from "@/lib/config/cities";
 
 
 export default function CreatePlanPage() {
@@ -256,11 +256,11 @@ export default function CreatePlanPage() {
               required
             >
               <option value="">Select city</option>
-              {CITIES.map(c => (
-                <option key={c} value={c}>{c}</option>
+              {PLAN_CITIES.map(c => (
+                <option key={c} value={c}>{c}{REGION_GROUPS[c] ? ` (${REGION_GROUPS[c].join(', ')})` : ''}</option>
               ))}
             </select>
-            <p className="text-xs text-neutral-400 mt-1.5">Your plan will be visible to people browsing this city</p>
+            <p className="text-xs text-neutral-400 mt-1.5">Region groups (e.g. Delhi NCR) show your plan across all nested cities</p>
           </div>
 
           {/* Date & Time */}

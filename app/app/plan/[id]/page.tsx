@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
 import SharePlanCard from "@/components/SharePlanCard";
-import { CITIES, PLAN_TAGS } from "@/lib/config/cities";
+import { PLAN_CITIES, PLAN_TAGS, REGION_GROUPS } from "@/lib/config/cities";
 
 
 function formatDate(d: string) {
@@ -430,7 +430,7 @@ export default function PlanDetailPage() {
                   className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
                 >
                   <option value="">Select city</option>
-                  {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {PLAN_CITIES.map(c => <option key={c} value={c}>{c}{REGION_GROUPS[c] ? ` (${REGION_GROUPS[c].join(', ')})` : ''}</option>)}
                 </select>
               </div>
 

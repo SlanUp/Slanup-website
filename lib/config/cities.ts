@@ -41,7 +41,35 @@ export const CITY_REGIONS: Record<string, string[]> = {
   'Srinagar': ['Srinagar'],
 };
 
+// All individual cities (for onboarding, profile city selection)
+export const ALL_CITIES = [...new Set(Object.values(CITY_REGIONS).flat())].sort();
+
+// Region groups with multiple cities (for plan creation + preferences)
+export const REGION_GROUPS: Record<string, string[]> = Object.fromEntries(
+  Object.entries(CITY_REGIONS).filter(([, cities]) => cities.length > 1)
+);
+
+// Region group names
+export const REGION_GROUP_NAMES = Object.keys(REGION_GROUPS).sort();
+
+// Old compat: region keys only
 export const CITIES = Object.keys(CITY_REGIONS).sort();
+
+// Cities for plan creation: individual + region groups
+export const PLAN_CITIES = [...ALL_CITIES, ...REGION_GROUP_NAMES].sort();
+
+// Expand city to all related cities (for feed filtering)
+export function expandCity(city: string): string[] {
+  if (!city) return [];
+  const results = [city];
+  if (CITY_REGIONS[city]) results.push(...CITY_REGIONS[city]);
+  for (const [region, subs] of Object.entries(CITY_REGIONS)) {
+    if (subs.map(s => s.toLowerCase()).includes(city.toLowerCase()) && !results.includes(region)) {
+      results.push(region);
+    }
+  }
+  return [...new Set(results)];
+}
 
 // Predefined tags for plan creation and feed filtering
 export const PLAN_TAGS = [
