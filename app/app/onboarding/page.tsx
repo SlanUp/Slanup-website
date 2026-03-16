@@ -26,6 +26,7 @@ export default function OnboardingPage() {
   const [citySearch, setCitySearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   if (!isLoading && !isLoggedIn) {
     router.replace("/app");
@@ -61,35 +62,19 @@ export default function OnboardingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    const errs: Record<string, string> = {};
 
-    if (!profileImage) {
-      setError("Profile photo is required");
-      return;
-    }
-    if (!name.trim()) {
-      setError("Name is required");
-      return;
-    }
-    if (!phone.trim()) {
-      setError("Mobile number is required");
-      return;
-    }
-    if (!instagram.trim()) {
-      setError("Instagram handle is required");
-      return;
-    }
-    if (!gender) {
-      setError("Please select your gender");
-      return;
-    }
-    if (!dob) {
-      setError("Date of birth is required");
-      return;
-    }
-    if (!city) {
-      setError("Please select your city");
-      return;
-    }
+    if (!profileImage) errs.photo = "Profile photo is required";
+    if (!name.trim()) errs.name = "Name is required";
+    if (!phone.trim()) errs.phone = "Mobile number is required";
+    else if (phone.trim().length !== 10) errs.phone = "Please enter a valid 10 digit number";
+    if (!instagram.trim()) errs.instagram = "Instagram handle is required";
+    if (!gender) errs.gender = "Please select your gender";
+    if (!dob) errs.dob = "Date of birth is required";
+    if (!city) errs.city = "Please select your city";
+
+    setFieldErrors(errs);
+    if (Object.keys(errs).length > 0) return;
 
     setSaving(true);
     try {
@@ -153,6 +138,7 @@ export default function OnboardingPage() {
                 <input type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
               </label>
               <p className="text-xs text-neutral-400 mt-2">Photo <span className="text-red-400">*</span></p>
+              {fieldErrors.photo && <p className="text-red-500 text-xs mt-1">{fieldErrors.photo}</p>}
             </div>
 
             {/* Name */}
@@ -166,6 +152,7 @@ export default function OnboardingPage() {
                 className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
                 autoFocus
               />
+              {fieldErrors.name && <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>}
             </div>
 
             {/* Instagram */}
@@ -176,11 +163,12 @@ export default function OnboardingPage() {
                 <input
                   type="text"
                   value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  placeholder="@yourusername"
+                  onChange={(e) => setInstagram(e.target.value.replace(/\s/g, ''))}
+                  placeholder="yourusername"
                   className="w-full pl-11 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
                 />
               </div>
+              {fieldErrors.instagram && <p className="text-red-500 text-xs mt-1">{fieldErrors.instagram}</p>}
             </div>
 
             {/* Mobile Number */}
@@ -188,11 +176,14 @@ export default function OnboardingPage() {
               <label className="block text-sm font-medium text-neutral-700 mb-1.5">Mobile Number <span className="text-red-400">*</span></label>
               <input
                 type="tel"
+                inputMode="numeric"
+                maxLength={10}
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+91 98765 43210"
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="10 digit mobile number"
                 className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
               />
+              {fieldErrors.phone && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}
             </div>
 
             {/* City */}
@@ -215,6 +206,7 @@ export default function OnboardingPage() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
+              {fieldErrors.city && <p className="text-red-500 text-xs mt-1">{fieldErrors.city}</p>}
             </div>
 
             {/* Gender */}
@@ -236,6 +228,7 @@ export default function OnboardingPage() {
                   </button>
                 ))}
               </div>
+              {fieldErrors.gender && <p className="text-red-500 text-xs mt-1">{fieldErrors.gender}</p>}
             </div>
 
             {/* Date of Birth */}
@@ -248,6 +241,7 @@ export default function OnboardingPage() {
                 max={new Date().toISOString().split('T')[0]}
                 className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
               />
+              {fieldErrors.dob && <p className="text-red-500 text-xs mt-1">{fieldErrors.dob}</p>}
             </div>
 
             {/* Bio */}

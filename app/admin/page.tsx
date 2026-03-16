@@ -44,7 +44,7 @@ function formatDate(d: string) {
 export default function AdminDashboard() {
   const router = useRouter();
   const { isLoggedIn, isLoading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "users" | "plans" | "digest" | "flagged">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "plans" | "digest" | "waitlist" | "flagged">("overview");
   const [stats, setStats] = useState<AnyObj | null>(null);
   const [users, setUsers] = useState<AnyObj[]>([]);
   const [userSearch, setUserSearch] = useState("");
@@ -59,6 +59,17 @@ export default function AdminDashboard() {
   const [digestLoading, setDigestLoading] = useState(false);
   const [digestSending, setDigestSending] = useState(false);
   const [digestResult, setDigestResult] = useState<string | null>(null);
+  // Waitlist
+  const [waitlistEntries, setWaitlistEntries] = useState<AnyObj[]>([]);
+  const [waitlistStats, setWaitlistStats] = useState<AnyObj | null>(null);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistFilter, setWaitlistFilter] = useState<"all" | "waiting" | "invited" | "signed_up">("all");
+  const [csvText, setCsvText] = useState("");
+  const [csvParsed, setCsvParsed] = useState<{ name: string; email: string }[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [waitlistMsg, setWaitlistMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
@@ -125,6 +136,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (tab === "plans") fetchAllPlans();
     if (tab === "digest") fetchDigestPreview();
+    if (tab === "waitlist") fetchWaitlist();
   }, [tab, fetchAllPlans]);
 
   const fetchDigestPreview = async () => {
@@ -169,6 +181,96 @@ export default function AdminDashboard() {
     }
   };
 
+  // Waitlist handlers
+  const fetchWaitlist = async () => {
+    setWaitlistLoading(true);
+    try {
+      const res = (await api.getWaitlist()) as { data: { entries: AnyObj[]; stats: AnyObj } };
+      setWaitlistEntries(res.data.entries || []);
+      setWaitlistStats(res.data.stats || null);
+    } catch { /* not admin */ } finally { setWaitlistLoading(false); }
+  };
+
+  const parseCsv = (text: string) => {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const parsed: { name: string; email: string }[] = [];
+    for (const line of lines) {
+      // Support: name,email  OR  email,name  OR  just email
+      const parts = line.split(',').map(p => p.trim().replace(/^["']|["']$/g, ''));
+      if (parts.length >= 2) {
+        const emailPart = parts.find(p => p.includes('@'));
+        const namePart = parts.find(p => !p.includes('@'));
+        if (emailPart) parsed.push({ name: namePart || '', email: emailPart });
+      } else if (parts[0]?.includes('@')) {
+        parsed.push({ name: '', email: parts[0] });
+      }
+    }
+    return parsed;
+  };
+
+  const handleCsvChange = (text: string) => {
+    setCsvText(text);
+    setCsvParsed(parseCsv(text));
+  };
+
+  const handleImport = async () => {
+    if (csvParsed.length === 0) return;
+    setImporting(true);
+    setWaitlistMsg(null);
+    try {
+      const res = (await api.importWaitlist(csvParsed)) as { message: string };
+      setWaitlistMsg(`✅ ${res.message}`);
+      setCsvText('');
+      setCsvParsed([]);
+      fetchWaitlist();
+    } catch {
+      setWaitlistMsg('❌ Import failed');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleInviteSelected = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Send invite emails to ${ids.length} people?`)) return;
+    setInviting(true);
+    setWaitlistMsg(null);
+    try {
+      const res = (await api.sendWaitlistInvites(ids)) as { message: string };
+      setWaitlistMsg(`✅ ${res.message}`);
+      setSelectedIds(new Set());
+      fetchWaitlist();
+    } catch {
+      setWaitlistMsg('❌ Failed to send invites');
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleInviteAll = async () => {
+    if (!confirm('Send invite emails to ALL waiting entries?')) return;
+    setInviting(true);
+    setWaitlistMsg(null);
+    try {
+      const res = (await api.sendWaitlistInvites('all')) as { message: string };
+      setWaitlistMsg(`✅ ${res.message}`);
+      fetchWaitlist();
+    } catch {
+      setWaitlistMsg('❌ Failed to send invites');
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const toggleSelectEntry = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   const handleDismissFlag= async (reportId: string) => {
     if (!confirm('Dismiss this report?')) return;
     try {
@@ -184,6 +286,7 @@ export default function AdminDashboard() {
     { id: "plans" as const, label: "Plans" },
     { id: "users" as const, label: "Users" },
     { id: "digest" as const, label: "Digest" },
+    { id: "waitlist" as const, label: "Waitlist" },
     { id: "flagged" as const, label: "Flagged" },
   ];
 
@@ -672,6 +775,154 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="text-center py-8 text-neutral-400 text-sm">No digest data available</div>
+            )}
+          </div>
+        ) : tab === "waitlist" ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-[#636B50]" />
+                <h2 className="text-lg font-semibold text-neutral-800">Waitlist</h2>
+              </div>
+              <button onClick={fetchWaitlist} disabled={waitlistLoading} className="text-xs text-[#636B50] hover:underline">
+                {waitlistLoading ? 'Loading...' : 'Refresh'}
+              </button>
+            </div>
+
+            {waitlistMsg && (
+              <div className="p-3 rounded-lg bg-white border border-neutral-200 text-sm text-neutral-700">{waitlistMsg}</div>
+            )}
+
+            {/* Stats */}
+            {waitlistStats && (
+              <div className="grid grid-cols-4 gap-3">
+                <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                  <div className="text-2xl font-bold text-neutral-800">{waitlistStats.total}</div>
+                  <div className="text-xs text-neutral-500 mt-1">Total</div>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                  <div className="text-2xl font-bold text-amber-600">{waitlistStats.waiting}</div>
+                  <div className="text-xs text-neutral-500 mt-1">Waiting</div>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                  <div className="text-2xl font-bold text-blue-600">{waitlistStats.invited}</div>
+                  <div className="text-xs text-neutral-500 mt-1">Invited</div>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                  <div className="text-2xl font-bold text-emerald-600">{waitlistStats.signedUp}</div>
+                  <div className="text-xs text-neutral-500 mt-1">Converted {waitlistStats.conversionRate > 0 && <span className="text-[10px]">({waitlistStats.conversionRate}%)</span>}</div>
+                </div>
+              </div>
+            )}
+
+            {/* CSV Import */}
+            <div className="bg-white rounded-xl border border-neutral-100 p-4">
+              <h3 className="text-sm font-semibold text-neutral-700 mb-2">Import from CSV</h3>
+              <p className="text-xs text-neutral-400 mb-3">Paste rows as: <code className="bg-neutral-100 px-1 py-0.5 rounded text-[11px]">name, email</code> (one per line)</p>
+              <textarea
+                value={csvText}
+                onChange={(e) => handleCsvChange(e.target.value)}
+                rows={4}
+                placeholder={"John Doe, john@example.com\nJane Smith, jane@example.com"}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-lg text-neutral-800 placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#636B50] resize-none font-mono"
+              />
+              {csvParsed.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-neutral-600 mb-2">Preview ({csvParsed.length} entries):</p>
+                  <div className="max-h-32 overflow-auto border border-neutral-100 rounded-lg">
+                    {csvParsed.map((p, i) => (
+                      <div key={i} className="flex items-center justify-between px-3 py-1.5 text-xs border-b border-neutral-50 last:border-0">
+                        <span className="text-neutral-700">{p.name || '(no name)'}</span>
+                        <span className="text-neutral-400">{p.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleImport}
+                    disabled={importing}
+                    className="mt-3 w-full py-2.5 rounded-xl bg-[#636B50] text-white text-sm font-medium hover:bg-[#555d44] transition-colors disabled:opacity-50"
+                  >
+                    {importing ? 'Importing...' : `Import ${csvParsed.length} entries`}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Filter + Actions */}
+            {waitlistEntries.length > 0 && (
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1.5">
+                  {(["all", "waiting", "invited", "signed_up"] as const).map(f => (
+                    <button key={f} onClick={() => setWaitlistFilter(f)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                        waitlistFilter === f ? 'bg-[#636B50] text-white' : 'bg-white border border-neutral-200 text-neutral-600 hover:border-neutral-300'
+                      }`}
+                    >
+                      {f === 'signed_up' ? 'Converted' : f.charAt(0).toUpperCase() + f.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  {selectedIds.size > 0 && (
+                    <button onClick={handleInviteSelected} disabled={inviting}
+                      className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
+                    >
+                      {inviting ? 'Sending...' : `Invite ${selectedIds.size} selected`}
+                    </button>
+                  )}
+                  {waitlistStats && waitlistStats.waiting > 0 && (
+                    <button onClick={handleInviteAll} disabled={inviting}
+                      className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-[#636B50] text-white hover:bg-[#555d44] disabled:opacity-50"
+                    >
+                      {inviting ? 'Sending...' : `Invite All Waiting (${waitlistStats.waiting})`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Entries list */}
+            {waitlistLoading ? (
+              <div className="text-center py-8 text-neutral-400 text-sm">Loading...</div>
+            ) : waitlistEntries.length === 0 ? (
+              <div className="text-center py-8 text-neutral-400 text-sm">No waitlist entries yet. Import a CSV above.</div>
+            ) : (
+              <div className="bg-white rounded-xl border border-neutral-100 overflow-hidden">
+                <div className="divide-y divide-neutral-100">
+                  {waitlistEntries
+                    .filter(e => waitlistFilter === 'all' || e.status === waitlistFilter)
+                    .map((entry) => (
+                    <div key={entry._id} className="px-4 py-3 flex items-center gap-3">
+                      {entry.status === 'waiting' && (
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(entry._id)}
+                          onChange={() => toggleSelectEntry(entry._id)}
+                          className="w-4 h-4 rounded border-neutral-300 text-[#636B50] focus:ring-[#636B50]"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-neutral-800 truncate">{entry.name || '(no name)'}</span>
+                          <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${
+                            entry.status === 'waiting' ? 'bg-amber-50 text-amber-600' :
+                            entry.status === 'invited' ? 'bg-blue-50 text-blue-600' :
+                            'bg-emerald-50 text-emerald-600'
+                          }`}>
+                            {entry.status === 'signed_up' ? 'converted' : entry.status}
+                          </span>
+                        </div>
+                        <div className="text-xs text-neutral-400 mt-0.5">
+                          {entry.email}
+                          {entry.city && <span> · {entry.city}</span>}
+                          {entry.invitedAt && <span> · Invited {new Date(entry.invitedAt).toLocaleDateString()}</span>}
+                          {entry.signedUpAt && <span> · Signed up {new Date(entry.signedUpAt).toLocaleDateString()}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         ) : tab === "flagged" ? (

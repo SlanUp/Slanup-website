@@ -215,4 +215,13 @@ export const api = {
     apiFetch('/api/web/admin/digest/preview'),
   sendDigest: () =>
     apiFetch('/api/web/admin/digest/send', { method: 'POST' }),
+  // Waitlist
+  getWaitlist: () =>
+    apiFetch('/api/web/admin/waitlist'),
+  importWaitlist: (entries: { name: string; email: string; city?: string; instagram?: string }[]) =>
+    apiFetch('/api/web/admin/waitlist/import', { method: 'POST', body: { entries } }),
+  sendWaitlistInvites: (ids: string[] | 'all') =>
+    apiFetch('/api/web/admin/waitlist/invite', { method: 'POST', body: { ids } }),
+  deleteWaitlistEntry: (id: string) =>
+    apiFetch(`/api/web/admin/waitlist/${id}`, { method: 'DELETE' }),
 };
