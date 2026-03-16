@@ -188,7 +188,7 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-neutral-100">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-3">
-          <button onClick={() => router.back()} className="p-1 -ml-1 rounded-full hover:bg-neutral-100 transition-colors">
+          <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-1 -ml-1 rounded-full hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <h1 className="text-lg font-bold text-neutral-900">Notifications</h1>
