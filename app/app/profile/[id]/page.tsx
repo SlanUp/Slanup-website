@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import { CITIES } from "@/lib/config/cities";
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +29,16 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef<HTMLInputElement>(null);
+
+  // Digest preferences
+  const [emailDigest, setEmailDigest] = useState(false);
+  const [notificationCities, setNotificationCities] = useState<string[]>([]);
+  const [citySearch, setCitySearch] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsSaved, setPrefsSaved] = useState(false);
+  const [prefsChanged, setPrefsChanged] = useState(false);
+  const initialPrefs = useRef({ emailDigest: false, notificationCities: [] as string[] });
 
   const isOwnProfile = (currentUser as AnyObj)?._id === profileId;
 
@@ -53,6 +64,11 @@ export default function ProfilePage() {
       const res = (await api.getProfile(profileId)) as { data: { user: AnyObj; stats?: { created: number; joined: number; completed: number } } };
       setProfile(res.data.user);
       if (res.data.stats) setStats(res.data.stats);
+      // Init digest prefs from profile
+      const u = res.data.user;
+      setEmailDigest(!!u.emailDigest);
+      setNotificationCities(u.notificationCities || []);
+      initialPrefs.current = { emailDigest: !!u.emailDigest, notificationCities: u.notificationCities || [] };
     } catch {
       // not found
     } finally {
@@ -86,6 +102,43 @@ export default function ProfilePage() {
       alert("Failed to save");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Track changes to digest prefs
+  useEffect(() => {
+    const changed =
+      emailDigest !== initialPrefs.current.emailDigest ||
+      JSON.stringify(notificationCities.sort()) !== JSON.stringify(initialPrefs.current.notificationCities.sort());
+    setPrefsChanged(changed);
+    setPrefsSaved(false);
+  }, [emailDigest, notificationCities]);
+
+  const toggleNotifCity = (c: string) => {
+    setNotificationCities(prev =>
+      prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+    );
+  };
+
+  const filteredCities = CITIES.filter(c =>
+    c.toLowerCase().includes(citySearch.toLowerCase())
+  );
+
+  const handleSavePrefs = async () => {
+    setSavingPrefs(true);
+    try {
+      await api.updateProfile({
+        emailDigest,
+        notificationCities: notificationCities.length > 0 ? notificationCities : (profile?.city ? [profile.city] : []),
+      });
+      initialPrefs.current = { emailDigest, notificationCities: [...notificationCities] };
+      setPrefsChanged(false);
+      setPrefsSaved(true);
+      setTimeout(() => setPrefsSaved(false), 2000);
+    } catch {
+      alert("Failed to save preferences");
+    } finally {
+      setSavingPrefs(false);
     }
   };
 
@@ -314,6 +367,97 @@ export default function ProfilePage() {
                 <p className="text-xs text-neutral-500 mt-0.5">Completed</p>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* Notification Preferences */}
+        {isOwnProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="bg-white rounded-2xl shadow-lg p-5 mt-4"
+          >
+            <h3 className="text-sm font-bold text-neutral-700 mb-4 flex items-center gap-2">
+              <Bell className="w-4 h-4" /> Notification Preferences
+            </h3>
+
+            {/* Digest toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-800">Weekly Plan Digest</p>
+                <p className="text-xs text-neutral-500">Get emails about new plans near you</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEmailDigest(!emailDigest)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${emailDigest ? 'bg-[var(--brand-green)]' : 'bg-neutral-300'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${emailDigest ? 'translate-x-5' : ''}`} />
+              </button>
+            </div>
+
+            {/* City selector */}
+            {emailDigest && (
+              <div className="mt-4">
+                <p className="text-xs font-medium text-neutral-600 mb-2">Get updates from these cities:</p>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={citySearch}
+                    onChange={(e) => { setCitySearch(e.target.value); setShowCityDropdown(true); }}
+                    onFocus={() => setShowCityDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowCityDropdown(false), 200)}
+                    placeholder="Search cities to add..."
+                    className="w-full px-3 py-2 text-sm bg-neutral-50 border border-neutral-200 rounded-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent"
+                  />
+                  {showCityDropdown && citySearch && (
+                    <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-40 overflow-auto z-10">
+                      {filteredCities.filter(c => !notificationCities.includes(c)).map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => { toggleNotifCity(c); setCitySearch(""); setShowCityDropdown(false); }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 text-neutral-700"
+                        >
+                          {c}
+                        </button>
+                      ))}
+                      {filteredCities.filter(c => !notificationCities.includes(c)).length === 0 && (
+                        <p className="px-3 py-2 text-sm text-neutral-400">No cities found</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {notificationCities.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {notificationCities.map(c => (
+                      <span key={c} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[var(--brand-green)]/10 text-[var(--brand-green)] text-xs font-medium rounded-full">
+                        {c}
+                        <button type="button" onClick={() => toggleNotifCity(c)}>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Save button */}
+            {prefsChanged && (
+              <button
+                onClick={handleSavePrefs}
+                disabled={savingPrefs}
+                className="mt-4 w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-50"
+              >
+                {savingPrefs ? "Saving..." : "Save Preferences"}
+              </button>
+            )}
+            {prefsSaved && (
+              <p className="mt-2 text-xs text-center text-emerald-600 font-medium">✓ Preferences saved</p>
+            )}
           </motion.div>
         )}
 

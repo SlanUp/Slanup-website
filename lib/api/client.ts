@@ -203,4 +203,8 @@ export const api = {
     apiFetch('/api/web/admin/flagged-users'),
   dismissFlag: (id: string, notes?: string) =>
     apiFetch(`/api/web/admin/flagged-users/${id}/dismiss`, { method: 'PATCH', body: { notes } }),
+  getDigestPreview: () =>
+    apiFetch('/api/web/admin/digest/preview'),
+  sendDigest: () =>
+    apiFetch('/api/web/admin/digest/send', { method: 'POST' }),
 };

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Shield, Users, Calendar, TrendingUp, MapPin, Search,
-  ChevronRight, ArrowUpRight, Clock, Instagram, ExternalLink, Phone, AlertTriangle, Trash2
+  ChevronRight, ArrowUpRight, Clock, Instagram, ExternalLink, Phone, AlertTriangle, Trash2, Mail, Send
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -44,7 +44,7 @@ function formatDate(d: string) {
 export default function AdminDashboard() {
   const router = useRouter();
   const { isLoggedIn, isLoading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "users" | "plans" | "flagged">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "plans" | "digest" | "flagged">("overview");
   const [stats, setStats] = useState<AnyObj | null>(null);
   const [users, setUsers] = useState<AnyObj[]>([]);
   const [userSearch, setUserSearch] = useState("");
@@ -55,6 +55,10 @@ export default function AdminDashboard() {
   const [allPlans, setAllPlans] = useState<AnyObj[]>([]);
   const [planSearch, setPlanSearch] = useState("");
   const [deletingPlan, setDeletingPlan] = useState<string | null>(null);
+  const [digestPreview, setDigestPreview] = useState<AnyObj | null>(null);
+  const [digestLoading, setDigestLoading] = useState(false);
+  const [digestSending, setDigestSending] = useState(false);
+  const [digestResult, setDigestResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
@@ -120,7 +124,37 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (tab === "plans") fetchAllPlans();
+    if (tab === "digest") fetchDigestPreview();
   }, [tab, fetchAllPlans]);
+
+  const fetchDigestPreview = async () => {
+    setDigestLoading(true);
+    setDigestResult(null);
+    try {
+      const res = (await api.getDigestPreview()) as { data: AnyObj };
+      setDigestPreview(res.data);
+    } catch {
+      setDigestPreview(null);
+    } finally {
+      setDigestLoading(false);
+    }
+  };
+
+  const handleSendDigest = async () => {
+    if (!confirm('Send digest emails to all matched subscribers? This cannot be undone.')) return;
+    setDigestSending(true);
+    setDigestResult(null);
+    try {
+      const res = (await api.sendDigest()) as { message: string; sent: number; plansIncluded: number };
+      setDigestResult(`✅ ${res.message}`);
+      setDigestPreview(null);
+      fetchDigestPreview();
+    } catch {
+      setDigestResult('❌ Failed to send digest');
+    } finally {
+      setDigestSending(false);
+    }
+  };
 
   const handleDeletePlan = async (planId: string, planName: string) => {
     if (!confirm(`Delete "${planName}"? This will remove the plan, its chat, and all related data permanently.`)) return;
@@ -149,6 +183,7 @@ export default function AdminDashboard() {
     { id: "overview" as const, label: "Overview" },
     { id: "plans" as const, label: "Plans" },
     { id: "users" as const, label: "Users" },
+    { id: "digest" as const, label: "Digest" },
     { id: "flagged" as const, label: "Flagged" },
   ];
 
@@ -517,6 +552,126 @@ export default function AdminDashboard() {
                   Next →
                 </button>
               </div>
+            )}
+          </div>
+        ) : tab === "digest" ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Mail className="w-5 h-5 text-[#636B50]" />
+                <h2 className="text-lg font-semibold text-neutral-800">Weekly Digest</h2>
+              </div>
+              <button
+                onClick={fetchDigestPreview}
+                disabled={digestLoading}
+                className="text-xs text-[#636B50] hover:underline"
+              >
+                {digestLoading ? 'Loading...' : 'Refresh Preview'}
+              </button>
+            </div>
+
+            {digestResult && (
+              <div className="p-3 rounded-lg bg-white border border-neutral-200 text-sm text-neutral-700">
+                {digestResult}
+              </div>
+            )}
+
+            {digestLoading ? (
+              <div className="text-center py-8 text-neutral-400 text-sm">Loading preview...</div>
+            ) : digestPreview ? (
+              <div className="space-y-4">
+                {/* Summary cards */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                    <div className="text-2xl font-bold text-[#636B50]">{digestPreview.totalPlans}</div>
+                    <div className="text-xs text-neutral-500 mt-1">New Plans</div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                    <div className="text-2xl font-bold text-[#636B50]">{digestPreview.totalSubscribers}</div>
+                    <div className="text-xs text-neutral-500 mt-1">Subscribers</div>
+                  </div>
+                  <div className="bg-white rounded-xl p-4 border border-neutral-100">
+                    <div className="text-2xl font-bold text-[#636B50]">{Object.keys(digestPreview.plansByCity || {}).length}</div>
+                    <div className="text-xs text-neutral-500 mt-1">Cities</div>
+                  </div>
+                </div>
+
+                {/* Plans by city */}
+                {digestPreview.plansByCity && Object.keys(digestPreview.plansByCity).length > 0 && (
+                  <div className="bg-white rounded-xl border border-neutral-100 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-neutral-100 bg-neutral-50">
+                      <h3 className="text-sm font-semibold text-neutral-700">Plans by City</h3>
+                    </div>
+                    <div className="divide-y divide-neutral-100">
+                      {Object.entries(digestPreview.plansByCity).map(([city, plans]) => (
+                        <div key={city} className="px-4 py-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-neutral-800 flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-[#636B50]" /> {city}
+                            </span>
+                            <span className="text-xs text-neutral-400">{(plans as AnyObj[]).length} plan{(plans as AnyObj[]).length !== 1 ? 's' : ''}</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {(plans as AnyObj[]).map((p: AnyObj) => (
+                              <div key={p._id || p.id} className="flex items-center justify-between text-xs text-neutral-600">
+                                <span className="truncate max-w-[60%]">{p.name}</span>
+                                <span className="text-neutral-400">{p.slotsLeft} slot{p.slotsLeft !== 1 ? 's' : ''} left · {p.hostName}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Subscribers */}
+                {digestPreview.subscribers && digestPreview.subscribers.length > 0 && (
+                  <div className="bg-white rounded-xl border border-neutral-100 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-neutral-100 bg-neutral-50">
+                      <h3 className="text-sm font-semibold text-neutral-700">Subscribers who will receive</h3>
+                    </div>
+                    <div className="divide-y divide-neutral-100">
+                      {digestPreview.subscribers.map((s: AnyObj, i: number) => (
+                        <div key={i} className="px-4 py-2.5 flex items-center justify-between">
+                          <div>
+                            <span className="text-sm text-neutral-800">{s.name}</span>
+                            <span className="text-xs text-neutral-400 ml-2">{s.email}</span>
+                          </div>
+                          <div className="text-xs text-neutral-500">
+                            {s.planCount} plan{s.planCount !== 1 ? 's' : ''} · {s.cities?.join(', ')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Send button */}
+                {digestPreview.totalPlans > 0 && digestPreview.totalSubscribers > 0 && (
+                  <button
+                    onClick={handleSendDigest}
+                    disabled={digestSending}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#636B50] text-white font-medium text-sm hover:bg-[#555d44] transition-colors disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                    {digestSending ? 'Sending...' : `Send Digest to ${digestPreview.totalSubscribers} subscriber${digestPreview.totalSubscribers !== 1 ? 's' : ''}`}
+                  </button>
+                )}
+
+                {digestPreview.totalPlans === 0 && (
+                  <div className="text-center py-6 text-neutral-400 text-sm">
+                    No new plans to include in digest. All plans have already been sent.
+                  </div>
+                )}
+                {digestPreview.totalPlans > 0 && digestPreview.totalSubscribers === 0 && (
+                  <div className="text-center py-6 text-neutral-400 text-sm">
+                    {digestPreview.totalPlans} plans available but no subscribers match these cities.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-neutral-400 text-sm">No digest data available</div>
             )}
           </div>
         ) : tab === "flagged" ? (
