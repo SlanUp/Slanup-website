@@ -166,11 +166,10 @@ export const api = {
     if (file.type.startsWith('image/')) {
       try {
         const imageCompression = (await import('browser-image-compression')).default;
-        fileToUpload = await imageCompression(file, {
-          maxSizeMB: 0.8,
-          maxWidthOrHeight: 1200,
-          useWebWorker: true,
-        });
+        const opts = section === 'profile'
+          ? { maxSizeMB: 0.4, maxWidthOrHeight: 600, useWebWorker: true }
+          : { maxSizeMB: 0.6, maxWidthOrHeight: 1200, useWebWorker: true };
+        fileToUpload = await imageCompression(file, opts);
       } catch {
         // Fall back to original file if compression fails
         fileToUpload = file;
