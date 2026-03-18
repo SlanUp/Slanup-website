@@ -101,7 +101,13 @@ export default function OnboardingPage() {
       await refreshUser();
       router.replace("/app/feed");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save profile");
+      const msg = err instanceof Error ? err.message : "Failed to save profile";
+      if (msg.toLowerCase().includes('token') || msg.toLowerCase().includes('unauthorized') || msg.toLowerCase().includes('401')) {
+        setError("Your login session has expired. Redirecting you to sign in again...");
+        setTimeout(() => router.replace("/app"), 2000);
+      } else {
+        setError(msg);
+      }
     } finally {
       setSaving(false);
     }

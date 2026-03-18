@@ -21,7 +21,7 @@ function VerifyContent() {
     const token = searchParams.get("token");
     if (!token) {
       setStatus("error");
-      setError("No verification token found.");
+      setError("Your login link has expired or is invalid. Please request a new one.");
       return;
     }
 
@@ -43,7 +43,7 @@ function VerifyContent() {
         }, 1500);
       } catch (err: unknown) {
         setStatus("error");
-        setError(err instanceof Error ? err.message : "Verification failed");
+        setError("Your login link has expired. Please request a new one.");
       }
     })();
   }, [searchParams, login, router]);
