@@ -28,6 +28,7 @@ interface Plan {
   participants: { _id: string; name: string; image?: string }[];
   likes?: string[];
   creator_id: { _id: string; name: string; image?: string; instagramHandle?: string };
+  host_id?: { _id: string; name: string; image?: string; instagramHandle?: string };
   createdAt: string;
 }
 
@@ -62,15 +63,15 @@ function PlanCard({ plan }: { plan: Plan }) {
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
-                {plan.creator_id?.image ? (
-                  <S3Image fileKey={plan.creator_id.image} alt="" width={36} height={36} className="object-cover w-full h-full" />
+                {(plan.host_id?.image || plan.creator_id?.image) ? (
+                  <S3Image fileKey={(plan.host_id?.image || plan.creator_id?.image)} alt="" width={36} height={36} className="object-cover w-full h-full" />
                 ) : (
-                  plan.creator_id?.name?.charAt(0)?.toUpperCase() || '?'
+                  (plan.host_id?.name || plan.creator_id?.name)?.charAt(0)?.toUpperCase() || '?'
                 )}
               </div>
               <div>
                 <p className="text-sm">
-                  <span className="font-bold">{plan.creator_id?.name}</span>
+                  <span className="font-bold">{plan.host_id?.name || plan.creator_id?.name}</span>
                   <span className="text-neutral-500"> shared a Plan</span>
                 </p>
                 <p className="text-xs text-neutral-400">{formatDate(plan.createdAt)}</p>

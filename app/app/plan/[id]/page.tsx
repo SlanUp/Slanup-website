@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -88,13 +88,19 @@ export default function PlanDetailPage() {
   const [feltSafeLoading, setFeltSafeLoading] = useState<string | null>(null);
   const [removingParticipant, setRemovingParticipant] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferTarget, setTransferTarget] = useState<{ id: string; name: string } | null>(null);
+  const [transferring, setTransferring] = useState(false);
+  const [respondingTransfer, setRespondingTransfer] = useState(false);
 
   const userId = (user as AnyObj)?._id;
   const userGender = (user as AnyObj)?.gender;
-  const isHost = plan?.creator_id?._id === userId;
+  const isHost = plan?.host_id?._id === userId || (!plan?.host_id && plan?.creator_id?._id === userId);
   const isParticipant = plan?.participants?.some((p: AnyObj) => p._id === userId);
   const slotsLeft = plan ? plan.max_people - (plan.participants?.length || 0) : 0;
   const isPlanEnded = plan ? new Date(plan.end) < new Date() : false;
+  const pendingTransfer = plan?.hostTransferRequest;
+  const isTransferRecipient = pendingTransfer?.to?._id === userId || pendingTransfer?.to === userId;
 
   const fetchPlan = useCallback(async () => {
     try {
@@ -336,6 +342,45 @@ export default function PlanDetailPage() {
       alert('Failed to remove participant');
     } finally {
       setRemovingParticipant(null);
+    }
+  };
+
+  const handleTransferHost = async () => {
+    if (!transferTarget) return;
+    setTransferring(true);
+    try {
+      await api.transferHost(planId, transferTarget.id);
+      await fetchPlan();
+      setShowTransferModal(false);
+      setTransferTarget(null);
+    } catch (err: unknown) {
+      alert((err as Error)?.message || 'Failed to transfer hostship');
+    } finally {
+      setTransferring(false);
+    }
+  };
+
+  const handleAcceptTransfer = async () => {
+    setRespondingTransfer(true);
+    try {
+      await api.acceptHostTransfer(planId);
+      await fetchPlan();
+    } catch (err: unknown) {
+      alert((err as Error)?.message || 'Failed to accept transfer');
+    } finally {
+      setRespondingTransfer(false);
+    }
+  };
+
+  const handleDeclineTransfer = async () => {
+    setRespondingTransfer(true);
+    try {
+      await api.declineHostTransfer(planId);
+      await fetchPlan();
+    } catch (err: unknown) {
+      alert((err as Error)?.message || 'Failed to decline transfer');
+    } finally {
+      setRespondingTransfer(false);
     }
   };
 
@@ -620,6 +665,15 @@ export default function PlanDetailPage() {
                       >
                         <Pencil className="w-4 h-4 text-neutral-500" />
                       </button>
+                      {!isPlanEnded && plan.participants?.length > 0 && (
+                        <button
+                          onClick={() => setShowTransferModal(true)}
+                          className="w-8 h-8 rounded-full hover:bg-emerald-50 flex items-center justify-center transition-colors"
+                          title="Transfer hostship"
+                        >
+                          <ArrowRightLeft className="w-4 h-4 text-neutral-500" />
+                        </button>
+                      )}
                       <button
                         onClick={() => setShowDeleteModal(true)}
                         className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center transition-colors"
@@ -687,13 +741,13 @@ export default function PlanDetailPage() {
           className="bg-white rounded-2xl shadow-lg p-5 mt-4"
         >
           <h2 className="text-sm font-bold text-neutral-700 mb-3">Hosted by</h2>
-          <Link href={`/app/profile/${plan.creator_id?._id}`} className="flex items-center gap-3 hover:bg-neutral-50 -mx-2 px-2 py-2 rounded-xl transition-colors">
-            <Avatar image={plan.creator_id?.image} name={plan.creator_id?.name} size={48} />
+          <Link href={`/app/profile/${(plan.host_id?._id || plan.creator_id?._id)}`} className="flex items-center gap-3 hover:bg-neutral-50 -mx-2 px-2 py-2 rounded-xl transition-colors">
+            <Avatar image={plan.host_id?.image || plan.creator_id?.image} name={plan.host_id?.name || plan.creator_id?.name} size={48} />
             <div>
-              <p className="font-semibold text-neutral-800">{plan.creator_id?.name}</p>
-              {plan.creator_id?.instagramHandle && (
+              <p className="font-semibold text-neutral-800">{plan.host_id?.name || plan.creator_id?.name}</p>
+              {(plan.host_id?.instagramHandle || plan.creator_id?.instagramHandle) && (
                 <p className="text-xs text-neutral-500 flex items-center gap-1">
-                  <Instagram className="w-3 h-3" /> @{plan.creator_id.instagramHandle}
+                  <Instagram className="w-3 h-3" /> @{plan.host_id?.instagramHandle || plan.creator_id?.instagramHandle}
                 </p>
               )}
             </div>
@@ -745,7 +799,7 @@ export default function PlanDetailPage() {
                       </button>
                     </div>
                   )}
-                  {isHost && !isPlanEnded && p._id !== plan.creator_id?._id && (
+                  {isHost && !isPlanEnded && p._id !== (plan.host_id?._id || plan.creator_id?._id) && (
                     <button
                       onClick={() => handleRemoveParticipant(p._id, p.name)}
                       disabled={removingParticipant === p._id}
@@ -761,6 +815,55 @@ export default function PlanDetailPage() {
             {isPlanEnded && userGender === 'female' && plan.participants.some((p: AnyObj) => p.gender === 'male' && p._id !== userId) && (
               <p className="text-[11px] text-neutral-400 mt-3">🛡️ Your ratings are 100% anonymous — help other women feel safe on Slanup</p>
             )}
+          </motion.div>
+        )}
+
+        {/* Host Transfer Request Banner (for recipient) */}
+        {isTransferRecipient && pendingTransfer && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-emerald-50 border border-emerald-200 rounded-2xl shadow-lg p-5 mt-4"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowRightLeft className="w-5 h-5 text-emerald-700" />
+              <h3 className="font-bold text-emerald-900">Hostship Transfer Request</h3>
+            </div>
+            <p className="text-sm text-emerald-800">
+              <span className="font-semibold">{pendingTransfer.from?.name || 'The host'}</span> wants to transfer hostship of this plan to you.
+            </p>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={handleDeclineTransfer}
+                disabled={respondingTransfer}
+                className="flex-1 py-2.5 border border-emerald-200 rounded-xl text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-60"
+              >
+                Decline
+              </button>
+              <button
+                onClick={handleAcceptTransfer}
+                disabled={respondingTransfer}
+                className="flex-1 py-2.5 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-60"
+              >
+                {respondingTransfer ? 'Processing...' : 'Accept Hostship'}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Host: Pending Transfer Indicator */}
+        {isHost && pendingTransfer && !isTransferRecipient && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-emerald-50 border border-emerald-200 rounded-2xl shadow-lg p-5 mt-4"
+          >
+            <div className="flex items-center gap-2">
+              <ArrowRightLeft className="w-4 h-4 text-emerald-600" />
+              <p className="text-sm text-emerald-800">
+                Hostship transfer pending — waiting for <span className="font-semibold">{pendingTransfer.to?.name || 'participant'}</span> to respond
+              </p>
+            </div>
           </motion.div>
         )}
 
@@ -976,6 +1079,78 @@ export default function PlanDetailPage() {
                   {removingParticipant ? 'Removing...' : 'Remove'}
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Transfer Hostship Modal */}
+      <AnimatePresence>
+        {showTransferModal && plan && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => !transferring && (() => { setShowTransferModal(false); setTransferTarget(null); })()}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
+            >
+              {!transferTarget ? (
+                <>
+                  <h3 className="text-lg font-bold text-neutral-800">Transfer Hostship</h3>
+                  <p className="text-sm text-neutral-500 mt-1">Choose a participant to become the new host</p>
+                  <div className="flex flex-col gap-2 mt-4 max-h-60 overflow-auto">
+                    {plan.participants?.map((p: AnyObj) => (
+                      <button
+                        key={p._id}
+                        onClick={() => setTransferTarget({ id: p._id, name: p.name })}
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 transition-colors text-left"
+                      >
+                        <Avatar image={p.image} name={p.name} size={36} />
+                        <span className="text-sm font-medium text-neutral-700">{p.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setShowTransferModal(false)}
+                    className="w-full mt-3 py-2.5 text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-bold text-neutral-800">Confirm Transfer</h3>
+                  <p className="text-sm text-neutral-600 mt-2">
+                    Transfer hostship to <span className="font-semibold">{transferTarget.name}</span>? They&apos;ll receive a request to accept.
+                  </p>
+                  <p className="text-xs text-neutral-400 mt-1.5">
+                    If they accept, you&apos;ll become a regular participant.
+                  </p>
+                  <div className="flex gap-3 mt-5">
+                    <button
+                      onClick={() => setTransferTarget(null)}
+                      disabled={transferring}
+                      className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={handleTransferHost}
+                      disabled={transferring}
+                      className="flex-1 py-2.5 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-60"
+                    >
+                      {transferring ? 'Sending...' : 'Transfer'}
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

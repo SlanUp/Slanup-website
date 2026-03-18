@@ -131,6 +131,14 @@ export const api = {
   removeParticipant: (planId: string, participantId: string) =>
     apiFetch(`/api/web/plans/${planId}/remove/${participantId}`, { method: 'DELETE' }),
 
+  // Host transfer
+  transferHost: (planId: string, targetUserId: string) =>
+    apiFetch(`/api/web/plans/${planId}/transfer-host`, { method: 'POST', body: { targetUserId } }),
+  acceptHostTransfer: (planId: string) =>
+    apiFetch(`/api/web/plans/${planId}/transfer-host/accept`, { method: 'POST' }),
+  declineHostTransfer: (planId: string) =>
+    apiFetch(`/api/web/plans/${planId}/transfer-host/decline`, { method: 'POST' }),
+
   // Felt Safe ratings
   submitFeltSafe: (planId: string, ratedUserId: string) =>
     apiFetch(`/api/web/plans/${planId}/felt-safe`, { method: 'POST', body: { ratedUserId } }),

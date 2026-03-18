@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Bell, BellOff, Check, X, Loader2, MapPin, Calendar, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Check, X, Loader2, MapPin, Calendar, ShieldCheck, ArrowRightLeft } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -119,6 +119,8 @@ export default function NotificationsPage() {
   const [nearbyPlans, setNearbyPlans] = useState<NearbyPlan[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [plansToRate, setPlansToRate] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [hostTransfers, setHostTransfers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -128,13 +130,14 @@ export default function NotificationsPage() {
       const res = await api.getNotifications() as {
         success: boolean;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[] };
+        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[]; hostTransfers?: any[] };
       };
       if (res.success) {
         setIncoming(res.data.incoming);
         setOutgoing(res.data.outgoing);
         setNearbyPlans(res.data.nearbyPlans || []);
         setPlansToRate(res.data.plansToRate || []);
+        setHostTransfers(res.data.hostTransfers || []);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -267,7 +270,36 @@ export default function NotificationsPage() {
                 ))}
               </div>
             )}
-            {allActivity.length === 0 && plansToRate.length === 0 ? (
+            {/* Host transfer requests */}
+            {hostTransfers.length > 0 && (
+              <div className="mb-4 space-y-3">
+                {hostTransfers.map((transfer) => (
+                  <motion.div key={transfer._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Link href={`/app/plan/${transfer.id || transfer._id}`}>
+                      <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl shadow-sm p-4 border border-emerald-100 hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                            <ArrowRightLeft className="w-5 h-5 text-emerald-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-neutral-800">
+                              Hostship Transfer Request
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                              <span className="font-semibold">{transfer.hostTransferRequest?.from?.name || 'Someone'}</span> wants you to host &quot;{transfer.name}&quot;
+                            </p>
+                            <span className="inline-block mt-2 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                              View & Respond →
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+            {allActivity.length === 0 && plansToRate.length === 0 && hostTransfers.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
               <BellOff className="w-12 h-12 mb-3 stroke-[1.5]" />
               <p className="text-sm font-medium">No activity yet</p>
