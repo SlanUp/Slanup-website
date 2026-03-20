@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft, MessageSquareText } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -62,6 +62,9 @@ export default function PlanDetailPage() {
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState(false);
   const [hasRequested, setHasRequested] = useState(false);
+  const [joinNote, setJoinNote] = useState("");
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [noteExpanded, setNoteExpanded] = useState<string | null>(null);
   const [requests, setRequests] = useState<AnyObj[]>([]);
   const [showRequests, setShowRequests] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -138,7 +141,7 @@ export default function PlanDetailPage() {
   const handleJoinRequest = async () => {
     setRequesting(true);
     try {
-      await api.requestJoin(planId);
+      await api.requestJoin(planId, joinNote.trim() || undefined);
       setHasRequested(true);
     } catch {
       alert("Could not send request. You may have already requested.");
@@ -898,32 +901,55 @@ export default function PlanDetailPage() {
                   ) : (
                     <div className="flex flex-col gap-3 mt-3">
                       {requests.map((req) => (
-                        <div key={req._id} className="flex items-center justify-between bg-neutral-50 p-3 rounded-xl">
-                          <Link href={`/app/profile/${req.user_id?._id}`} className="flex items-center gap-3">
-                            <Avatar image={req.user_id?.image} name={req.user_id?.name} size={40} />
-                            <div>
-                              <p className="font-semibold text-sm text-neutral-800">{req.user_id?.name}</p>
-                              {req.user_id?.instagramHandle && (
-                                <p className="text-xs text-neutral-500">@{req.user_id.instagramHandle}</p>
+                        <div key={req._id} className="bg-neutral-50 p-3 rounded-xl">
+                          <div className="flex items-center justify-between">
+                            <Link href={`/app/profile/${req.user_id?._id}`} className="flex items-center gap-3">
+                              <Avatar image={req.user_id?.image} name={req.user_id?.name} size={40} />
+                              <div>
+                                <p className="font-semibold text-sm text-neutral-800">{req.user_id?.name}</p>
+                                {req.user_id?.instagramHandle && (
+                                  <p className="text-xs text-neutral-500">@{req.user_id.instagramHandle}</p>
+                                )}
+                              </div>
+                            </Link>
+                            <div className="flex items-center gap-1.5">
+                              {req.note && (
+                                <button
+                                  onClick={() => setNoteExpanded(noteExpanded === req._id ? null : req._id)}
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${noteExpanded === req._id ? 'bg-[var(--brand-green)]/10 text-[var(--brand-green)]' : 'hover:bg-neutral-100 text-neutral-400'}`}
+                                  title="View note"
+                                >
+                                  <MessageSquareText className="w-4 h-4" />
+                                </button>
                               )}
+                              <button
+                                onClick={() => handleRequestAction(req._id, "accepted")}
+                                disabled={actionLoading === req._id}
+                                className="w-9 h-9 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleRequestAction(req._id, "rejected")}
+                                disabled={actionLoading === req._id}
+                                className="w-9 h-9 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
                             </div>
-                          </Link>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleRequestAction(req._id, "accepted")}
-                              disabled={actionLoading === req._id}
-                              className="w-9 h-9 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleRequestAction(req._id, "rejected")}
-                              disabled={actionLoading === req._id}
-                              className="w-9 h-9 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-colors disabled:opacity-50"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
                           </div>
+                          <AnimatePresence>
+                            {noteExpanded === req._id && req.note && (
+                              <motion.p
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="text-xs text-neutral-600 mt-2 ml-[52px] bg-white p-2.5 rounded-lg border border-neutral-100 leading-relaxed overflow-hidden"
+                              >
+                                &ldquo;{req.note}&rdquo;
+                              </motion.p>
+                            )}
+                          </AnimatePresence>
                         </div>
                       ))}
                     </div>
@@ -953,7 +979,7 @@ export default function PlanDetailPage() {
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <div className="max-w-2xl mx-auto flex gap-3">
             <button
-              onClick={handleJoinRequest}
+              onClick={() => setShowJoinModal(true)}
               disabled={requesting || hasRequested}
               className={`flex-1 font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2 ${
                 hasRequested
@@ -963,8 +989,6 @@ export default function PlanDetailPage() {
             >
               {hasRequested ? (
                 <><CheckCircle className="w-5 h-5" /> Requested</>
-              ) : requesting ? (
-                "Sending..."
               ) : (
                 <><Send className="w-5 h-5" /> Request to Join</>
               )}
@@ -1077,6 +1101,56 @@ export default function PlanDetailPage() {
                   className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-60"
                 >
                   {removingParticipant ? 'Removing...' : 'Remove'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Join Request Modal */}
+      <AnimatePresence>
+        {showJoinModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center"
+            onClick={() => !requesting && setShowJoinModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 40 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-6 w-full sm:max-w-sm sm:mx-4"
+              style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+            >
+              <h3 className="text-lg font-bold text-neutral-800">Request to Join</h3>
+              <p className="text-sm text-neutral-500 mt-1">Add a short note for the host (optional)</p>
+              <textarea
+                value={joinNote}
+                onChange={(e) => setJoinNote(e.target.value.slice(0, 200))}
+                placeholder="Say hi! Why do you want to join?"
+                rows={3}
+                className="w-full mt-3 px-4 py-3 text-sm border border-neutral-200 rounded-xl resize-none focus:outline-none focus:border-[var(--brand-green)] transition-colors placeholder:text-neutral-400"
+                autoFocus
+              />
+              <p className="text-[11px] text-neutral-400 text-right mt-1">{joinNote.length}/200</p>
+              <div className="flex gap-3 mt-3">
+                <button
+                  onClick={() => { setShowJoinModal(false); setJoinNote(""); }}
+                  disabled={requesting}
+                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => { await handleJoinRequest(); setShowJoinModal(false); }}
+                  disabled={requesting}
+                  className="flex-1 py-2.5 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {requesting ? 'Sending...' : <><Send className="w-4 h-4" /> Send Request</>}
                 </button>
               </div>
             </motion.div>

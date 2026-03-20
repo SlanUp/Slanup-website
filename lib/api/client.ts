@@ -118,8 +118,8 @@ export const api = {
   getCompletedPlans: () => apiFetch('/api/web/plans-completed'),
 
   // Requests (reuse existing backend)
-  requestJoin: (planId: string) =>
-    apiFetch('/api/web/plans/' + planId + '/request', { method: 'POST' }),
+  requestJoin: (planId: string, note?: string) =>
+    apiFetch('/api/web/plans/' + planId + '/request', { method: 'POST', body: note ? { note } : undefined }),
   getPlanRequests: (planId: string) =>
     apiFetch(`/api/web/plans/${planId}/requests`),
   handleRequest: (requestId: string, action: 'accepted' | 'rejected') =>
