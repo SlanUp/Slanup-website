@@ -52,6 +52,81 @@ function Avatar({ image, name, size = 40 }: { image?: string; name?: string; siz
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyObj = Record<string, any>;
 
+function JoinRequestModal({ joinNote, setJoinNote, requesting, onCancel, onSend }: {
+  joinNote: string;
+  setJoinNote: (v: string) => void;
+  requesting: boolean;
+  onCancel: () => void;
+  onSend: () => void;
+}) {
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      const offset = window.innerHeight - vv.height;
+      setKeyboardOffset(offset > 0 ? offset : 0);
+    };
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    onResize();
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
+      onClick={() => !requesting && onCancel()}
+    >
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        onClick={e => e.stopPropagation()}
+        className="absolute left-0 right-0 bg-white rounded-t-2xl shadow-xl p-6"
+        style={{ bottom: keyboardOffset }}
+      >
+        <div className="w-10 h-1 bg-neutral-200 rounded-full mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-neutral-800">Request to Join</h3>
+        <p className="text-sm text-neutral-500 mt-1">Add a short note for the host (optional)</p>
+        <textarea
+          value={joinNote}
+          onChange={(e) => setJoinNote(e.target.value.slice(0, 200))}
+          placeholder="Say hi! Why do you want to join?"
+          rows={3}
+          className="w-full mt-3 px-4 py-3 text-sm border border-neutral-200 rounded-xl resize-none focus:outline-none focus:border-[var(--brand-green)] transition-colors placeholder:text-neutral-400"
+          autoFocus
+        />
+        <p className="text-[11px] text-neutral-400 text-right mt-1">{joinNote.length}/200</p>
+        <div className="flex gap-3 mt-3">
+          <button
+            onClick={onCancel}
+            disabled={requesting}
+            className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSend}
+            disabled={requesting}
+            className="flex-1 py-2.5 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {requesting ? 'Sending...' : <><Send className="w-4 h-4" /> Send Request</>}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function PlanDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -1111,49 +1186,13 @@ export default function PlanDetailPage() {
       {/* Join Request Modal */}
       <AnimatePresence>
         {showJoinModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-            onClick={() => !requesting && setShowJoinModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
-            >
-              <h3 className="text-lg font-bold text-neutral-800">Request to Join</h3>
-              <p className="text-sm text-neutral-500 mt-1">Add a short note for the host (optional)</p>
-              <textarea
-                value={joinNote}
-                onChange={(e) => setJoinNote(e.target.value.slice(0, 200))}
-                placeholder="Say hi! Why do you want to join?"
-                rows={3}
-                className="w-full mt-3 px-4 py-3 text-sm border border-neutral-200 rounded-xl resize-none focus:outline-none focus:border-[var(--brand-green)] transition-colors placeholder:text-neutral-400"
-                autoFocus
-              />
-              <p className="text-[11px] text-neutral-400 text-right mt-1">{joinNote.length}/200</p>
-              <div className="flex gap-3 mt-3">
-                <button
-                  onClick={() => { setShowJoinModal(false); setJoinNote(""); }}
-                  disabled={requesting}
-                  className="flex-1 py-2.5 border border-neutral-200 rounded-xl text-sm font-semibold text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-60"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={async () => { await handleJoinRequest(); setShowJoinModal(false); }}
-                  disabled={requesting}
-                  className="flex-1 py-2.5 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {requesting ? 'Sending...' : <><Send className="w-4 h-4" /> Send Request</>}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <JoinRequestModal
+            joinNote={joinNote}
+            setJoinNote={setJoinNote}
+            requesting={requesting}
+            onCancel={() => { setShowJoinModal(false); setJoinNote(""); }}
+            onSend={async () => { await handleJoinRequest(); setShowJoinModal(false); }}
+          />
         )}
       </AnimatePresence>
 
