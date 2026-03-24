@@ -1115,16 +1115,15 @@ export default function PlanDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-end sm:items-center justify-center"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
             onClick={() => !requesting && setShowJoinModal(false)}
           >
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-6 w-full sm:max-w-sm sm:mx-4"
-              style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
             >
               <h3 className="text-lg font-bold text-neutral-800">Request to Join</h3>
               <p className="text-sm text-neutral-500 mt-1">Add a short note for the host (optional)</p>
