@@ -6,8 +6,8 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:www.slanup.com</string>
-		<string>applinks:slanup.com</string>
+		<string>applinks:www.slanup.com?mode=developer</string>
+		<string>applinks:slanup.com?mode=developer</string>
 	</array>
 </dict>
 </plist>
