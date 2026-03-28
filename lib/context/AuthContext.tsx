@@ -31,6 +31,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(storedToken);
       setUser(storedUser);
       setIsNewUser(!storedUser.name);
+      // Register push notifications on native platforms
+      import('@/lib/native/push').then(({ initPushNotifications }) => {
+        initPushNotifications();
+      }).catch(() => {});
     }
     setIsLoading(false);
   }, []);
