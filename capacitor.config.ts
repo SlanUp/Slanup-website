@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.slanup.app',
   appName: 'Slanup',
   webDir: 'out',
+  backgroundColor: '#FFFFFF',
   server: {
     url: 'https://www.slanup.com',
     cleartext: false,
