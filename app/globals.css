@@ -92,6 +92,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Extra bottom spacing only inside native Capacitor app */
+html.plt-capacitor .native-bottom-lift {
+  padding-bottom: 1rem;
+}
+
 .marquee-row:hover .marquee-content {
   animation-play-state: paused;
 }

@@ -1038,7 +1038,7 @@ export default function PlanDetailPage() {
 
       {/* Bottom Action Bar */}
       {!isLoggedIn && slotsLeft > 0 && new Date(plan.end) > new Date() && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">
             <Link
               href="/app"
@@ -1051,7 +1051,7 @@ export default function PlanDetailPage() {
       )}
 
       {isLoggedIn && !isHost && !isParticipant && slotsLeft > 0 && new Date(plan.end) > new Date() && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">
             <button
               onClick={() => setShowJoinModal(true)}
@@ -1073,7 +1073,7 @@ export default function PlanDetailPage() {
       )}
 
       {(isParticipant || isHost) && plan.conversation_id && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">
             {isParticipant && !isHost && !isPlanEnded && (
               <button

@@ -839,7 +839,7 @@ export default function ChatPage() {
       </AnimatePresence>
 
       {/* Input */}
-      <div className="bg-white border-t border-neutral-100 flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="bg-white border-t border-neutral-100 flex-shrink-0 native-bottom-lift">
         <div className="max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-3 flex items-center gap-2 md:gap-3">
           <input
             ref={inputRef}
