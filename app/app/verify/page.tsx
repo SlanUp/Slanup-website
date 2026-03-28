@@ -27,7 +27,7 @@ function VerifyContent() {
 
     // If opened in a mobile browser (not inside the Capacitor WebView),
     // redirect to the app via custom URL scheme
-    const isCapacitor = typeof window !== 'undefined' && !!(window as Record<string, unknown>).Capacitor;
+    const isCapacitor = typeof window !== 'undefined' && !!(window as unknown as Record<string, unknown>).Capacitor;
     if (!isCapacitor && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
       window.location.href = `slanup://verify?token=${token}`;
       // Give the app a moment to open; if it doesn't, the page continues normally
