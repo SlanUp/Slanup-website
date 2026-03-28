@@ -9,6 +9,9 @@ export const isNative = Capacitor.isNativePlatform();
 export async function initNativeUI() {
   if (!isNative) return;
 
+  // Tag the document so CSS can scope native-only styles
+  document.documentElement.classList.add('capacitor-native');
+
   try {
     await StatusBar.setStyle({ style: Style.Light });
     if (Capacitor.getPlatform() === 'android') {

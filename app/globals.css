@@ -93,7 +93,7 @@ body {
 }
 
 /* Extra bottom spacing only inside native Capacitor app */
-html.plt-capacitor .native-bottom-lift {
+html.capacitor-native .native-bottom-lift {
   padding-bottom: 2.5rem;
 }
 
