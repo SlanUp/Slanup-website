@@ -189,7 +189,7 @@ export default function NotificationsPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-neutral-100 safe-top">
+      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-neutral-100">
         <div className="max-w-lg mx-auto flex items-center gap-3 px-4 py-3">
           <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-1 -ml-1 rounded-full hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />

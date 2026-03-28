@@ -117,7 +117,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="py-4 px-6 md:px-10 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm safe-top">
+      <header className="py-4 px-6 md:px-10 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-end hover:opacity-80 transition-opacity">
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>

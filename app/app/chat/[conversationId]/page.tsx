@@ -531,7 +531,7 @@ export default function ChatPage() {
   return (
     <div className="h-[100dvh] flex flex-col bg-neutral-50">
       {/* Header */}
-      <header className="bg-white shadow-sm z-10 flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="bg-white shadow-sm z-10 flex-shrink-0">
         <div className="max-w-2xl mx-auto px-4 py-2 md:py-3 flex items-center gap-3">
           <button onClick={() => { if (window.history.length > 1) { router.back(); } else { router.push('/app/feed'); } }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
