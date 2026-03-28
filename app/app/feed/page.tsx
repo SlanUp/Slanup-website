@@ -356,7 +356,7 @@ export default function FeedPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-4">
+      <main className="max-w-3xl mx-auto px-4 py-4 safe-bottom" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
         {/* Section title */}
         <p className="text-neutral-500 text-sm mb-4 font-medium">Active plans</p>
 
@@ -585,7 +585,8 @@ export default function FeedPage() {
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-8 right-5 md:bottom-6 md:right-6 w-14 h-14 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] rounded-full shadow-lg flex items-center justify-center text-white z-50"
+          className="fixed right-5 md:right-6 w-14 h-14 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] rounded-full shadow-lg flex items-center justify-center text-white z-50"
+          style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
         >
           <Plus className="w-6 h-6" />
         </motion.button>

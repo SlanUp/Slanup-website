@@ -113,11 +113,9 @@ export default function MyPlansPage() {
           </button>
           <h1 className="text-lg font-bold text-neutral-800">My Plans</h1>
         </div>
-      </header>
-
-      {/* Tabs */}
-      <div className="bg-white border-b border-neutral-100 sticky top-[52px] z-40">
-        <div className="max-w-2xl mx-auto px-4 flex">
+        {/* Tabs */}
+        <div className="border-t border-neutral-100">
+          <div className="max-w-2xl mx-auto px-4 flex">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -136,7 +134,8 @@ export default function MyPlansPage() {
             </button>
           ))}
         </div>
-      </div>
+        </div>
+      </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6">
         {loading ? (

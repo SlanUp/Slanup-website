@@ -56,6 +56,11 @@
 
 
 
+html {
+  /* Ensure WebView extends into safe areas so we can control bg color */
+  background: var(--background);
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -66,12 +71,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
   /* Prevent pull-to-refresh and overscroll bounce on native */
   overscroll-behavior: none;
-  -webkit-user-select: none;
-  user-select: text;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Safe area padding for native status bar */
+/* Safe area padding for native status bar / notch */
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }

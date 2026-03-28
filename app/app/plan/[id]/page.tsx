@@ -533,7 +533,7 @@ export default function PlanDetailPage() {
         {/* Share button */}
       </div>
 
-      <main className="max-w-2xl mx-auto px-4 -mt-12 relative z-10 pb-24 md:pb-32">
+      <main className="max-w-2xl mx-auto px-4 -mt-12 relative z-10 pb-28 md:pb-32" style={{ paddingBottom: 'calc(7rem + env(safe-area-inset-bottom, 0px))' }}>
         {/* Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

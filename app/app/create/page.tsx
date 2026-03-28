@@ -170,7 +170,7 @@ export default function CreatePlanPage() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-4 md:py-6 pb-24 md:pb-32">
+      <main className="max-w-2xl mx-auto px-4 py-4 md:py-6" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Cover Image */}
           <div>
