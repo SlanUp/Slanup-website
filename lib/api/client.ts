@@ -157,6 +157,12 @@ export const api = {
   profileFlag: (userId: string, reason?: string) =>
     apiFetch(`/api/web/profile/${userId}/flag`, { method: 'POST', body: { reason } }),
 
+  // Push tokens
+  registerPushToken: (token: string, platform: string) =>
+    apiFetch('/api/web/push-token', { method: 'POST', body: { token, platform } }),
+  deletePushToken: (token?: string) =>
+    apiFetch('/api/web/push-token', { method: 'DELETE', body: token ? { token } : undefined }),
+
   // Notifications
   getNotifications: () => apiFetch('/api/web/notifications'),
 
