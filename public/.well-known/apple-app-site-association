@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["BSV5Z75H2P.com.slanup.app"],
+        "paths": ["/app/verify*"]
+      }
+    ]
+  }
+}

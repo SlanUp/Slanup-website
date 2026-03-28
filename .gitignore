@@ -41,9 +41,12 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 
-# Capacitor native builds
-/ios
-/android
+# Capacitor native build artifacts (keep config, ignore build output)
+/ios/App/build
+/ios/App/Pods
+/android/.gradle
+/android/app/build
+/android/build
 /out
 
 # Firebase config (contains API keys)

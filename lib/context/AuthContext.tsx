@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { getStoredUser, getStoredToken, storeAuth, clearAuth, api } from "@/lib/api/client";
+import { isNative } from "@/lib/native/push";
+import { initDeepLinks } from "@/lib/native/deepLinks";
 
 type User = Record<string, unknown> | null;
 
@@ -12,7 +14,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isNewUser: boolean;
   login: (accessToken: string, refreshToken: string, user: Record<string, unknown>, isNew: boolean) => void;
-  logout: () => void;
+  logout: () => void | Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -36,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initPushNotifications();
       }).catch(() => {});
     }
+    // Initialize deep link handling for magic link auth on native
+    initDeepLinks();
     setIsLoading(false);
   }, []);
 
@@ -46,7 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsNewUser(isNew);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Deregister push token on native platforms before clearing auth
+    if (isNative) {
+      try {
+        await api.deletePushToken();
+      } catch { /* best-effort */ }
+    }
     clearAuth();
     setToken(null);
     setUser(null);

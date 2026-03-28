@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Slanup</string>
+    <string name="title_activity_main">Slanup</string>
+    <string name="package_name">com.slanup.app</string>
+    <string name="custom_url_scheme">com.slanup.app</string>
+</resources>
