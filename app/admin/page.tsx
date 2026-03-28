@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   const [digestLoading, setDigestLoading] = useState(false);
   const [digestSending, setDigestSending] = useState(false);
   const [digestResult, setDigestResult] = useState<string | null>(null);
+  const [includeOptedOut, setIncludeOptedOut] = useState(false);
   // Waitlist
   const [waitlistEntries, setWaitlistEntries] = useState<AnyObj[]>([]);
   const [waitlistStats, setWaitlistStats] = useState<AnyObj | null>(null);
@@ -137,13 +138,14 @@ export default function AdminDashboard() {
     if (tab === "plans") fetchAllPlans();
     if (tab === "digest") fetchDigestPreview();
     if (tab === "waitlist") fetchWaitlist();
-  }, [tab, fetchAllPlans]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, fetchAllPlans, includeOptedOut]);
 
   const fetchDigestPreview = async () => {
     setDigestLoading(true);
     setDigestResult(null);
     try {
-      const res = (await api.getDigestPreview()) as { data: AnyObj };
+      const res = (await api.getDigestPreview(includeOptedOut)) as { data: AnyObj };
       setDigestPreview(res.data);
     } catch {
       setDigestPreview(null);
@@ -153,11 +155,14 @@ export default function AdminDashboard() {
   };
 
   const handleSendDigest = async () => {
-    if (!confirm('Send digest emails to all matched subscribers? This cannot be undone.')) return;
+    const msg = includeOptedOut
+      ? 'Send digest to ALL matched users INCLUDING those who opted out? This cannot be undone.'
+      : 'Send digest emails to all matched subscribers? This cannot be undone.';
+    if (!confirm(msg)) return;
     setDigestSending(true);
     setDigestResult(null);
     try {
-      const res = (await api.sendDigest()) as { message: string; sent: number; plansIncluded: number };
+      const res = (await api.sendDigest(includeOptedOut)) as { message: string; sent: number; plansIncluded: number };
       setDigestResult(`✅ ${res.message}`);
       setDigestPreview(null);
       fetchDigestPreview();
@@ -673,6 +678,16 @@ export default function AdminDashboard() {
               </button>
             </div>
 
+            <label className="flex items-center gap-2 bg-white border border-neutral-200 rounded-lg px-3 py-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeOptedOut}
+                onChange={(e) => { setIncludeOptedOut(e.target.checked); }}
+                className="accent-[#636B50]"
+              />
+              <span className="text-sm text-neutral-700">Include users who opted out of digest</span>
+            </label>
+
             {digestResult && (
               <div className="p-3 rounded-lg bg-white border border-neutral-200 text-sm text-neutral-700">
                 {digestResult}
@@ -740,6 +755,7 @@ export default function AdminDashboard() {
                           <div>
                             <span className="text-sm text-neutral-800">{s.name}</span>
                             <span className="text-xs text-neutral-400 ml-2">{s.email}</span>
+                            {s.optedOut && <span className="text-[10px] ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full font-medium">opted out</span>}
                           </div>
                           <div className="text-xs text-neutral-500">
                             {s.planCount} plan{s.planCount !== 1 ? 's' : ''} · {s.cities?.join(', ')}
