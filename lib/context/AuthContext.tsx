@@ -3,7 +3,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { getStoredUser, getStoredToken, storeAuth, clearAuth, api } from "@/lib/api/client";
 import { isNative } from "@/lib/native/push";
-import { initDeepLinks } from "@/lib/native/deepLinks";
 
 type User = Record<string, unknown> | null;
 
@@ -38,8 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initPushNotifications();
       }).catch(() => {});
     }
-    // Initialize deep link handling for magic link auth on native
-    initDeepLinks();
     setIsLoading(false);
   }, []);
 

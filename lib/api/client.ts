@@ -98,6 +98,11 @@ export const api = {
       '/api/auth/magic-link/verify', { method: 'POST', body: { token }, noAuth: true }
     ),
 
+  verifyOtp: (email: string, code: string) =>
+    apiFetch<{ success: boolean; data: { user: Record<string, unknown>; accessToken: string; refreshToken: string; isNewUser: boolean } }>(
+      '/api/auth/magic-link/verify', { method: 'POST', body: { email, code }, noAuth: true }
+    ),
+
   // Profile
   getMe: () => apiFetch<{ success: boolean; data: { user: Record<string, unknown> } }>('/api/web/me'),
   updateProfile: (data: Record<string, unknown>) =>
