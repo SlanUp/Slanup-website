@@ -94,7 +94,7 @@ body {
 
 /* Extra bottom spacing only inside native Capacitor app */
 html.plt-capacitor .native-bottom-lift {
-  padding-bottom: 1rem;
+  padding-bottom: 2.5rem;
 }
 
 .marquee-row:hover .marquee-content {
