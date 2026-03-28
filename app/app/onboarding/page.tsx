@@ -12,7 +12,7 @@ import ImageCropper from "@/components/ImageCropper";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, isLoggedIn, isLoading, refreshUser } = useAuth();
+  const { user, isLoggedIn, isLoading, refreshUser, logout } = useAuth();
   const [name, setName] = useState("");
   const [about, setAbout] = useState("");
   const [instagram, setInstagram] = useState("");
@@ -29,6 +29,8 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+
+  const isFormComplete = !!(profileImage && name.trim() && phone.trim().length === 10 && instagram.trim() && gender && dob && city);
 
   if (!isLoading && !isLoggedIn) {
     router.replace("/app");
@@ -103,8 +105,8 @@ export default function OnboardingPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save profile";
       if (msg.toLowerCase().includes('token') || msg.toLowerCase().includes('unauthorized') || msg.toLowerCase().includes('401')) {
-        setError("Your login session has expired. Redirecting you to sign in again...");
-        setTimeout(() => router.replace("/app"), 2000);
+        setError("Your login link has expired — please sign in again.");
+        setTimeout(() => { logout(); router.replace("/app"); }, 2500);
       } else {
         setError(msg);
       }
@@ -344,7 +346,7 @@ export default function OnboardingPage() {
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !isFormComplete}
               className="w-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-4 rounded-2xl text-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {saving ? (
