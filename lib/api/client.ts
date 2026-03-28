@@ -256,4 +256,10 @@ export const api = {
     apiFetch(`/api/web/admin/concerns${status ? `?status=${status}` : ''}`),
   updateConcern: (id: string, status: string) =>
     apiFetch(`/api/web/admin/concerns/${id}`, { method: 'PUT', body: { status } }),
+
+  // Incomplete onboarding
+  getIncompleteOnboarding: () =>
+    apiFetch('/api/web/admin/incomplete-onboarding'),
+  sendOnboardingReminder: (userIds?: string[]) =>
+    apiFetch('/api/web/admin/incomplete-onboarding/remind', { method: 'POST', body: userIds ? { userIds } : {} }),
 };

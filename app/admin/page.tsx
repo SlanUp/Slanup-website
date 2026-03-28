@@ -60,6 +60,11 @@ export default function AdminDashboard() {
   const [digestSending, setDigestSending] = useState(false);
   const [digestResult, setDigestResult] = useState<string | null>(null);
   const [includeOptedOut, setIncludeOptedOut] = useState(false);
+  // Incomplete onboarding
+  const [incompleteUsers, setIncompleteUsers] = useState<AnyObj[]>([]);
+  const [incompleteLoading, setIncompleteLoading] = useState(false);
+  const [reminderSending, setReminderSending] = useState(false);
+  const [reminderResult, setReminderResult] = useState<string | null>(null);
   // Waitlist
   const [waitlistEntries, setWaitlistEntries] = useState<AnyObj[]>([]);
   const [waitlistStats, setWaitlistStats] = useState<AnyObj | null>(null);
@@ -118,6 +123,14 @@ export default function AdminDashboard() {
       const timer = setTimeout(() => {
         fetchUsers(userPage, userSearch || undefined);
       }, 300);
+      // Fetch incomplete onboarding users
+      if (!incompleteUsers.length && !incompleteLoading) {
+        setIncompleteLoading(true);
+        api.getIncompleteOnboarding().then((res: unknown) => {
+          const data = res as AnyObj;
+          setIncompleteUsers(data.data?.users || []);
+        }).catch(() => {}).finally(() => setIncompleteLoading(false));
+      }
       return () => clearTimeout(timer);
     }
     if (tab === "flagged") {
@@ -585,6 +598,59 @@ export default function AdminDashboard() {
           </div>
         ) : tab === "users" ? (
           <div className="space-y-4">
+            {/* Incomplete Onboarding */}
+            {incompleteUsers.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-amber-600" />
+                    <h3 className="text-sm font-semibold text-neutral-800">
+                      Incomplete Onboarding
+                      <span className="ml-1.5 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full">{incompleteUsers.length}</span>
+                    </h3>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const unsent = incompleteUsers.filter(u => !u.reminderSent);
+                      if (unsent.length === 0) { alert('All reminders already sent!'); return; }
+                      if (!confirm(`Send reminder to ${unsent.length} user${unsent.length !== 1 ? 's' : ''} who haven't completed onboarding?`)) return;
+                      setReminderSending(true);
+                      setReminderResult(null);
+                      try {
+                        const res = await api.sendOnboardingReminder(unsent.map(u => u._id)) as AnyObj;
+                        setReminderResult(`✅ ${res.message}`);
+                        setIncompleteUsers(prev => prev.map(u => ({ ...u, reminderSent: true, reminderSentAt: new Date().toISOString() })));
+                      } catch {
+                        setReminderResult('❌ Failed to send reminders');
+                      } finally {
+                        setReminderSending(false);
+                      }
+                    }}
+                    disabled={reminderSending}
+                    className="text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {reminderSending ? 'Sending...' : 'Send Reminder to All'}
+                  </button>
+                </div>
+                {reminderResult && (
+                  <p className="text-xs text-neutral-600 mb-2 bg-neutral-50 px-3 py-2 rounded-lg">{reminderResult}</p>
+                )}
+                <div className="divide-y divide-neutral-100 max-h-48 overflow-auto">
+                  {incompleteUsers.map((u) => (
+                    <div key={u._id} className="flex items-center justify-between py-2">
+                      <div>
+                        <span className="text-sm text-neutral-700">{u.email}</span>
+                        <span className="text-xs text-neutral-400 ml-2">signed up {new Date(u.signedUpAt).toLocaleDateString()}</span>
+                      </div>
+                      {u.reminderSent && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">reminded</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
