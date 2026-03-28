@@ -45,3 +45,7 @@ next-env.d.ts
 /ios
 /android
 /out
+
+# Firebase config (contains API keys)
+google-services.json
+GoogleService-Info.plist
