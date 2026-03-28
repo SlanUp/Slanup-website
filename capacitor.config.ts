@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'out',
   backgroundColor: '#FFFFFF',
   server: {
-    url: 'https://www.slanup.com',
+    url: 'https://www.slanup.com/app',
     cleartext: false,
   },
   plugins: {
