@@ -50,6 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(accessToken);
     setUser(userData);
     setIsNewUser(isNew);
+    // Register push notifications after fresh login
+    import('@/lib/native/push').then(({ initPushNotifications }) => {
+      initPushNotifications();
+    }).catch(() => {});
   };
 
   const logout = async () => {
