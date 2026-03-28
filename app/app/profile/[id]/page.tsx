@@ -600,7 +600,7 @@ export default function ProfilePage() {
             className="mt-4 mb-6"
           >
             <a
-              href="mailto:hey@slanup.com?subject=Slanup Feedback"
+              href="mailto:hello@slanup.com?subject=Slanup Feedback"
               className="flex items-center gap-3 bg-white rounded-2xl shadow-lg p-4 hover:bg-neutral-50 transition-colors"
             >
               <div className="w-10 h-10 bg-[var(--brand-green)]/10 rounded-xl flex items-center justify-center flex-shrink-0">
