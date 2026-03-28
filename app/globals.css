@@ -61,6 +61,12 @@ html, body {
   padding: 0;
   background: #ffffff;
   height: 100%;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {
