@@ -318,7 +318,7 @@ export default function FeedPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <header className="bg-white sticky top-0 z-50 shadow-sm">
+      <header className="bg-white sticky top-0 z-50 shadow-sm safe-top">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/app/feed" className="flex items-end hover:opacity-80 transition-opacity">
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight text-neutral-800">slanup</span>

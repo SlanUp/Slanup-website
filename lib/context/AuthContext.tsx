@@ -26,6 +26,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isNewUser, setIsNewUser] = useState(false);
 
   useEffect(() => {
+    // Initialize native UI (status bar) immediately
+    import('@/lib/native/push').then(({ initNativeUI }) => {
+      initNativeUI();
+    }).catch(() => {});
+
     const storedToken = getStoredToken();
     const storedUser = getStoredUser();
     if (storedToken && storedUser) {

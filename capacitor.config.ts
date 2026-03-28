@@ -19,13 +19,15 @@ const config: CapacitorConfig = {
       showSpinner: false,
     },
     StatusBar: {
-      style: 'LIGHT',
+      overlaysWebView: false,
+      style: 'DARK',
       backgroundColor: '#FFFFFF',
     },
   },
   ios: {
     scheme: 'Slanup',
     contentInset: 'automatic',
+    preferredContentMode: 'mobile',
   },
   android: {
     backgroundColor: '#FFFFFF',

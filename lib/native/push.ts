@@ -1,9 +1,23 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { apiFetch } from '@/lib/api/client';
 
 // Check if running in a native Capacitor app
 export const isNative = Capacitor.isNativePlatform();
+
+export async function initNativeUI() {
+  if (!isNative) return;
+
+  try {
+    await StatusBar.setStyle({ style: Style.Light });
+    if (Capacitor.getPlatform() === 'android') {
+      await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
+    }
+  } catch {
+    // StatusBar may not be available on all platforms
+  }
+}
 
 export async function initPushNotifications() {
   if (!isNative) return;

@@ -64,6 +64,20 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent pull-to-refresh and overscroll bounce on native */
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: text;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area padding for native status bar */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .marquee-row:hover .marquee-content {
