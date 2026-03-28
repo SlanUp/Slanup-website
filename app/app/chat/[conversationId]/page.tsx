@@ -839,7 +839,7 @@ export default function ChatPage() {
       </AnimatePresence>
 
       {/* Input */}
-      <div className="bg-white border-t border-neutral-100 flex-shrink-0">
+      <div className="bg-white border-t border-neutral-100 flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <div className="max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-3 flex items-center gap-2 md:gap-3">
           <input
             ref={inputRef}
@@ -862,8 +862,6 @@ export default function ChatPage() {
             <Send className="w-5 h-5" />
           </button>
         </div>
-        {/* Bottom spacer for native app — taller than safe area to lift input above home bar */}
-        <div className="h-4 md:h-0" />
       </div>
     </div>
   );
