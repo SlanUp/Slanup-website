@@ -27,7 +27,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     scheme: 'Slanup',
-    contentInset: 'automatic',
+    contentInset: 'never',
     preferredContentMode: 'mobile',
   },
   android: {

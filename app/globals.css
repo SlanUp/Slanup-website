@@ -56,22 +56,25 @@
 
 
 
-html {
-  /* Ensure WebView extends into safe areas so we can control bg color */
-  background: var(--background);
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  height: 100%;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent pull-to-refresh and overscroll bounce on native */
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Eliminate any gap between status bar and content */
+#__next {
+  min-height: 100%;
 }
 
 /* Safe area padding for native status bar / notch */
