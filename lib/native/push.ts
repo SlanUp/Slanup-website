@@ -31,16 +31,18 @@ export async function initPushNotifications() {
     return;
   }
 
-  await PushNotifications.register();
+  // Remove any existing listeners to avoid duplicates
+  await PushNotifications.removeAllListeners();
 
-  // Token received — send to backend
+  // Set up listeners BEFORE registering so we don't miss the token event
   PushNotifications.addListener('registration', async (token) => {
-    console.log('[Push] Token:', token.value);
+    console.log('[Push] Token received:', token.value.substring(0, 20) + '...');
     try {
       await apiFetch('/api/web/push-token', {
         method: 'POST',
         body: { token: token.value, platform: Capacitor.getPlatform() },
       });
+      console.log('[Push] Token registered with backend');
     } catch (err) {
       console.error('[Push] Failed to register token:', err);
     }
@@ -64,4 +66,7 @@ export async function initPushNotifications() {
       window.location.href = `/app/plan/${data.planId}`;
     }
   });
+
+  // Now register — this triggers the 'registration' event above
+  await PushNotifications.register();
 }
