@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { apiFetch } from '@/lib/api/client';
 
@@ -32,49 +33,50 @@ export async function initPushNotifications() {
       return;
     }
 
-    // Remove any existing listeners to avoid duplicates
-    await PushNotifications.removeAllListeners();
+    // Get the FCM token (works on both iOS and Android)
+    const { token } = await FirebaseMessaging.getToken();
+    console.log('[Push] FCM token received');
 
-    // Set up listeners BEFORE registering so we don't miss the token event
-    PushNotifications.addListener('registration', async (token) => {
-      console.log('[Push] Token received');
+    try {
+      await apiFetch('/api/web/push-token', {
+        method: 'POST',
+        body: { token, platform: Capacitor.getPlatform() },
+      });
+      console.log('[Push] Token registered with backend');
+    } catch (err) {
+      console.error('[Push] Failed to register token:', err);
+    }
+
+    // Listen for token refresh
+    await FirebaseMessaging.removeAllListeners();
+
+    FirebaseMessaging.addListener('tokenReceived', async (event) => {
+      console.log('[Push] Token refreshed');
       try {
         await apiFetch('/api/web/push-token', {
           method: 'POST',
-          body: { token: token.value, platform: Capacitor.getPlatform() },
+          body: { token: event.token, platform: Capacitor.getPlatform() },
         });
-        console.log('[Push] Token registered with backend');
       } catch (err) {
-        console.error('[Push] Failed to register token:', err);
+        console.error('[Push] Failed to register refreshed token:', err);
       }
     });
 
-    PushNotifications.addListener('registrationError', (error) => {
-      console.error('[Push] Registration error:', JSON.stringify(error));
-      // Show visible error for debugging
-      alert('[Push Debug] Registration failed: ' + JSON.stringify(error));
-    });
-
     // Notification received while app is in foreground
-    PushNotifications.addListener('pushNotificationReceived', (notification) => {
-      console.log('[Push] Received in foreground:', notification);
+    FirebaseMessaging.addListener('notificationReceived', (event) => {
+      console.log('[Push] Received in foreground:', event);
     });
 
     // User tapped on a notification
-    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-      const data = action.notification.data;
+    FirebaseMessaging.addListener('notificationActionPerformed', (event) => {
+      const data = event.notification?.data as Record<string, string> | undefined;
       if (data?.url) {
         window.location.href = data.url;
       } else if (data?.planId) {
         window.location.href = `/app/plan/${data.planId}`;
       }
     });
-
-    // Now register — this triggers the 'registration' event above
-    await PushNotifications.register();
   } catch (err) {
     console.error('[Push] Init error:', err);
-    // Show visible error for debugging
-    alert('[Push Debug] Init error: ' + (err instanceof Error ? err.message : String(err)));
   }
 }
