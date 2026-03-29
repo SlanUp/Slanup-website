@@ -25,48 +25,56 @@ export async function initNativeUI() {
 export async function initPushNotifications() {
   if (!isNative) return;
 
-  const permResult = await PushNotifications.requestPermissions();
-  if (permResult.receive !== 'granted') {
-    console.log('[Push] Permission not granted');
-    return;
+  try {
+    const permResult = await PushNotifications.requestPermissions();
+    if (permResult.receive !== 'granted') {
+      console.log('[Push] Permission not granted:', permResult.receive);
+      return;
+    }
+
+    // Remove any existing listeners to avoid duplicates
+    await PushNotifications.removeAllListeners();
+
+    // Set up listeners BEFORE registering so we don't miss the token event
+    PushNotifications.addListener('registration', async (token) => {
+      console.log('[Push] Token received');
+      try {
+        await apiFetch('/api/web/push-token', {
+          method: 'POST',
+          body: { token: token.value, platform: Capacitor.getPlatform() },
+        });
+        console.log('[Push] Token registered with backend');
+      } catch (err) {
+        console.error('[Push] Failed to register token:', err);
+      }
+    });
+
+    PushNotifications.addListener('registrationError', (error) => {
+      console.error('[Push] Registration error:', JSON.stringify(error));
+      // Show visible error for debugging
+      alert('[Push Debug] Registration failed: ' + JSON.stringify(error));
+    });
+
+    // Notification received while app is in foreground
+    PushNotifications.addListener('pushNotificationReceived', (notification) => {
+      console.log('[Push] Received in foreground:', notification);
+    });
+
+    // User tapped on a notification
+    PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+      const data = action.notification.data;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else if (data?.planId) {
+        window.location.href = `/app/plan/${data.planId}`;
+      }
+    });
+
+    // Now register — this triggers the 'registration' event above
+    await PushNotifications.register();
+  } catch (err) {
+    console.error('[Push] Init error:', err);
+    // Show visible error for debugging
+    alert('[Push Debug] Init error: ' + (err instanceof Error ? err.message : String(err)));
   }
-
-  // Remove any existing listeners to avoid duplicates
-  await PushNotifications.removeAllListeners();
-
-  // Set up listeners BEFORE registering so we don't miss the token event
-  PushNotifications.addListener('registration', async (token) => {
-    console.log('[Push] Token received:', token.value.substring(0, 20) + '...');
-    try {
-      await apiFetch('/api/web/push-token', {
-        method: 'POST',
-        body: { token: token.value, platform: Capacitor.getPlatform() },
-      });
-      console.log('[Push] Token registered with backend');
-    } catch (err) {
-      console.error('[Push] Failed to register token:', err);
-    }
-  });
-
-  PushNotifications.addListener('registrationError', (error) => {
-    console.error('[Push] Registration error:', error);
-  });
-
-  // Notification received while app is in foreground
-  PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    console.log('[Push] Received in foreground:', notification);
-  });
-
-  // User tapped on a notification
-  PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
-    const data = action.notification.data;
-    if (data?.url) {
-      window.location.href = data.url;
-    } else if (data?.planId) {
-      window.location.href = `/app/plan/${data.planId}`;
-    }
-  });
-
-  // Now register — this triggers the 'registration' event above
-  await PushNotifications.register();
 }
