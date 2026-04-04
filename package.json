@@ -12,7 +12,6 @@
     "generate-test-qr": "node scripts/generate-test-qr.js"
   },
   "dependencies": {
-    "@capacitor-firebase/messaging": "^8.1.0",
     "@capacitor/android": "^8.3.0",
     "@capacitor/app": "^8.1.0",
     "@capacitor/cli": "^8.3.0",
@@ -31,7 +30,6 @@
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "firebase": "^12.11.0",
     "framer-motion": "^12.23.22",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.544.0",
