@@ -78,6 +78,20 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Disable long-press context menu on native app */
+html.capacitor-native * {
+  -webkit-touch-callout: none;
+}
+
+/* Allow text selection only in input fields and text areas */
+html.capacitor-native input,
+html.capacitor-native textarea,
+html.capacitor-native [contenteditable] {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* Eliminate any gap between status bar and content */
 #__next {
   min-height: 100%;

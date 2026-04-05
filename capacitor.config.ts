@@ -29,6 +29,8 @@ const config: CapacitorConfig = {
     scheme: 'Slanup',
     contentInset: 'never',
     preferredContentMode: 'mobile',
+    allowsLinkPreview: false,
+    scrollEnabled: true,
   },
   android: {
     backgroundColor: '#FFFFFF',

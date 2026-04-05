@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import WebKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -7,9 +8,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // White background eliminates black bar behind status bar
         window?.backgroundColor = .white
+
+        // Enable iOS back swipe gesture on the WebView
+        DispatchQueue.main.async {
+            if let rootVC = self.window?.rootViewController {
+                self.enableBackSwipe(on: rootVC.view)
+            }
+        }
+
         return true
+    }
+
+    private func enableBackSwipe(on view: UIView) {
+        for subview in view.subviews {
+            if let webView = subview as? WKWebView {
+                webView.allowsBackForwardNavigationGestures = true
+                return
+            }
+            enableBackSwipe(on: subview)
+        }
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
