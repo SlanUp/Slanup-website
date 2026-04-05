@@ -1,22 +1,26 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Mail, Shield, Wrench, Bug } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-neutral-950 to-black text-white">
       <div className="container mx-auto px-4 py-12 max-w-4xl">
+        {/* Back Link */}
+        <Link href="/" className="text-green-400 hover:text-green-300 transition-colors text-sm mb-8 inline-block">&larr; Back to Home</Link>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
+          <p className="text-green-400 font-semibold tracking-wide mb-2">slanup&apos;</p>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
           <p className="text-gray-400">Get in touch with Slanup</p>
-          <p className="text-gray-500 text-sm mt-2">We&apos;re here to help with events, platform support, and inquiries</p>
+          <p className="text-gray-500 text-sm mt-2">We&apos;re here to help with app support, safety concerns, and general inquiries</p>
         </motion.div>
 
         {/* Content */}
@@ -26,74 +30,62 @@ export default function ContactPage() {
           transition={{ delay: 0.2 }}
           className="space-y-8"
         >
-          
-          {/* Company Details */}
-          <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-green-400 mb-6">Company Information</h2>
-            <div className="space-y-4 text-gray-300">
-              <p><strong className="text-white">Business Name:</strong> Slanup</p>
-              <p><strong className="text-white">Legal Name:</strong> BINDU DUBEY</p>
-              <p><strong className="text-white">What We Do:</strong> Social Media Platform for Planning Activities with Nearby People</p>
-              <p><strong className="text-white">Services:</strong> Event discovery, activity planning, event ticketing, and community connections</p>
-              <p><strong className="text-white">Business Type:</strong> Technology Platform & Event Organizer</p>
-            </div>
-          </div>
 
           {/* Contact Methods */}
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Email */}
+            {/* General Inquiries */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-            className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-green-400/50 transition-all"
+              className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-green-400/50 transition-all"
             >
               <div className="flex items-start space-x-4">
                 <div className="bg-green-400/10 p-3 rounded-full">
                   <Mail className="w-6 h-6 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Email</h3>
-                  <a 
-                    href="mailto:hello@slanup.com" 
+                  <h3 className="text-xl font-semibold text-white mb-2">General Inquiries</h3>
+                  <a
+                    href="mailto:hello@slanup.com"
                     className="text-gray-300 hover:text-green-400 transition-colors"
                   >
                     hello@slanup.com
                   </a>
                   <p className="text-sm text-gray-500 mt-2">
-                    For bookings, refunds, platform support, and general inquiries
+                    For general questions, feedback, partnerships, and business inquiries
                   </p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Phone */}
+            {/* Safety Concerns */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
-            className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-green-400/50 transition-all"
+              className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-red-400/50 transition-all"
             >
               <div className="flex items-start space-x-4">
-                <div className="bg-green-400/10 p-3 rounded-full">
-                  <Phone className="w-6 h-6 text-green-400" />
+                <div className="bg-red-400/10 p-3 rounded-full">
+                  <Shield className="w-6 h-6 text-red-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Phone</h3>
-                  <a 
-                    href="tel:+917773861799" 
-                    className="text-gray-300 hover:text-green-400 transition-colors"
+                  <h3 className="text-xl font-semibold text-white mb-2">Safety Concerns</h3>
+                  <a
+                    href="mailto:hello@slanup.com?subject=Safety%20Report"
+                    className="text-gray-300 hover:text-red-400 transition-colors"
                   >
-                    +91 7773861799
+                    hello@slanup.com
                   </a>
                   <p className="text-sm text-gray-500 mt-2">
-                    Available Mon-Sat, 10 AM - 7 PM IST
+                    Subject: Safety Report — For reporting safety issues, harassment, or abuse. These are handled with highest priority.
                   </p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Address */}
+            {/* App Support */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -102,19 +94,24 @@ export default function ContactPage() {
             >
               <div className="flex items-start space-x-4">
                 <div className="bg-green-400/10 p-3 rounded-full">
-                  <MapPin className="w-6 h-6 text-green-400" />
+                  <Wrench className="w-6 h-6 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Location</h3>
-                  <p className="text-gray-300">
-                    Jabalpur, Madhya Pradesh<br />
-                    India
+                  <h3 className="text-xl font-semibold text-white mb-2">App Support</h3>
+                  <a
+                    href="mailto:hello@slanup.com"
+                    className="text-gray-300 hover:text-green-400 transition-colors"
+                  >
+                    hello@slanup.com
+                  </a>
+                  <p className="text-sm text-gray-500 mt-2">
+                    For help with your account, plans, chat, notifications, or any app features
                   </p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Response Time */}
+            {/* Bug Reports */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -123,87 +120,70 @@ export default function ContactPage() {
             >
               <div className="flex items-start space-x-4">
                 <div className="bg-green-400/10 p-3 rounded-full">
-                  <Clock className="w-6 h-6 text-green-400" />
+                  <Bug className="w-6 h-6 text-green-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Response Time</h3>
-                  <p className="text-gray-300">
-                    Within 24-48 hours
-                  </p>
+                  <h3 className="text-xl font-semibold text-white mb-2">Bug Reports</h3>
+                  <a
+                    href="mailto:hello@slanup.com?subject=Bug%20Report"
+                    className="text-gray-300 hover:text-green-400 transition-colors"
+                  >
+                    hello@slanup.com
+                  </a>
                   <p className="text-sm text-gray-500 mt-2">
-                    We respond to all inquiries promptly
+                    Subject: Bug Report — Found a bug? Let us know with details about what happened and your device info.
                   </p>
                 </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Support Topics */}
+          {/* Response Time */}
           <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-green-400 mb-6">How Can We Help?</h2>
+            <h2 className="text-2xl font-bold text-green-400 mb-6">Response Times</h2>
             <div className="grid md:grid-cols-2 gap-4 text-gray-300">
               <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">🎫 Booking Issues</h3>
-                <p className="text-sm">Trouble purchasing tickets or invite code issues</p>
+                <h3 className="text-white font-semibold mb-2">🚨 Safety Reports</h3>
+                <p className="text-sm">Reviewed within 24 hours — highest priority</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">💳 Payment Problems</h3>
-                <p className="text-sm">Payment failures, double charges, or refund requests</p>
+                <h3 className="text-white font-semibold mb-2">📱 App Support</h3>
+                <p className="text-sm">Response within 24-48 hours</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">📧 Ticket Not Received</h3>
-                <p className="text-sm">Didn&apos;t receive your QR code ticket via email</p>
+                <h3 className="text-white font-semibold mb-2">🐛 Bug Reports</h3>
+                <p className="text-sm">Acknowledged within 48 hours</p>
               </div>
               <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">❓ Event Information</h3>
-                <p className="text-sm">Questions about venue, timing, or event details</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">🔄 Cancellations</h3>
-                <p className="text-sm">Policy questions or cancellation requests</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">🕹️ Platform Support</h3>
-                <p className="text-sm">Help with using Slanup app or features</p>
-              </div>
-              <div className="bg-white/5 rounded-xl p-4">
-                <h3 className="text-white font-semibold mb-2">👥 Other Support</h3>
-                <p className="text-sm">Any other questions or concerns</p>
+                <h3 className="text-white font-semibold mb-2">💬 General Inquiries</h3>
+                <p className="text-sm">Response within 2-3 business days</p>
               </div>
             </div>
           </div>
 
           {/* CTA */}
           <div className="bg-gradient-to-r from-green-400 to-green-600 rounded-3xl p-8 text-center">
-            <h2 className="text-2xl font-bold text-black mb-4">Need Immediate Assistance?</h2>
+            <h2 className="text-2xl font-bold text-black mb-4">Need Help?</h2>
             <p className="text-black/80 mb-6">
-              We&apos;re here to help! Reach out via email or phone for quick support.
+              Whether it&apos;s a question about the app, a safety concern, or a bug you&apos;ve found — we&apos;re here for you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="mailto:hello@slanup.com"
-                className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-black/90 transition-all"
-              >
-                Send Email
-              </a>
-              <a
-                href="tel:+917773861799"
-                className="bg-white text-black px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all"
-              >
-                Call Us
-              </a>
-            </div>
+            <a
+              href="mailto:hello@slanup.com"
+              className="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-black/90 transition-all inline-block"
+            >
+              Send us an Email
+            </a>
           </div>
 
         </motion.div>
 
         {/* Footer */}
         <div className="text-center mt-12 text-gray-500 text-sm">
-          <p>© 2025 Slanup. All rights reserved.</p>
+          <p>&copy; 2026 Slanup. All rights reserved.</p>
           <div className="flex justify-center gap-6 mt-4">
             <Link href="/terms" className="hover:text-green-400 transition-colors">Terms & Conditions</Link>
             <Link href="/privacy-policy" className="hover:text-green-400 transition-colors">Privacy Policy</Link>
-            <Link href="/refund-policy" className="hover:text-green-400 transition-colors">Refund Policy</Link>
+            <Link href="/safety" className="hover:text-green-400 transition-colors">Safety Standards</Link>
           </div>
         </div>
       </div>

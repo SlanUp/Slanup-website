@@ -96,10 +96,16 @@ export default function Home() {
               Privacy Policy
             </Link>
             <Link
-              href="/refund-policy"
+              href="/safety"
               className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
             >
-              Refund Policy
+              Safety Standards
+            </Link>
+            <Link
+              href="/community-guidelines"
+              className="text-neutral-600 hover:text-[var(--brand-green)] transition-colors text-sm font-medium"
+            >
+              Community Guidelines
             </Link>
             <Link
               href="/contact"
@@ -108,8 +114,8 @@ export default function Home() {
               Contact Us
             </Link>
           </div>
-          <p className="text-neutral-500 text-xs text-center">© 2025 Slanup. All rights reserved.</p>
-          <p className="text-neutral-400 text-xs text-center mt-1">Social Media Platform for Planning Activities with Nearby People</p>
+          <p className="text-neutral-500 text-xs text-center">© 2026 Slanup. All rights reserved.</p>
+          <p className="text-neutral-400 text-xs text-center mt-1">Squad Your Plans Up — Connect with real people nearby.</p>
         </div>
       </footer>
 
