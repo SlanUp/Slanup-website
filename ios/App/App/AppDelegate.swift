@@ -13,19 +13,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Enable back swipe gesture once WebView is loaded
-        if let rootVC = window?.rootViewController {
-            enableBackSwipe(on: rootVC.view)
-        }
-    }
-
-    private func enableBackSwipe(on view: UIView) {
-        if let webView = view as? WKWebView {
-            webView.allowsBackForwardNavigationGestures = true
-            return
-        }
-        for subview in view.subviews {
-            enableBackSwipe(on: subview)
+        // Enable back swipe gesture on the Capacitor WebView
+        if let rootVC = window?.rootViewController as? CAPBridgeViewController {
+            rootVC.webView?.allowsBackForwardNavigationGestures = true
         }
     }
 
