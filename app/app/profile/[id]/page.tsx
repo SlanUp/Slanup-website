@@ -9,6 +9,7 @@ import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
 import ImageCropper from "@/components/ImageCropper";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
+import { hapticLight, hapticMedium, hapticWarning, hapticSelection } from "@/lib/native/haptics";
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -113,6 +114,7 @@ export default function ProfilePage() {
   }, [isOwnProfile, currentUser, profileId]);
 
   const handleProfileFeltSafe = async () => {
+    hapticMedium();
     setRatingLoading(true);
     try {
       if (hasRatedSafe) {
@@ -133,6 +135,7 @@ export default function ProfilePage() {
   };
 
   const handleProfileFlag = async () => {
+    hapticWarning();
     setRatingLoading(true);
     try {
       if (hasFlagged) {
@@ -159,6 +162,7 @@ export default function ProfilePage() {
   };
 
   const startEdit = () => {
+    hapticLight();
     setEditName(profile?.name || "");
     setEditBio(profile?.about || "");
     setEditInsta(profile?.instagramHandle || "");
@@ -233,7 +237,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center gap-4">
         <p className="text-neutral-500 text-lg">User not found</p>
-        <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="text-[var(--brand-green)] font-semibold hover:underline">← Go back</button>
+        <button onClick={() => { hapticLight(); if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="text-[var(--brand-green)] font-semibold hover:underline">← Go back</button>
       </div>
     );
   }
@@ -243,7 +247,7 @@ export default function ProfilePage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
+          <button onClick={() => { hapticLight(); if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <h1 className="text-lg font-bold text-neutral-800">Profile</h1>
@@ -520,7 +524,7 @@ export default function ProfilePage() {
               </div>
               <button
                 type="button"
-                onClick={() => setEmailDigest(!emailDigest)}
+                onClick={() => { hapticSelection(); setEmailDigest(!emailDigest); }}
                 className={`relative w-11 h-6 rounded-full transition-colors ${emailDigest ? 'bg-[var(--brand-green)]' : 'bg-neutral-300'}`}
               >
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${emailDigest ? 'translate-x-5' : ''}`} />

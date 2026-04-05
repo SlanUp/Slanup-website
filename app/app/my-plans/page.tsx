@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import { hapticLight, hapticSelection } from "@/lib/native/haptics";
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,7 +109,7 @@ export default function MyPlansPage() {
       {/* Header */}
       <header className="bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
+          <button onClick={() => { hapticLight(); if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <h1 className="text-lg font-bold text-neutral-800">My Plans</h1>
@@ -119,7 +120,7 @@ export default function MyPlansPage() {
           {tabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => { hapticSelection(); setActiveTab(tab.key); }}
               className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${
                 activeTab === tab.key ? "text-[var(--brand-green)]" : "text-neutral-400 hover:text-neutral-600"
               }`}

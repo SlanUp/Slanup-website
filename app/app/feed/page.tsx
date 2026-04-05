@@ -10,6 +10,7 @@ import { io, Socket } from "socket.io-client";
 import S3Image from "@/components/S3Image";
 import SharePlanCard from "@/components/SharePlanCard";
 import { ALL_CITIES, REGION_GROUP_NAMES, PLAN_TAGS } from "@/lib/config/cities";
+import { hapticLight, hapticSelection } from "@/lib/native/haptics";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://d2oulqfcyna7a4.cloudfront.net";
 
@@ -327,7 +328,7 @@ export default function FeedPage() {
           </Link>
 
           <div className="flex items-center gap-1">
-            <Link href="/app/chats" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors relative" title="Chats">
+            <Link href="/app/chats" onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors relative" title="Chats">
               <MessageCircle className="w-5 h-5 text-neutral-600" />
               {unreadChats > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
@@ -335,7 +336,7 @@ export default function FeedPage() {
                 </span>
               )}
             </Link>
-            <Link href="/app/notifications" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors relative" title="Notifications">
+            <Link href="/app/notifications" onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors relative" title="Notifications">
               <Bell className="w-5 h-5 text-neutral-600" />
               {unreadNotifs > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
@@ -343,10 +344,10 @@ export default function FeedPage() {
                 </span>
               )}
             </Link>
-            <Link href="/app/my-plans" className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="My Plans">
+            <Link href="/app/my-plans" onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="My Plans">
               <LayoutList className="w-5 h-5 text-neutral-600" />
             </Link>
-            <Link href={`/app/profile/${(user as Record<string, unknown>)?._id}`} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Profile">
+            <Link href={`/app/profile/${(user as Record<string, unknown>)?._id}`} onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Profile">
               <UserIcon className="w-5 h-5 text-neutral-600" />
             </Link>
             <button onClick={() => { logout(); router.replace("/app"); }} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Sign out">
@@ -373,7 +374,7 @@ export default function FeedPage() {
             />
           </div>
           <button
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={() => { hapticLight(); setShowFilters(!showFilters); }}
             className={`relative px-4 py-3 rounded-2xl border shadow-sm transition-colors flex items-center gap-1.5 ${
               showFilters || activeFilterCount > 0
                 ? 'bg-[var(--brand-green)] text-white border-[var(--brand-green)]'
@@ -489,7 +490,7 @@ export default function FeedPage() {
                         {filteredCities.map(c => (
                           <button
                             key={c}
-                            onClick={() => setCityFilter(cityFilter === c ? "" : c)}
+                            onClick={() => { hapticSelection(); setCityFilter(cityFilter === c ? "" : c); }}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                               cityFilter === c
                                 ? 'bg-[var(--brand-green)] text-white border-[var(--brand-green)]'
@@ -518,7 +519,7 @@ export default function FeedPage() {
                         {PLAN_TAGS.filter(t => tagFilters.includes(t)).map(tag => (
                           <button
                             key={tag}
-                            onClick={() => toggleTag(tag)}
+                            onClick={() => { hapticSelection(); toggleTag(tag); }}
                             className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border bg-[var(--brand-green)] text-white border-[var(--brand-green)]"
                           >
                             ✓ {tag}
@@ -528,7 +529,7 @@ export default function FeedPage() {
                         {PLAN_TAGS.filter(t => !tagFilters.includes(t)).map(tag => (
                           <button
                             key={tag}
-                            onClick={() => toggleTag(tag)}
+                            onClick={() => { hapticSelection(); toggleTag(tag); }}
                             className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors border bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"
                           >
                             {tag}
@@ -581,7 +582,7 @@ export default function FeedPage() {
       </main>
 
       {/* FAB */}
-      <Link href="/app/create">
+      <Link href="/app/create" onClick={() => hapticLight()}>
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}

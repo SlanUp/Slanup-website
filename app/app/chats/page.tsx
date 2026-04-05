@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import { hapticLight } from "@/lib/native/haptics";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyObj = Record<string, any>;
@@ -127,7 +128,7 @@ export default function ChatsPage() {
       {/* Header */}
       <header className="bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
+          <button onClick={() => { hapticLight(); if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <h1 className="text-lg font-bold text-neutral-800">Chats</h1>

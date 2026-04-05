@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import { PLAN_CITIES, PLAN_TAGS, REGION_GROUPS } from "@/lib/config/cities";
+import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/lib/native/haptics";
 
 
 export default function CreatePlanPage() {
@@ -73,8 +74,10 @@ export default function CreatePlanPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    hapticMedium();
 
     if (!name || !startDate || !startTime || !endDate || !endTime || !city) {
+      hapticError();
       alert("Please fill in all required fields.");
       return;
     }
@@ -83,11 +86,13 @@ export default function CreatePlanPage() {
     const end = new Date(`${endDate}T${endTime}`);
 
     if (end <= start) {
+      hapticError();
       alert("End date/time must be after the start date/time.");
       return;
     }
 
     if (start < new Date()) {
+      hapticError();
       alert("Start date/time cannot be in the past.");
       return;
     }
@@ -107,6 +112,7 @@ export default function CreatePlanPage() {
       });
 
       setSubmitted(true);
+      hapticSuccess();
     } catch {
       alert("Failed to create plan. Please try again.");
     } finally {
@@ -163,7 +169,7 @@ export default function CreatePlanPage() {
       {/* Header */}
       <header className="bg-white sticky top-0 z-50 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button onClick={() => { if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
+          <button onClick={() => { hapticLight(); if (window.history.length > 1) router.back(); else router.push('/app/feed'); }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <h1 className="text-lg font-bold text-neutral-800">Create a Plan</h1>

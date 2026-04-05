@@ -11,6 +11,7 @@ import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
 import SharePlanCard from "@/components/SharePlanCard";
 import { PLAN_CITIES, PLAN_TAGS, REGION_GROUPS } from "@/lib/config/cities";
+import { hapticLight, hapticMedium, hapticWarning, hapticSuccess } from "@/lib/native/haptics";
 
 
 function formatDate(d: string) {
@@ -217,6 +218,7 @@ export default function PlanDetailPage() {
     setRequesting(true);
     try {
       await api.requestJoin(planId, joinNote.trim() || undefined);
+      hapticSuccess();
       setHasRequested(true);
     } catch {
       alert("Could not send request. You may have already requested.");
@@ -518,6 +520,7 @@ export default function PlanDetailPage() {
 
         <button
           onClick={() => {
+            hapticLight();
             if (window.history.length > 1) {
               router.back();
             } else {
@@ -1054,7 +1057,7 @@ export default function PlanDetailPage() {
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">
             <button
-              onClick={() => setShowJoinModal(true)}
+              onClick={() => { hapticMedium(); setShowJoinModal(true); }}
               disabled={requesting || hasRequested}
               className={`flex-1 font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2 ${
                 hasRequested
@@ -1077,7 +1080,7 @@ export default function PlanDetailPage() {
           <div className="max-w-2xl mx-auto flex gap-3">
             {isParticipant && !isHost && !isPlanEnded && (
               <button
-                onClick={() => { setShowLeaveModal(true); setLeaveStep(userGender === 'female' ? 'reason' : null); }}
+                onClick={() => { hapticWarning(); setShowLeaveModal(true); setLeaveStep(userGender === 'female' ? 'reason' : null); }}
                 className="px-4 py-3 md:py-3.5 border-2 border-red-200 text-red-500 font-semibold rounded-2xl transition-colors hover:bg-red-50 flex items-center gap-2"
               >
                 <DoorOpen className="w-5 h-5" />
@@ -1085,6 +1088,7 @@ export default function PlanDetailPage() {
             )}
             <Link
               href={`/app/chat/${typeof plan.conversation_id === 'object' ? plan.conversation_id._id : plan.conversation_id}`}
+              onClick={() => hapticLight()}
               className="flex-1 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-5 h-5" />

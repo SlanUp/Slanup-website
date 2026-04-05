@@ -7,6 +7,7 @@ import { Mail, ArrowRight, CheckCircle, Loader2, ArrowLeft } from "lucide-react"
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
+import { hapticLight, hapticSuccess, hapticError, hapticSelection } from "@/lib/native/haptics";
 
 export default function AppLoginPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function AppLoginPage() {
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    hapticLight();
     setError("");
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -55,6 +57,7 @@ export default function AppLoginPage() {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
+    if (value) hapticSelection();
     setOtp(newOtp);
 
     // Auto-advance to next input
@@ -100,6 +103,7 @@ export default function AppLoginPage() {
       const res = await api.verifyOtp(email, code);
       const { user, accessToken, refreshToken, isNewUser: isNew } = res.data;
       login(accessToken, refreshToken, user, isNew);
+      hapticSuccess();
       setStep("success");
       setTimeout(() => {
         if (isNew) {
@@ -109,6 +113,7 @@ export default function AppLoginPage() {
         }
       }, 1500);
     } catch (err: unknown) {
+      hapticError();
       setError(err instanceof Error ? err.message : "Invalid code. Please try again.");
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
@@ -118,6 +123,7 @@ export default function AppLoginPage() {
   };
 
   const handleResend = async () => {
+    hapticLight();
     setError("");
     setSending(true);
     try {

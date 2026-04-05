@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { api, imageUrl } from "@/lib/api/client";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
 import ImageCropper from "@/components/ImageCropper";
+import { hapticMedium, hapticSuccess } from "@/lib/native/haptics";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -71,6 +72,7 @@ export default function OnboardingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    hapticMedium();
     setError("");
     const errs: Record<string, string> = {};
 
@@ -101,6 +103,7 @@ export default function OnboardingPage() {
         ...(profileImage && !profileImage.startsWith('data:') && { image: profileImage }),
       });
       await refreshUser();
+      hapticSuccess();
       router.replace("/app/feed");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save profile";

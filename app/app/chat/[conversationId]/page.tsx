@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
 import { io, Socket } from "socket.io-client";
 import S3Image from "@/components/S3Image";
+import { hapticLight } from "@/lib/native/haptics";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://d2oulqfcyna7a4.cloudfront.net";
 
@@ -358,6 +359,7 @@ export default function ChatPage() {
 
   const handleSend = () => {
     if (!text.trim() || !socketRef.current) return;
+    hapticLight();
 
     socketRef.current.emit("sendMessage", {
       conversationId,
@@ -394,6 +396,7 @@ export default function ChatPage() {
 
   const handleReact = (messageId: string, emoji: string) => {
     if (!socketRef.current) return;
+    hapticLight();
     socketRef.current.emit("reactToMessage", { messageId, emoji });
     // Optimistic toggle
     setMessages((prev) =>
@@ -410,6 +413,7 @@ export default function ChatPage() {
   };
 
   const handleReply = (msg: AnyObj) => {
+    hapticLight();
     setReplyTo(msg);
     setActiveReactionMsg(null);
     inputRef.current?.focus();
@@ -533,7 +537,7 @@ export default function ChatPage() {
       {/* Header */}
       <header className="bg-white shadow-sm z-10 flex-shrink-0">
         <div className="max-w-2xl mx-auto px-4 py-2 md:py-3 flex items-center gap-3">
-          <button onClick={() => { if (window.history.length > 1) { router.back(); } else { router.push('/app/feed'); } }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
+          <button onClick={() => { hapticLight(); if (window.history.length > 1) { router.back(); } else { router.push('/app/feed'); } }} className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors">
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <div className="min-w-0 flex-1">
