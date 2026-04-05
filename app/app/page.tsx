@@ -54,19 +54,37 @@ export default function AppLoginPage() {
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    const digits = value.replace(/\D/g, '');
+    if (!digits) return;
+
+    // iOS autofill may paste the full code into one input
+    if (digits.length > 1) {
+      const newOtp = [...otp];
+      for (let i = 0; i < 6; i++) {
+        newOtp[i] = digits[i] || '';
+      }
+      hapticSelection();
+      setOtp(newOtp);
+      if (digits.length >= 6) {
+        handleVerify(digits.slice(0, 6));
+      } else {
+        inputRefs.current[digits.length]?.focus();
+      }
+      return;
+    }
+
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
-    if (value) hapticSelection();
+    newOtp[index] = digits;
+    hapticSelection();
     setOtp(newOtp);
 
     // Auto-advance to next input
-    if (value && index < 5) {
+    if (digits && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
     // Auto-submit when all 6 digits entered
-    if (value && index === 5) {
+    if (digits && index === 5) {
       const code = newOtp.join("");
       if (code.length === 6) {
         handleVerify(code);
@@ -254,7 +272,8 @@ export default function AppLoginPage() {
                       ref={(el) => { inputRefs.current[i] = el; }}
                       type="text"
                       inputMode="numeric"
-                      maxLength={1}
+                      maxLength={i === 0 ? 6 : 1}
+                      autoComplete={i === 0 ? "one-time-code" : "off"}
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(i, e)}
