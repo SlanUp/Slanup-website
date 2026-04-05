@@ -13,6 +13,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
+        // Enable back swipe gesture on the Capacitor WebView
+        if let rootVC = window?.rootViewController as? CAPBridgeViewController {
+            rootVC.webView?.allowsBackForwardNavigationGestures = true
+        }
     }
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {

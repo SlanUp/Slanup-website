@@ -19,6 +19,26 @@ export async function initNativeUI() {
   } catch {
     // StatusBar may not be available on all platforms
   }
+
+  // Fix back swipe + Next.js RSC conflict:
+  // When WebView navigates back via gesture, the RSC payload fetch can fail.
+  // Listen for popstate and force a clean page load if the URL changed.
+  let lastUrl = window.location.href;
+  window.addEventListener('popstate', () => {
+    const currentUrl = window.location.href;
+    if (currentUrl !== lastUrl) {
+      lastUrl = currentUrl;
+      // Small delay to let Next.js try first, reload if it fails
+      setTimeout(() => {
+        const pathname = window.location.pathname;
+        // Check if the page actually rendered (Next.js sets __next)
+        const nextRoot = document.getElementById('__next');
+        if (!nextRoot || nextRoot.childElementCount === 0) {
+          window.location.reload();
+        }
+      }, 500);
+    }
+  });
 }
 
 export async function initPushNotifications() {
