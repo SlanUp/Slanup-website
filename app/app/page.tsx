@@ -138,7 +138,7 @@ export default function AppLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-[100dvh] bg-white flex flex-col">
       {/* Header */}
       <header className="py-4 px-6 md:px-10 flex justify-between items-center w-full bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
         <Link href="/" className="flex items-end hover:opacity-80 transition-opacity">
@@ -152,7 +152,7 @@ export default function AppLoginPage() {
       </header>
 
       {/* Main */}
-      <main className="flex-grow flex items-center justify-center px-4 py-12">
+      <main className="flex-grow flex flex-col justify-start pt-16 md:justify-center md:pt-0 px-4 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -189,6 +189,7 @@ export default function AppLoginPage() {
                       className="w-full px-5 py-4 bg-neutral-50 border border-neutral-200 rounded-2xl text-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent transition-all"
                       autoFocus
                       disabled={sending}
+                      onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
                     />
                   </div>
 
