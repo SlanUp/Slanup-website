@@ -9,23 +9,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         window?.backgroundColor = .white
-
-        // Enable iOS back swipe gesture on the WebView
-        DispatchQueue.main.async {
-            if let rootVC = self.window?.rootViewController {
-                self.enableBackSwipe(on: rootVC.view)
-            }
-        }
-
         return true
     }
 
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // Enable back swipe gesture once WebView is loaded
+        if let rootVC = window?.rootViewController {
+            enableBackSwipe(on: rootVC.view)
+        }
+    }
+
     private func enableBackSwipe(on view: UIView) {
+        if let webView = view as? WKWebView {
+            webView.allowsBackForwardNavigationGestures = true
+            return
+        }
         for subview in view.subviews {
-            if let webView = subview as? WKWebView {
-                webView.allowsBackForwardNavigationGestures = true
-                return
-            }
             enableBackSwipe(on: subview)
         }
     }
