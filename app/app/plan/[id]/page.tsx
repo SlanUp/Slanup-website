@@ -174,8 +174,8 @@ export default function PlanDetailPage() {
 
   const userId = (user as AnyObj)?._id;
   const userGender = (user as AnyObj)?.gender;
-  const isHost = plan?.host_id?._id === userId || (!plan?.host_id && plan?.creator_id?._id === userId);
-  const isParticipant = plan?.participants?.some((p: AnyObj) => p._id === userId);
+  const isHost = !!userId && (plan?.host_id?._id === userId || (!plan?.host_id && plan?.creator_id?._id === userId));
+  const isParticipant = !!userId && plan?.participants?.some((p: AnyObj) => p._id === userId);
   const slotsLeft = plan ? plan.max_people - (plan.participants?.length || 0) : 0;
   const isPlanEnded = plan ? new Date(plan.end) < new Date() : false;
   const pendingTransfer = plan?.hostTransferRequest;
@@ -1040,14 +1040,14 @@ export default function PlanDetailPage() {
       </main>
 
       {/* Bottom Action Bar */}
-      {!isLoggedIn && slotsLeft > 0 && new Date(plan.end) > new Date() && (
+      {!isLoggedIn && (new Date(plan.end) > new Date()) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">
             <Link
               href="/app"
               className="flex-1 font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white"
             >
-              <LogIn className="w-5 h-5" /> Log in to Request
+              <LogIn className="w-5 h-5" /> {slotsLeft > 0 ? 'Log in to Request' : 'Log in to View'}
             </Link>
           </div>
         </div>
