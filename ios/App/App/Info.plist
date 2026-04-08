@@ -49,5 +49,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Slanup needs access to your camera to take a profile photo</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Slanup needs access to your photo library to set a profile photo</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Slanup needs to save photos to your library</string>
 </dict>
 </plist>

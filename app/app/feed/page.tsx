@@ -324,7 +324,6 @@ export default function FeedPage() {
           <Link href="/app/feed" className="flex items-end hover:opacity-80 transition-opacity">
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight text-neutral-800">slanup</span>
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
-            <sup className="text-[10px] font-semibold text-[var(--brand-green)] ml-0.5 relative -top-4">beta</sup>
           </Link>
 
           <div className="flex items-center gap-1">

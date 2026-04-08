@@ -31,7 +31,9 @@ export default function OnboardingPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
-  const isFormComplete = !!(profileImage && name.trim() && phone.trim().length === 10 && instagram.trim() && gender && dob && city);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  const isFormComplete = !!(profileImage && name.trim() && phone.trim().length === 10 && instagram.trim() && gender && dob && city && agreedToTerms);
 
   if (!isLoading && !isLoggedIn) {
     router.replace("/app");
@@ -84,6 +86,7 @@ export default function OnboardingPage() {
     if (!gender) errs.gender = "Please select your gender";
     if (!dob) errs.dob = "Date of birth is required";
     if (!city) errs.city = "Please select your city";
+    if (!agreedToTerms) errs.terms = "You must agree to the terms to continue";
 
     setFieldErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -124,7 +127,6 @@ export default function OnboardingPage() {
         <Link href="/" className="flex items-end hover:opacity-80 transition-opacity">
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
-          <sup className="text-[10px] font-semibold text-[var(--brand-green)] ml-0.5 relative -top-4">beta</sup>
         </Link>
       </header>
 
@@ -341,6 +343,26 @@ export default function OnboardingPage() {
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Terms & Conditions */}
+            <div className="space-y-1">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 accent-[var(--brand-green)] rounded"
+                />
+                <span className="text-sm text-neutral-600 leading-relaxed">
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-[var(--brand-green)] underline font-medium" target="_blank">Terms &amp; Conditions</Link>
+                  {" "}and{" "}
+                  <Link href="/community-guidelines" className="text-[var(--brand-green)] underline font-medium" target="_blank">Community Guidelines</Link>.
+                  I understand there is zero tolerance for objectionable content or abusive behavior.
+                </span>
+              </label>
+              {fieldErrors.terms && <p className="text-red-500 text-xs ml-7">{fieldErrors.terms}</p>}
             </div>
 
             {error && (

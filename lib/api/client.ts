@@ -268,6 +268,14 @@ export const api = {
   updateConcern: (id: string, status: string) =>
     apiFetch(`/api/web/admin/concerns/${id}`, { method: 'PUT', body: { status } }),
 
+  // Account
+  deleteAccount: () =>
+    apiFetch('/api/web/account', { method: 'DELETE' }),
+
+  // Block
+  blockUser: (userId: string) =>
+    apiFetch('/api/web/block/' + userId, { method: 'POST' }),
+
   // Incomplete onboarding
   getIncompleteOnboarding: () =>
     apiFetch('/api/web/admin/incomplete-onboarding'),

@@ -3,9 +3,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info, Trash2, Ban } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
-import { api } from "@/lib/api/client";
+import { api, clearAuth } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
 import ImageCropper from "@/components/ImageCropper";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
@@ -50,6 +50,14 @@ export default function ProfilePage() {
   const [hasFlagged, setHasFlagged] = useState(false);
   const [ratingLoading, setRatingLoading] = useState(false);
   const [sharedPlanName, setSharedPlanName] = useState("");
+
+  // Delete account
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  // Block user
+  const [blocking, setBlocking] = useState(false);
 
   const isOwnProfile = (currentUser as AnyObj)?._id === profileId;
 
@@ -617,6 +625,65 @@ export default function ProfilePage() {
             </a>
           </motion.div>
         )}
+
+        {/* Block User (other profiles only) */}
+        {!isOwnProfile && currentUser && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+            className="mt-4"
+          >
+            <button
+              onClick={async () => {
+                hapticWarning();
+                if (!confirm("Block this user? You won\u2019t see their plans or messages.")) return;
+                setBlocking(true);
+                try {
+                  await api.blockUser(profileId);
+                  router.replace("/app/feed");
+                } catch {
+                  alert("Failed to block user. Please try again.");
+                } finally {
+                  setBlocking(false);
+                }
+              }}
+              disabled={blocking}
+              className="w-full flex items-center gap-3 bg-white rounded-2xl shadow-lg p-4 hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Ban className="w-5 h-5 text-red-500" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-red-600">{blocking ? "Blocking..." : "Block User"}</p>
+                <p className="text-xs text-neutral-500">You won&apos;t see their plans or messages</p>
+              </div>
+            </button>
+          </motion.div>
+        )}
+
+        {/* Delete Account (own profile only) */}
+        {isOwnProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mt-4 mb-8"
+          >
+            <button
+              onClick={() => { hapticWarning(); setShowDeleteModal(true); setDeleteConfirmText(""); }}
+              className="w-full flex items-center gap-3 bg-white rounded-2xl shadow-lg p-4 hover:bg-red-50 transition-colors"
+            >
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-red-600">Delete My Account</p>
+                <p className="text-xs text-neutral-500">Permanently delete all your data</p>
+              </div>
+            </button>
+          </motion.div>
+        )}
       </main>
 
       {/* Image Crop Modal */}
@@ -645,6 +712,65 @@ export default function ProfilePage() {
             alt={profile.name || "Profile"}
             className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
           />
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowDeleteModal(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-neutral-800">Delete Account</h3>
+            </div>
+            <p className="text-sm text-neutral-600 mb-4 leading-relaxed">
+              Are you sure? This will permanently delete your account, all your plans, messages, and data. This action cannot be undone.
+            </p>
+            <p className="text-sm font-medium text-neutral-700 mb-2">
+              Type <span className="font-bold text-red-600">DELETE</span> to confirm:
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 px-4 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    await api.deleteAccount();
+                    clearAuth();
+                    router.replace("/app");
+                  } catch {
+                    alert("Failed to delete account. Please try again.");
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleteConfirmText !== "DELETE" || deleting}
+                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete Forever"}
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

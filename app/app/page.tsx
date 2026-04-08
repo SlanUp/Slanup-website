@@ -170,7 +170,7 @@ export default function AppLoginPage() {
       </header>
 
       {/* Main */}
-      <main className="flex-grow flex flex-col justify-start pt-16 md:justify-center md:pt-0 px-4 pb-12">
+      <main className="flex-grow flex flex-col items-center justify-start pt-16 md:justify-center md:pt-0 px-4 pb-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
