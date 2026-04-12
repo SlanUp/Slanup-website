@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info, Trash2, Ban } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info, Trash2, Ban, Calendar, LayoutList, ArrowRight } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, clearAuth } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
 import ImageCropper from "@/components/ImageCropper";
+import Link from "next/link";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
 import { hapticLight, hapticMedium, hapticWarning, hapticSelection } from "@/lib/native/haptics";
 
@@ -59,6 +60,13 @@ export default function ProfilePage() {
   // Block user
   const [blocking, setBlocking] = useState(false);
 
+  // Hosted plans
+  const [hostedPlans, setHostedPlans] = useState<Record<string, unknown>[]>([]);
+
+  // Host rating
+  const [hostRating, setHostRating] = useState<string | null>(null);
+  const [totalRatings, setTotalRatings] = useState(0);
+
   const isOwnProfile = (currentUser as AnyObj)?._id === profileId;
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,6 +113,19 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  useEffect(() => {
+    api.getHostedPlans(profileId).then(res => {
+      setHostedPlans(res.data.plans);
+    }).catch(() => {});
+  }, [profileId]);
+
+  useEffect(() => {
+    api.getProfileRating(profileId).then(res => {
+      setHostRating(res.data.avgScore);
+      setTotalRatings(res.data.totalRatings);
+    }).catch(() => {});
+  }, [profileId]);
 
   // Check if current user can rate this profile
   useEffect(() => {
@@ -409,6 +430,13 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 )}
+
+                {hostRating && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-sm text-amber-500">⭐ {hostRating}</span>
+                    <span className="text-xs text-neutral-400">({totalRatings} {totalRatings === 1 ? 'rating' : 'ratings'})</span>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -660,6 +688,55 @@ export default function ProfilePage() {
               </div>
             </button>
           </motion.div>
+        )}
+
+        {/* My Plans Link (own profile) */}
+        {isOwnProfile && (
+          <Link href="/app/my-plans" className="block mt-4">
+            <div className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[var(--brand-green)]/10 rounded-xl flex items-center justify-center">
+                  <LayoutList className="w-5 h-5 text-[var(--brand-green)]" />
+                </div>
+                <span className="font-semibold text-neutral-800">My Plans</span>
+              </div>
+              <ArrowRight className="w-5 h-5 text-neutral-400" />
+            </div>
+          </Link>
+        )}
+
+        {/* Past Hosted Plans */}
+        {hostedPlans.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-bold text-neutral-800 mb-3 px-1">Past Plans</h3>
+            <div className="space-y-3">
+              {hostedPlans.map((plan: Record<string, unknown>) => (
+                <Link key={plan._id as string} href={`/app/plan/${plan._id || plan.id}`}>
+                  <div className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3">
+                      {plan.pic_id ? (
+                        <S3Image fileKey={plan.pic_id as string} alt="" width={60} height={60} className="w-15 h-15 rounded-xl object-cover" />
+                      ) : (
+                        <div className="w-15 h-15 rounded-xl bg-[var(--brand-green)]/10 flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-[var(--brand-green)]/50" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-neutral-800 truncate">{plan.name as string}</p>
+                        <p className="text-sm text-neutral-500">
+                          {new Date(plan.end as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {' · '}{(plan.participants as unknown[])?.length || 0}/{plan.max_people as number} people
+                        </p>
+                        {(plan.gallery as string[])?.length > 0 && (
+                          <p className="text-xs text-[var(--brand-green)] mt-0.5">📸 {(plan.gallery as string[]).length} photos</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Delete Account (own profile only) */}

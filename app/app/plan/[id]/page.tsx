@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft, MessageSquareText } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft, MessageSquareText, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -157,6 +157,8 @@ export default function PlanDetailPage() {
   const [editCoverKey, setEditCoverKey] = useState("");
   const [coverUploading, setCoverUploading] = useState(false);
   const editCoverRef = useRef<HTMLInputElement>(null);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [leaveStep, setLeaveStep] = useState<'reason' | 'rate' | null>(null);
@@ -171,6 +173,15 @@ export default function PlanDetailPage() {
   const [transferTarget, setTransferTarget] = useState<{ id: string; name: string } | null>(null);
   const [transferring, setTransferring] = useState(false);
   const [respondingTransfer, setRespondingTransfer] = useState(false);
+
+  // Plan Ratings
+  const [ratings, setRatings] = useState<Record<string, unknown>[]>([]);
+  const [avgScore, setAvgScore] = useState<string | null>(null);
+  const [ratingCount, setRatingCount] = useState(0);
+  const [myRating, setMyRating] = useState(0);
+  const [myReview, setMyReview] = useState('');
+  const [showRatingForm, setShowRatingForm] = useState(false);
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   const userId = (user as AnyObj)?._id;
   const userGender = (user as AnyObj)?.gender;
@@ -213,6 +224,69 @@ export default function PlanDetailPage() {
   useEffect(() => {
     if (isHost) fetchRequests();
   }, [isHost, fetchRequests]);
+
+  // Fetch plan ratings
+  useEffect(() => {
+    if (planId) {
+      api.getPlanRatings(planId).then(res => {
+        setRatings(res.data.ratings);
+        setAvgScore(res.data.avgScore);
+        setRatingCount(res.data.count);
+        const existing = res.data.ratings.find((r: Record<string, unknown>) => 
+          (r.userId as Record<string, unknown>)?._id === userId
+        );
+        if (existing) {
+          setMyRating(existing.score as number);
+          setMyReview((existing.review as string) || '');
+        }
+      }).catch(() => {});
+    }
+  }, [planId, userId]);
+
+  const handleRatePlan = async () => {
+    if (!myRating) return;
+    setSubmittingRating(true);
+    try {
+      await api.ratePlan(planId, myRating, myReview);
+      const res = await api.getPlanRatings(planId);
+      setRatings(res.data.ratings);
+      setAvgScore(res.data.avgScore);
+      setRatingCount(res.data.count);
+      setShowRatingForm(false);
+      hapticSuccess();
+    } catch (err) {
+      console.error('Rating failed:', err);
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !plan) return;
+    setGalleryUploading(true);
+    try {
+      for (let i = 0; i < Math.min(files.length, 10 - (plan.gallery?.length || 0)); i++) {
+        const photoUrl = await api.uploadToS3('gallery', files[i]);
+        await api.uploadGalleryPhoto(planId, photoUrl);
+      }
+      await fetchPlan();
+    } catch (err) {
+      console.error('Gallery upload failed:', err);
+    } finally {
+      setGalleryUploading(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteGalleryPhoto = async (index: number) => {
+    try {
+      await api.deleteGalleryPhoto(planId, index);
+      await fetchPlan();
+    } catch (err) {
+      console.error('Gallery delete failed:', err);
+    }
+  };
 
   const handleJoinRequest = async () => {
     setRequesting(true);
@@ -1037,9 +1111,163 @@ export default function PlanDetailPage() {
             </AnimatePresence>
           </motion.div>
         )}
-      </main>
 
-      {/* Bottom Action Bar */}
+        {/* Ratings Section */}
+        {isPlanEnded && (
+          <div className="bg-white rounded-2xl shadow-sm p-5 mt-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2">
+                ⭐ Ratings
+                {avgScore && (
+                  <span className="text-sm font-normal text-neutral-500">
+                    {avgScore} ({ratingCount} {ratingCount === 1 ? 'rating' : 'ratings'})
+                  </span>
+                )}
+              </h3>
+              {isLoggedIn && (isParticipant || isHost) && !showRatingForm && (
+                <button
+                  onClick={() => setShowRatingForm(true)}
+                  className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
+                >
+                  {myRating ? 'Edit Rating' : 'Rate Plan'}
+                </button>
+              )}
+            </div>
+
+            {/* Rating Form */}
+            {showRatingForm && (
+              <div className="mb-4 p-4 bg-neutral-50 rounded-xl">
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      key={star}
+                      onClick={() => setMyRating(star)}
+                      className="text-2xl transition-transform hover:scale-110"
+                    >
+                      {star <= myRating ? '⭐' : '☆'}
+                    </button>
+                  ))}
+                  <span className="text-sm text-neutral-500 ml-2">{myRating}/5</span>
+                </div>
+                <textarea
+                  value={myReview}
+                  onChange={e => setMyReview(e.target.value)}
+                  placeholder="Share your experience (optional)"
+                  maxLength={300}
+                  rows={2}
+                  className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] resize-none"
+                />
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-neutral-400">{myReview.length}/300</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowRatingForm(false)}
+                      className="px-3 py-1.5 text-sm text-neutral-500 hover:text-neutral-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleRatePlan}
+                      disabled={!myRating || submittingRating}
+                      className="px-4 py-1.5 bg-[var(--brand-green)] text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                    >
+                      {submittingRating ? 'Saving...' : 'Submit'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Rating List */}
+            {ratings.length > 0 ? (
+              <div className="space-y-3">
+                {ratings.slice(0, 5).map((rating: Record<string, unknown>, idx: number) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[var(--brand-green)]/10 flex items-center justify-center text-sm font-semibold text-[var(--brand-green)]">
+                      {((rating.userId as Record<string, unknown>)?.name as string)?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-neutral-800">
+                          {(rating.userId as Record<string, unknown>)?.name as string}
+                        </span>
+                        <span className="text-xs text-neutral-400">
+                          {'⭐'.repeat(rating.score as number)}
+                        </span>
+                      </div>
+                      {typeof rating.review === 'string' && rating.review && (
+                        <p className="text-sm text-neutral-600 mt-0.5">{rating.review}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {ratings.length > 5 && (
+                  <p className="text-xs text-neutral-400 text-center">+{ratings.length - 5} more ratings</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-neutral-400 text-sm text-center py-2">
+                {isParticipant || isHost ? 'Be the first to rate this plan!' : 'No ratings yet'}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Gallery Section */}
+        {isPlanEnded && (
+          <div className="bg-white rounded-2xl shadow-sm p-5 mt-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5" /> Gallery
+              </h3>
+              {isHost && (plan.gallery?.length || 0) < 10 && (
+                <>
+                  <button
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={galleryUploading}
+                    className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)] flex items-center gap-1"
+                  >
+                    {galleryUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    {galleryUploading ? 'Uploading...' : 'Add Photos'}
+                  </button>
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleGalleryUpload}
+                  />
+                </>
+              )}
+            </div>
+            {(plan.gallery?.length || 0) > 0 ? (
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                {plan.gallery.map((photo: string, idx: number) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group">
+                    <S3Image fileKey={photo} alt={`Gallery ${idx + 1}`} width={200} height={200} className="object-cover w-full h-full" />
+                    {isHost && (
+                      <button
+                        onClick={() => handleDeleteGalleryPhoto(idx)}
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3 text-white" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-neutral-400 text-sm text-center py-4">
+                {isHost ? 'Share photos from this plan!' : 'No photos yet'}
+              </p>
+            )}
+            {isHost && (plan.gallery?.length || 0) > 0 && (
+              <p className="text-neutral-400 text-xs text-center mt-2">{plan.gallery.length}/10 photos</p>
+            )}
+          </div>
+        )}
+      </main>
       {!isLoggedIn && (new Date(plan.end) > new Date()) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">

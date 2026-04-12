@@ -281,4 +281,22 @@ export const api = {
     apiFetch('/api/web/admin/incomplete-onboarding'),
   sendOnboardingReminder: (userIds?: string[]) =>
     apiFetch('/api/web/admin/incomplete-onboarding/remind', { method: 'POST', body: userIds ? { userIds } : {} }),
+
+  // Gallery
+  uploadGalleryPhoto: (planId: string, photoUrl: string) =>
+    apiFetch(`/api/web/plans/${planId}/gallery`, { method: 'POST', body: { photoUrl } }),
+  deleteGalleryPhoto: (planId: string, index: number) =>
+    apiFetch(`/api/web/plans/${planId}/gallery/${index}`, { method: 'DELETE' }),
+
+  // Profile hosted plans
+  getHostedPlans: (userId: string) =>
+    apiFetch<{ success: boolean; data: { plans: Record<string, unknown>[] } }>(`/api/web/profile/${userId}/hosted-plans`, { noAuth: true }),
+
+  // Plan Ratings
+  ratePlan: (planId: string, score: number, review?: string) =>
+    apiFetch('/api/web/plans/' + planId + '/rate', { method: 'POST', body: { score, review } }),
+  getPlanRatings: (planId: string) =>
+    apiFetch<{ success: boolean; data: { ratings: Record<string, unknown>[]; avgScore: string | null; count: number } }>('/api/web/plans/' + planId + '/ratings', { noAuth: true }),
+  getProfileRating: (userId: string) =>
+    apiFetch<{ success: boolean; data: { avgScore: string | null; totalRatings: number } }>('/api/web/profile/' + userId + '/rating', { noAuth: true }),
 };
