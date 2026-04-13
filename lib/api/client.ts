@@ -306,6 +306,8 @@ export const api = {
   // Plan Ratings
   ratePlan: (planId: string, score: number, review?: string) =>
     apiFetch('/api/web/plans/' + planId + '/rate', { method: 'POST', body: { score, review } }),
+  deletePlanRating: (planId: string) =>
+    apiFetch('/api/web/plans/' + planId + '/rate', { method: 'DELETE' }),
   getPlanRatings: (planId: string) =>
     apiFetch<{ success: boolean; data: { ratings: Record<string, unknown>[]; avgScore: string | null; count: number } }>('/api/web/plans/' + planId + '/ratings', { noAuth: true }),
   getProfileRating: (userId: string) =>

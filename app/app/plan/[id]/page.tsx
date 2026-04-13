@@ -1184,12 +1184,33 @@ export default function PlanDetailPage() {
                 )}
               </h3>
               {isLoggedIn && (isParticipant || isHost) && !showRatingForm && (
-                <button
-                  onClick={() => setShowRatingForm(true)}
-                  className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
-                >
-                  {myRating ? 'Edit Rating' : 'Rate Plan'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowRatingForm(true)}
+                    className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
+                  >
+                    {myRating ? 'Edit Rating' : 'Rate Plan'}
+                  </button>
+                  {myRating > 0 && (
+                    <button
+                      onClick={async () => {
+                        if (!confirm('Delete your rating?')) return;
+                        try {
+                          await api.deletePlanRating(planId);
+                          setMyRating(0);
+                          setMyReview('');
+                          const res = await api.getPlanRatings(planId);
+                          setRatings(res.data.ratings);
+                          setAvgScore(res.data.avgScore);
+                          setRatingCount(res.data.count);
+                        } catch { alert('Failed to delete'); }
+                      }}
+                      className="text-xs text-red-400 hover:text-red-600"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 

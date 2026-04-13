@@ -122,6 +122,8 @@ export default function NotificationsPage() {
   const [plansToRate, setPlansToRate] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [hostTransfers, setHostTransfers] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [recentRatings, setRecentRatings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -131,7 +133,7 @@ export default function NotificationsPage() {
       const res = await api.getNotifications() as {
         success: boolean;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[]; hostTransfers?: any[] };
+        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[]; hostTransfers?: any[]; recentRatings?: any[] };
       };
       if (res.success) {
         setIncoming(res.data.incoming);
@@ -139,6 +141,7 @@ export default function NotificationsPage() {
         setNearbyPlans(res.data.nearbyPlans || []);
         setPlansToRate(res.data.plansToRate || []);
         setHostTransfers(res.data.hostTransfers || []);
+        setRecentRatings(res.data.recentRatings || []);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -300,7 +303,44 @@ export default function NotificationsPage() {
                 ))}
               </div>
             )}
-            {allActivity.length === 0 && plansToRate.length === 0 && hostTransfers.length === 0 ? (
+            {/* Recent Ratings on my plans */}
+            {recentRatings.length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2 px-1">Ratings on your plans</p>
+                <div className="space-y-3">
+                  {recentRatings.map((r) => (
+                    <motion.div key={r._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                      <Link href={`/app/plan/${r.planFrontendId || r.planId}`}>
+                        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl shadow-sm p-4 border border-amber-100 hover:shadow-md transition-shadow">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 overflow-hidden">
+                              {r.userId?.image ? (
+                                <S3Image fileKey={r.userId.image} alt="" width={40} height={40} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-amber-600 font-bold text-sm">{r.userId?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-neutral-800">
+                                {r.userId?.name || 'Someone'} rated &quot;{r.planName}&quot;
+                              </p>
+                              <p className="text-sm mt-1">{'⭐'.repeat(r.score)}</p>
+                              {r.review && (
+                                <p className="text-xs text-neutral-500 mt-1 italic">&quot;{r.review}&quot;</p>
+                              )}
+                              <p className="text-xs text-neutral-400 mt-1">
+                                {new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {allActivity.length === 0 && plansToRate.length === 0 && hostTransfers.length === 0 && recentRatings.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
               <BellOff className="w-12 h-12 mb-3 stroke-[1.5]" />
               <p className="text-sm font-medium">No activity yet</p>
