@@ -986,7 +986,7 @@ export default function PlanDetailPage() {
                     <Avatar image={p.image} name={p.name} size={32} />
                     <span className="text-sm text-neutral-700">{p.name}</span>
                   </Link>
-                  {isPlanEnded && userGender === 'female' && p.gender === 'male' && p._id !== userId && (
+                  {isPlanEnded && isParticipant && userGender === 'female' && p.gender === 'male' && p._id !== userId && (
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => handleFeltSafe(p._id)}
