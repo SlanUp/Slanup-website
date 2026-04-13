@@ -218,10 +218,13 @@ export default function FeedPage() {
 
     api.getNotifications().then((res: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data = res as { data?: { incoming?: { status: string }[]; plansToRate?: any[] } };
-      const pending = (data.data?.incoming || []).filter((r: { status: string }) => r.status === 'pending').length;
-      // Only count plansToRate that arrived after user last visited notifications
+      const data = res as { data?: { incoming?: { status: string; createdAt?: string }[]; plansToRate?: any[] } };
       const lastSeen = parseInt(localStorage.getItem('lastNotifSeenAt') || '0', 10);
+      // Count pending requests that arrived after last seen
+      const pending = (data.data?.incoming || []).filter((r) => 
+        r.status === 'pending' && (!lastSeen || new Date(r.createdAt || 0).getTime() > lastSeen)
+      ).length;
+      // Count plansToRate that ended after last seen
       const newRateCount = (data.data?.plansToRate || []).filter(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (p: any) => new Date(p.end).getTime() > lastSeen
@@ -264,6 +267,9 @@ export default function FeedPage() {
     socket.on("planCompletedRate", () => {
       setUnreadNotifs(prev => prev + 1);
     });
+    socket.on("planRated", () => {
+      setUnreadNotifs(prev => prev + 1);
+    });
 
     socket.on("connect_error", (err) => {
       console.error("[Feed] Socket connect error:", err.message);
@@ -275,6 +281,34 @@ export default function FeedPage() {
       socket.disconnect();
     };
   }, [isLoggedIn, isNewUser]);
+
+  // Re-check notification badge when page becomes visible (e.g. coming back from notifications)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && isLoggedIn) {
+        api.getNotifications().then((res: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const data = res as { data?: { incoming?: { status: string; createdAt?: string }[]; plansToRate?: any[] } };
+          const lastSeen = parseInt(localStorage.getItem('lastNotifSeenAt') || '0', 10);
+          const pending = (data.data?.incoming || []).filter((r) =>
+            r.status === 'pending' && (!lastSeen || new Date(r.createdAt || 0).getTime() > lastSeen)
+          ).length;
+          const newRateCount = (data.data?.plansToRate || []).filter(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (p: any) => new Date(p.end).getTime() > lastSeen
+          ).length;
+          setUnreadNotifs(pending + newRateCount);
+        }).catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    // Also re-check when navigating back (popstate)
+    window.addEventListener('focus', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
+  }, [isLoggedIn]);
 
   // No default city filter — always start with "All Cities"
 
