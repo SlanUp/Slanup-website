@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Upload, X, MapPin, Calendar, Clock, Users, Tag } from "lucide-react";
@@ -13,6 +13,14 @@ import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/lib/nat
 
 
 export default function CreatePlanPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-neutral-50 flex items-center justify-center"><div className="w-8 h-8 border-3 border-[var(--brand-green)] border-t-transparent rounded-full animate-spin" /></div>}>
+      <CreatePlanInner />
+    </Suspense>
+  );
+}
+
+function CreatePlanInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoggedIn, isLoading } = useAuth();
