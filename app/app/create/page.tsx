@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Upload, X, MapPin, Calendar, Clock, Users, Tag } from "lucide-react";
 import Image from "next/image";
@@ -14,6 +14,7 @@ import { hapticLight, hapticMedium, hapticSuccess, hapticError } from "@/lib/nat
 
 export default function CreatePlanPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isLoggedIn, isLoading } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -32,6 +33,9 @@ export default function CreatePlanPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [safeSpaceAgreed, setSafeSpaceAgreed] = useState(false);
+  const [communityId, setCommunityId] = useState("");
+  const [myCommunities, setMyCommunities] = useState<Record<string, unknown>[]>([]);
+  const [urlCommunityName, setUrlCommunityName] = useState("");
 
   // Compute validation issues
   const validationIssues: string[] = [];
@@ -53,6 +57,27 @@ export default function CreatePlanPage() {
   useEffect(() => {
     if (!isLoading && !isLoggedIn) router.replace("/app");
   }, [isLoading, isLoggedIn, router]);
+
+  // Fetch user's communities for linking + auto-select from URL
+  useEffect(() => {
+    if (isLoggedIn) {
+      api.checkCommunityEligibility().then((res: unknown) => {
+        const data = (res as { data: { myCommunities: Record<string, unknown>[] } });
+        setMyCommunities(data.data.myCommunities || []);
+      }).catch(() => {});
+
+      // Auto-select community from URL param (when coming from community page)
+      const urlCommunityId = searchParams.get('communityId');
+      if (urlCommunityId) {
+        setCommunityId(urlCommunityId);
+        // Fetch the community name
+        api.getCommunity(urlCommunityId).then((res: unknown) => {
+          const c = (res as { data: { community: { name: string } } })?.data?.community;
+          if (c) setUrlCommunityName(c.name);
+        }).catch(() => {});
+      }
+    }
+  }, [isLoggedIn, searchParams]);
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,6 +134,7 @@ export default function CreatePlanPage() {
         max_people: parseInt(maxPeople) || 10,
         tags,
         pic_id: coverKey || undefined,
+        communityId: communityId || undefined,
       });
 
       setSubmitted(true);
@@ -380,6 +406,39 @@ export default function CreatePlanPage() {
                   <li key={issue}>• {issue}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Community Link (optional) */}
+          {(myCommunities.length > 0 || communityId) && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                <Users className="w-4 h-4 inline mr-1" />
+                Link to Community <span className="text-neutral-400 font-normal">(optional)</span>
+              </label>
+              {urlCommunityName && communityId && !myCommunities.some(c => c._id === communityId) ? (
+                // Community from URL that user doesn't moderate
+                <div className="w-full px-4 py-3 rounded-xl border border-[var(--brand-green)] bg-[var(--brand-green)]/5 text-neutral-800 text-sm flex items-center justify-between">
+                  <span className="font-medium">{urlCommunityName}</span>
+                  <button onClick={() => { setCommunityId(''); setUrlCommunityName(''); }} className="text-xs text-neutral-400 hover:text-neutral-600">Remove</button>
+                </div>
+              ) : (
+                <select
+                  value={communityId}
+                  onChange={(e) => setCommunityId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 bg-white text-neutral-800 focus:ring-2 focus:ring-[var(--brand-green)] focus:border-transparent outline-none"
+                >
+                  <option value="">No community</option>
+                  {myCommunities.map((c: Record<string, unknown>) => (
+                    <option key={c._id as string} value={c._id as string}>
+                      {c.name as string} · {c.city as string}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {communityId && !myCommunities.some(c => c._id === communityId) && (
+                <p className="text-xs text-amber-600 mt-1">⚡ Your plan will need moderator approval to appear under this community.</p>
+              )}
             </div>
           )}
 

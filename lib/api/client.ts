@@ -121,6 +121,8 @@ export const api = {
     apiFetch(`/api/web/plans/${planId}`, { method: 'DELETE' }),
   getMyPlans: (tab = 'created') => apiFetch(`/api/web/my-plans?tab=${tab}`),
   getCompletedPlans: () => apiFetch('/api/web/plans-completed'),
+  getRecentPlans: (city?: string) =>
+    apiFetch(`/api/web/plans-recent?limit=10${city ? `&city=${encodeURIComponent(city)}` : ''}`),
 
   // Requests (reuse existing backend)
   requestJoin: (planId: string, note?: string) =>
@@ -185,9 +187,16 @@ export const api = {
     if (file.type.startsWith('image/')) {
       try {
         const imageCompression = (await import('browser-image-compression')).default;
-        const opts = section === 'profile'
-          ? { maxSizeMB: 0.4, maxWidthOrHeight: 600, useWebWorker: true }
-          : { maxSizeMB: 0.6, maxWidthOrHeight: 1200, useWebWorker: true };
+        let opts;
+        if (section === 'profile') {
+          opts = { maxSizeMB: 0.4, maxWidthOrHeight: 600, useWebWorker: true };
+        } else if (section === 'gallery') {
+          opts = { maxSizeMB: 0.2, maxWidthOrHeight: 800, useWebWorker: true, initialQuality: 0.5 };
+        } else if (section === 'community') {
+          opts = { maxSizeMB: 0.5, maxWidthOrHeight: 1200, useWebWorker: true, initialQuality: 0.8 };
+        } else {
+          opts = { maxSizeMB: 0.6, maxWidthOrHeight: 1200, useWebWorker: true };
+        }
         fileToUpload = await imageCompression(file, opts);
       } catch {
         // Fall back to original file if compression fails
@@ -291,6 +300,8 @@ export const api = {
   // Profile hosted plans
   getHostedPlans: (userId: string) =>
     apiFetch<{ success: boolean; data: { plans: Record<string, unknown>[] } }>(`/api/web/profile/${userId}/hosted-plans`, { noAuth: true }),
+  getActivePlans: (userId: string) =>
+    apiFetch<{ success: boolean; data: { plans: Record<string, unknown>[] } }>(`/api/web/profile/${userId}/active-plans`, { noAuth: true }),
 
   // Plan Ratings
   ratePlan: (planId: string, score: number, review?: string) =>
@@ -299,4 +310,36 @@ export const api = {
     apiFetch<{ success: boolean; data: { ratings: Record<string, unknown>[]; avgScore: string | null; count: number } }>('/api/web/plans/' + planId + '/ratings', { noAuth: true }),
   getProfileRating: (userId: string) =>
     apiFetch<{ success: boolean; data: { avgScore: string | null; totalRatings: number } }>('/api/web/profile/' + userId + '/rating', { noAuth: true }),
+
+  // Communities
+  getCommunities: (city?: string, search?: string) =>
+    apiFetch(`/api/web/communities?${city ? `city=${encodeURIComponent(city)}&` : ''}${search ? `search=${encodeURIComponent(search)}` : ''}`),
+  getCommunity: (id: string) =>
+    apiFetch(`/api/web/communities/${id}`, { noAuth: true }),
+  createCommunity: (data: Record<string, unknown>) =>
+    apiFetch('/api/web/communities', { method: 'POST', body: data }),
+  updateCommunity: (id: string, data: Record<string, unknown>) =>
+    apiFetch(`/api/web/communities/${id}`, { method: 'PUT', body: data }),
+  followCommunity: (id: string) =>
+    apiFetch(`/api/web/communities/${id}/follow`, { method: 'POST' }),
+  addModerator: (communityId: string, userId: string) =>
+    apiFetch(`/api/web/communities/${communityId}/moderator`, { method: 'POST', body: { userId } }),
+  removeModerator: (communityId: string, userId: string) =>
+    apiFetch(`/api/web/communities/${communityId}/moderator/${userId}`, { method: 'DELETE' }),
+  checkCommunityEligibility: () =>
+    apiFetch('/api/web/communities-eligibility'),
+  getProfileCommunities: (userId: string) =>
+    apiFetch(`/api/web/profile/${userId}/communities`, { noAuth: true }),
+  getCommunityReviews: (id: string) =>
+    apiFetch(`/api/web/communities/${id}/reviews`, { noAuth: true }),
+  getCommunityPendingPlans: (id: string) =>
+    apiFetch(`/api/web/communities/${id}/pending-plans`),
+  approveCommunityPlan: (communityId: string, planId: string) =>
+    apiFetch(`/api/web/communities/${communityId}/approve-plan/${planId}`, { method: 'POST' }),
+  rejectCommunityPlan: (communityId: string, planId: string) =>
+    apiFetch(`/api/web/communities/${communityId}/reject-plan/${planId}`, { method: 'POST' }),
+  linkPlanToCommunity: (planId: string, communityId: string | null) =>
+    apiFetch(`/api/web/plans/${planId}/link-community`, { method: 'POST', body: { communityId } }),
+  searchCommunityMembers: (communityId: string, q?: string) =>
+    apiFetch(`/api/web/communities/${communityId}/members${q ? `?q=${encodeURIComponent(q)}` : ''}`),
 };

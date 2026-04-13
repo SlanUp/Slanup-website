@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info, Trash2, Ban, Calendar, LayoutList, ArrowRight } from "lucide-react";
+import { ArrowLeft, Instagram, Edit3, Camera, Loader2, MapPin, BarChart3, MessageSquarePlus, ShieldCheck, Bell, X, Flag, Shield, Info, Trash2, Ban, Calendar, LayoutList, ArrowRight, Users } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, clearAuth } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -62,6 +62,10 @@ export default function ProfilePage() {
 
   // Hosted plans
   const [hostedPlans, setHostedPlans] = useState<Record<string, unknown>[]>([]);
+  const [activePlans, setActivePlans] = useState<Record<string, unknown>[]>([]);
+
+  // Communities
+  const [profileCommunities, setProfileCommunities] = useState<Record<string, unknown>[]>([]);
 
   // Host rating
   const [hostRating, setHostRating] = useState<string | null>(null);
@@ -117,6 +121,12 @@ export default function ProfilePage() {
   useEffect(() => {
     api.getHostedPlans(profileId).then(res => {
       setHostedPlans(res.data.plans);
+    }).catch(() => {});
+    api.getActivePlans(profileId).then(res => {
+      setActivePlans(res.data.plans);
+    }).catch(() => {});
+    api.getProfileCommunities(profileId).then((res: unknown) => {
+      setProfileCommunities(((res as AnyObj)?.data?.communities) || []);
     }).catch(() => {});
   }, [profileId]);
 
@@ -690,6 +700,32 @@ export default function ProfilePage() {
           </motion.div>
         )}
 
+        {/* Communities */}
+        {profileCommunities.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-bold text-neutral-800 mb-3 px-1">Communities</h3>
+            <div className="space-y-3">
+              {profileCommunities.map((c: Record<string, unknown>) => (
+                <Link key={c._id as string} href={`/app/community/${c._id}`}>
+                  <div className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-[var(--brand-green)]/10 flex items-center justify-center">
+                        <Users className="w-6 h-6 text-[var(--brand-green)]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-neutral-800 truncate">{c.name as string}</p>
+                        <p className="text-sm text-neutral-500 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {c.city as string}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* My Plans Link (own profile) */}
         {isOwnProfile && (
           <Link href="/app/my-plans" className="block mt-4">
@@ -705,7 +741,38 @@ export default function ProfilePage() {
           </Link>
         )}
 
-        {/* Past Hosted Plans */}
+        {/* Active / Upcoming Plans */}
+        {activePlans.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-bold text-neutral-800 mb-3 px-1">Upcoming Plans</h3>
+            <div className="space-y-3">
+              {activePlans.map((plan: Record<string, unknown>) => (
+                <Link key={plan._id as string} href={`/app/plan/${plan._id || plan.id}`}>
+                  <div className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow border-l-4 border-[var(--brand-green)]">
+                    <div className="flex items-center gap-3">
+                      {plan.pic_id ? (
+                        <S3Image fileKey={plan.pic_id as string} alt="" width={60} height={60} className="w-15 h-15 rounded-xl object-cover" />
+                      ) : (
+                        <div className="w-15 h-15 rounded-xl bg-[var(--brand-green)]/10 flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-[var(--brand-green)]" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-neutral-800 truncate">{plan.name as string}</p>
+                        <p className="text-sm text-neutral-500">
+                          {new Date(plan.start as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {' · '}{(plan.participants as unknown[])?.length || 0}/{plan.max_people as number} people
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Past Plans */}
         {hostedPlans.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-bold text-neutral-800 mb-3 px-1">Past Plans</h3>

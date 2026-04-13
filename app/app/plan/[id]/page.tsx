@@ -155,6 +155,8 @@ export default function PlanDetailPage() {
   const [showShare, setShowShare] = useState(false);
   const [editCoverPreview, setEditCoverPreview] = useState("");
   const [editCoverKey, setEditCoverKey] = useState("");
+  const [editCommunityId, setEditCommunityId] = useState<string | null>(null);
+  const [editCommunityName, setEditCommunityName] = useState("");
   const [coverUploading, setCoverUploading] = useState(false);
   const editCoverRef = useRef<HTMLInputElement>(null);
   const [galleryUploading, setGalleryUploading] = useState(false);
@@ -375,6 +377,16 @@ export default function PlanDetailPage() {
       };
       if (editCoverKey) updateData.pic_id = editCoverKey;
       await api.updatePlan(planId, updateData);
+
+      // Link/unlink community if changed
+      if (editCommunityId !== null) {
+        const res = await api.linkPlanToCommunity(planId, editCommunityId || null) as { message?: string; data?: { approved: boolean } };
+        if (editCommunityId && res.data && !res.data.approved) {
+          alert(res.message || 'Community link request sent to moderators for approval');
+        }
+        setEditCommunityId(null);
+      }
+
       await fetchPlan();
       setIsEditing(false);
     } catch {
@@ -783,6 +795,45 @@ export default function PlanDetailPage() {
                 </div>
               </div>
 
+              {/* Link to Community (optional) */}
+              {plan.communityId && typeof plan.communityId === 'object' && editCommunityId === null ? (
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 block mb-2">
+                    <Users className="w-4 h-4 inline mr-1" />
+                    Community
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 px-3 py-2.5 bg-[var(--brand-green)]/5 border border-[var(--brand-green)] rounded-xl text-sm text-neutral-800 font-medium">
+                      {(plan.communityId as { name: string }).name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditCommunityId('')}
+                      className="px-3 py-2.5 text-xs font-semibold text-red-500 bg-red-50 rounded-xl hover:bg-red-100"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : editCommunityId !== null && editCommunityId !== '' ? (
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 block mb-2">
+                    <Users className="w-4 h-4 inline mr-1" />
+                    Community <span className="text-xs text-amber-600 font-normal">(will be linked on save)</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-1 px-3 py-2.5 bg-amber-50 border border-amber-300 rounded-xl text-sm text-neutral-800 font-medium">
+                      {editCommunityName}
+                    </span>
+                    <button type="button" onClick={() => { setEditCommunityId(null); setEditCommunityName(''); }} className="px-3 py-2.5 text-xs font-semibold text-neutral-500 bg-neutral-100 rounded-xl hover:bg-neutral-200">
+                      Undo
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <CommunitySelectPicker onSelect={(id, name) => { setEditCommunityId(id); setEditCommunityName(name); }} />
+              )}
+
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setIsEditing(false)}
@@ -802,7 +853,15 @@ export default function PlanDetailPage() {
           ) : (
             <>
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl font-bold text-neutral-800">{plan.name}</h1>
+                <div>
+                  <h1 className="text-2xl font-bold text-neutral-800">{plan.name}</h1>
+                  {plan.communityId && typeof plan.communityId === 'object' && (plan.communityId as { name: string }).name && (
+                    <Link href={`/app/community/${(plan.communityId as { _id: string })._id}`} className="inline-flex items-center gap-1 mt-1 text-[var(--brand-green)] text-sm font-medium hover:underline">
+                      <Users className="w-3.5 h-3.5" />
+                      {(plan.communityId as { name: string }).name}
+                    </Link>
+                  )}
+                </div>
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button
                     onClick={() => setShowShare(true)}
@@ -1655,6 +1714,70 @@ export default function PlanDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function CommunitySelectPicker({ onSelect }: { onSelect: (id: string, name: string) => void }) {
+  const [communities, setCommunities] = useState<{ _id: string; name: string; city: string }[]>([]);
+  const [search, setSearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!loaded) {
+      api.getCommunities().then((res: unknown) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = (res as any)?.data?.communities || [];
+        setCommunities(data.map((c: { _id: string; name: string; city: string }) => ({ _id: c._id, name: c.name, city: c.city })));
+        setLoaded(true);
+      }).catch(() => setLoaded(true));
+    }
+  }, [loaded]);
+
+  const filtered = communities.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.city.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="relative">
+      <label className="text-sm font-semibold text-neutral-700 block mb-1">
+        <Users className="w-4 h-4 inline mr-1" />
+        Community <span className="text-neutral-400 font-normal">(optional)</span>
+      </label>
+      <input
+        type="text"
+        value={search}
+        onChange={e => { setSearch(e.target.value); setShowDropdown(true); }}
+        onFocus={() => setShowDropdown(true)}
+        placeholder="Search communities..."
+        className="w-full px-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+      />
+      {showDropdown && search.length > 0 && (
+        <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-2 text-xs text-neutral-400">No communities found</p>
+          ) : (
+            filtered.map(c => (
+              <button
+                key={c._id}
+                type="button"
+                onClick={() => {
+                  onSelect(c._id, c.name);
+                  setSearch('');
+                  setShowDropdown(false);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--brand-green)]/5 transition-colors text-left border-b border-neutral-50 last:border-0"
+              >
+                <Users className="w-4 h-4 text-[var(--brand-green)] flex-shrink-0" />
+                <span className="flex-1 font-medium text-neutral-800">{c.name}</span>
+                <span className="text-xs text-neutral-400">{c.city}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

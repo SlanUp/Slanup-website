@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, LayoutList, SlidersHorizontal, X, Tag, MessageCircle, Bell, ArrowUpFromLine } from "lucide-react";import Link from "next/link";
+import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, Users, SlidersHorizontal, X, Tag, MessageCircle, Bell, ArrowUpFromLine, Compass } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
 import { io, Socket } from "socket.io-client";
@@ -30,6 +30,7 @@ interface Plan {
   likes?: string[];
   creator_id: { _id: string; name: string; image?: string; instagramHandle?: string };
   host_id?: { _id: string; name: string; image?: string; instagramHandle?: string };
+  communityId?: { _id: string; name: string } | string;
   createdAt: string;
 }
 
@@ -113,6 +114,12 @@ function PlanCard({ plan }: { plan: Plan }) {
 
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold text-neutral-800 truncate">{plan.name}</h3>
+                {plan.communityId && typeof plan.communityId === 'object' && (plan.communityId as { name: string }).name && (
+                  <p className="text-xs text-[var(--brand-green)] font-medium flex items-center gap-1 mt-0.5">
+                    <Users className="w-3 h-3" />
+                    {(plan.communityId as { name: string }).name}
+                  </p>
+                )}
                 {plan.venue_string && (
                   <p className="text-sm text-neutral-500 flex items-center gap-1 mt-0.5">
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
@@ -179,6 +186,7 @@ export default function FeedPage() {
   const router = useRouter();
   const { user, isLoggedIn, isLoading, isNewUser, logout } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [recentPlans, setRecentPlans] = useState<Plan[]>([]);
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [tagFilters, setTagFilters] = useState<string[]>([]);
@@ -275,6 +283,13 @@ export default function FeedPage() {
       setLoading(true);
       const res = await api.getPlans(1, q, city, tags) as { data: { plans: Plan[] } };
       setPlans(res.data.plans);
+      // If few active plans and no search/tag filters, backfill with recent ended plans
+      if (res.data.plans.length < 5 && !q && (!tags || tags.length === 0)) {
+        const recent = await api.getRecentPlans(city) as { data: { plans: Plan[] } };
+        setRecentPlans(recent.data.plans);
+      } else {
+        setRecentPlans([]);
+      }
     } catch {
       // Ignore
     } finally {
@@ -324,6 +339,7 @@ export default function FeedPage() {
           <Link href="/app/feed" className="flex items-end hover:opacity-80 transition-opacity">
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight text-neutral-800">slanup</span>
             <span className="font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
+            <span className="text-[9px] font-bold text-[var(--brand-green)] ml-0.5 mb-1.5 tracking-wider uppercase">beta</span>
           </Link>
 
           <div className="flex items-center gap-1">
@@ -343,8 +359,8 @@ export default function FeedPage() {
                 </span>
               )}
             </Link>
-            <Link href="/app/my-plans" onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="My Plans">
-              <LayoutList className="w-5 h-5 text-neutral-600" />
+            <Link href="/app/communities" onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Communities">
+              <Compass className="w-5 h-5 text-neutral-600" />
             </Link>
             <Link href={`/app/profile/${(user as Record<string, unknown>)?._id}`} onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Profile">
               <UserIcon className="w-5 h-5 text-neutral-600" />
@@ -551,7 +567,7 @@ export default function FeedPage() {
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-3 border-[var(--brand-green)] border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : plans.length === 0 ? (
+        ) : plans.length === 0 && recentPlans.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -570,13 +586,55 @@ export default function FeedPage() {
             </Link>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {plans.map((plan, i) => (
-              <motion.div key={plan.id || plan._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <PlanCard plan={plan} />
+          <>
+            {/* Active Plans */}
+            {plans.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {plans.map((plan, i) => (
+                  <motion.div key={plan.id || plan._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                    <PlanCard plan={plan} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* No active but we have recent — show CTA */}
+            {plans.length === 0 && recentPlans.length > 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8">
+                <h2 className="text-lg font-bold text-neutral-700 mb-1">No upcoming plans{cityFilter ? ` in ${cityFilter}` : ''} right now</h2>
+                <p className="text-neutral-500 mb-4 text-sm">Check out what happened recently, or create one!</p>
+                <Link
+                  href="/app/create"
+                  className="inline-flex items-center gap-2 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white font-semibold py-2.5 px-5 rounded-2xl transition-colors text-sm"
+                >
+                  <Plus className="w-4 h-4" /> Create a plan
+                </Link>
               </motion.div>
-            ))}
-          </div>
+            )}
+
+            {/* Recently Happened */}
+            {recentPlans.length > 0 && (
+              <div className={plans.length > 0 ? 'mt-8' : 'mt-4'}>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-px flex-1 bg-neutral-200" />
+                  <span className="text-sm font-semibold text-neutral-400 uppercase tracking-wide">Recently Happened</span>
+                  <div className="h-px flex-1 bg-neutral-200" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-90">
+                  {recentPlans.map((plan, i) => (
+                    <motion.div key={plan.id || plan._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                      <div className="relative">
+                        <div className="absolute top-3 right-3 z-10 bg-neutral-800/70 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                          Ended
+                        </div>
+                        <PlanCard plan={plan} />
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
 
