@@ -283,7 +283,7 @@ export const api = {
 
   // Admin Communities
   adminDeleteCommunity: (id: string) =>
-    apiFetch(`/api/admin/communities/${id}`, { method: 'DELETE' }),
+    apiFetch(`/api/web/admin/communities/${id}`, { method: 'DELETE' }),
 
   // Account
   deleteAccount: () =>
