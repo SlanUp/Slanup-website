@@ -558,6 +558,20 @@ export default function CommunityDetailPage() {
               >
                 {editSaving ? 'Saving...' : 'Save Changes'}
               </button>
+              {isAdmin && (
+                <button
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to delete this community? All plans will be unlinked. This cannot be undone.')) return;
+                    try {
+                      await api.deleteCommunity(communityId);
+                      router.push('/app/communities');
+                    } catch { alert('Failed to delete'); }
+                  }}
+                  className="w-full mt-3 py-2.5 text-red-500 text-sm font-semibold hover:bg-red-50 rounded-xl transition-colors"
+                >
+                  Delete Community
+                </button>
+              )}
             </div>
           </div>
         </div>

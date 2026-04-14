@@ -322,6 +322,8 @@ export const api = {
     apiFetch('/api/web/communities', { method: 'POST', body: data }),
   updateCommunity: (id: string, data: Record<string, unknown>) =>
     apiFetch(`/api/web/communities/${id}`, { method: 'PUT', body: data }),
+  deleteCommunity: (id: string) =>
+    apiFetch(`/api/web/communities/${id}`, { method: 'DELETE' }),
   followCommunity: (id: string) =>
     apiFetch(`/api/web/communities/${id}/follow`, { method: 'POST' }),
   addModerator: (communityId: string, userId: string) =>
