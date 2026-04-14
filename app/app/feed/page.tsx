@@ -197,6 +197,37 @@ export default function FeedPage() {
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const socketRef = useRef<Socket | null>(null);
 
+  // Restore cached feed on mount (instant back navigation)
+  useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem('feed_cache');
+      if (cached) {
+        const { plans: cp, recentPlans: rp, scroll } = JSON.parse(cached);
+        if (cp?.length) { setPlans(cp); setRecentPlans(rp || []); setLoading(false); }
+        if (scroll) setTimeout(() => window.scrollTo(0, scroll), 50);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // Save scroll position when leaving page
+  useEffect(() => {
+    const saveScroll = () => {
+      try {
+        const cached = sessionStorage.getItem('feed_cache');
+        if (cached) {
+          const data = JSON.parse(cached);
+          data.scroll = window.scrollY;
+          sessionStorage.setItem('feed_cache', JSON.stringify(data));
+        }
+      } catch { /* ignore */ }
+    };
+    window.addEventListener('beforeunload', saveScroll);
+    return () => {
+      saveScroll(); // Save on unmount (navigating away)
+      window.removeEventListener('beforeunload', saveScroll);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
       router.replace("/app");
@@ -317,13 +348,20 @@ export default function FeedPage() {
       setLoading(true);
       const res = await api.getPlans(1, q, city, tags) as { data: { plans: Plan[] } };
       setPlans(res.data.plans);
-      // If few active plans and no search/tag filters, backfill with recent ended plans
+      let rp: Plan[] = [];
       if (res.data.plans.length < 5 && !q && (!tags || tags.length === 0)) {
         const recent = await api.getRecentPlans(city) as { data: { plans: Plan[] } };
-        setRecentPlans(recent.data.plans);
+        rp = recent.data.plans;
+        setRecentPlans(rp);
       } else {
         setRecentPlans([]);
       }
+      // Cache for instant back navigation
+      try {
+        sessionStorage.setItem('feed_cache', JSON.stringify({
+          plans: res.data.plans, recentPlans: rp, scroll: 0
+        }));
+      } catch { /* ignore quota errors */ }
     } catch {
       // Ignore
     } finally {
