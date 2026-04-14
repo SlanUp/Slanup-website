@@ -185,34 +185,34 @@ function PlanCard({ plan }: { plan: Plan }) {
 export default function FeedPage() {
   const router = useRouter();
   const { user, isLoggedIn, isLoading, isNewUser, logout } = useAuth();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [recentPlans, setRecentPlans] = useState<Plan[]>([]);
+
+  // Initialize from cache synchronously to prevent white flash on back navigation
+  const cachedFeed = typeof window !== 'undefined' ? (() => {
+    try {
+      const c = sessionStorage.getItem('feed_cache');
+      return c ? JSON.parse(c) : null;
+    } catch { return null; }
+  })() : null;
+
+  const [plans, setPlans] = useState<Plan[]>(cachedFeed?.plans || []);
+  const [recentPlans, setRecentPlans] = useState<Plan[]>(cachedFeed?.recentPlans || []);
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [tagFilters, setTagFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [citySearch, setCitySearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedFeed?.plans?.length);
   const [unreadChats, setUnreadChats] = useState(0);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const socketRef = useRef<Socket | null>(null);
-  const hasCachedData = useRef(false);
+  const hasCachedData = useRef(!!cachedFeed?.plans?.length);
 
-  // Restore cached feed on mount (instant back navigation)
+  // Restore scroll position on mount (data already initialized above)
   useEffect(() => {
-    try {
-      const cached = sessionStorage.getItem('feed_cache');
-      if (cached) {
-        const { plans: cp, recentPlans: rp, scroll } = JSON.parse(cached);
-        if (cp?.length) {
-          setPlans(cp);
-          setRecentPlans(rp || []);
-          setLoading(false);
-          hasCachedData.current = true;
-        }
-        if (scroll) setTimeout(() => window.scrollTo(0, scroll), 50);
-      }
-    } catch { /* ignore */ }
+    if (cachedFeed?.scroll) {
+      setTimeout(() => window.scrollTo(0, cachedFeed.scroll), 50);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save scroll position when leaving page
