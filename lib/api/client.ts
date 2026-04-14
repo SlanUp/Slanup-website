@@ -25,6 +25,9 @@ type FetchOptions = {
 export async function apiFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
   const { method = 'GET', body, headers = {}, noAuth = false } = options;
 
+  // App key for API authentication
+  headers['X-App-Key'] = process.env.NEXT_PUBLIC_API_APP_KEY || 'slnp_app_2026_secure';
+
   if (!noAuth) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('slanup_token') : null;
     if (token) {
@@ -205,9 +208,10 @@ export const api = {
     }
 
     // Step 1: Get signed URL
+    const appKey = process.env.NEXT_PUBLIC_API_APP_KEY || 'slnp_app_2026_secure';
     const res = await fetch(
       `${API_BASE}/api/upload/get-signed-url?section=${encodeURIComponent(section)}&fileType=${encodeURIComponent(file.type)}`,
-      { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      { headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), 'X-App-Key': appKey } }
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to get upload URL');
