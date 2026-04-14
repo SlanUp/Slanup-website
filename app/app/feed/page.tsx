@@ -196,6 +196,7 @@ export default function FeedPage() {
   const [unreadChats, setUnreadChats] = useState(0);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const socketRef = useRef<Socket | null>(null);
+  const hasCachedData = useRef(false);
 
   // Restore cached feed on mount (instant back navigation)
   useEffect(() => {
@@ -203,7 +204,12 @@ export default function FeedPage() {
       const cached = sessionStorage.getItem('feed_cache');
       if (cached) {
         const { plans: cp, recentPlans: rp, scroll } = JSON.parse(cached);
-        if (cp?.length) { setPlans(cp); setRecentPlans(rp || []); setLoading(false); }
+        if (cp?.length) {
+          setPlans(cp);
+          setRecentPlans(rp || []);
+          setLoading(false);
+          hasCachedData.current = true;
+        }
         if (scroll) setTimeout(() => window.scrollTo(0, scroll), 50);
       }
     } catch { /* ignore */ }
@@ -345,7 +351,8 @@ export default function FeedPage() {
 
   const fetchPlans = useCallback(async (q?: string, city?: string, tags?: string[]) => {
     try {
-      setLoading(true);
+      // Don't show loading spinner if we have cached data (silent refresh)
+      if (!hasCachedData.current) setLoading(true);
       const res = await api.getPlans(1, q, city, tags) as { data: { plans: Plan[] } };
       setPlans(res.data.plans);
       let rp: Plan[] = [];
@@ -366,6 +373,7 @@ export default function FeedPage() {
       // Ignore
     } finally {
       setLoading(false);
+      hasCachedData.current = false; // Reset so future filter changes show loading
     }
   }, []);
 
