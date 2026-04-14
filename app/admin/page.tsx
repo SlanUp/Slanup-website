@@ -44,7 +44,7 @@ function formatDate(d: string) {
 export default function AdminDashboard() {
   const router = useRouter();
   const { isLoggedIn, isLoading } = useAuth();
-  const [tab, setTab] = useState<"overview" | "users" | "plans" | "digest" | "waitlist" | "flagged">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "plans" | "communities" | "digest" | "waitlist" | "flagged">("overview");
   const [stats, setStats] = useState<AnyObj | null>(null);
   const [users, setUsers] = useState<AnyObj[]>([]);
   const [userSearch, setUserSearch] = useState("");
@@ -76,6 +76,8 @@ export default function AdminDashboard() {
   const [inviting, setInviting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [waitlistMsg, setWaitlistMsg] = useState<string | null>(null);
+  const [adminCommunities, setAdminCommunities] = useState<AnyObj[]>([]);
+  const [deletingCommunity, setDeletingCommunity] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
@@ -151,8 +153,16 @@ export default function AdminDashboard() {
     if (tab === "plans") fetchAllPlans();
     if (tab === "digest") fetchDigestPreview();
     if (tab === "waitlist") fetchWaitlist();
+    if (tab === "communities") fetchAdminCommunities();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, fetchAllPlans, includeOptedOut]);
+
+  const fetchAdminCommunities = async () => {
+    try {
+      const res = (await api.getCommunities()) as { data: { communities: AnyObj[] } };
+      setAdminCommunities(res.data.communities || []);
+    } catch { /* ignore */ }
+  };
 
   const fetchDigestPreview = async () => {
     setDigestLoading(true);
@@ -303,6 +313,7 @@ export default function AdminDashboard() {
     { id: "overview" as const, label: "Overview" },
     { id: "plans" as const, label: "Plans" },
     { id: "users" as const, label: "Users" },
+    { id: "communities" as const, label: "Communities" },
     { id: "digest" as const, label: "Digest" },
     { id: "waitlist" as const, label: "Waitlist" },
     { id: "flagged" as const, label: "Flagged" },
@@ -1004,6 +1015,52 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+          </div>
+        ) : tab === "communities" ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-neutral-800">All Communities ({adminCommunities.length})</h2>
+              <button onClick={fetchAdminCommunities} className="text-xs text-[var(--brand-green)] font-semibold">Refresh</button>
+            </div>
+            {adminCommunities.length === 0 ? (
+              <p className="text-sm text-neutral-400 py-8 text-center">No communities yet</p>
+            ) : (
+              <div className="space-y-3">
+                {adminCommunities.map((c: AnyObj) => (
+                  <div key={c._id} className="bg-white rounded-xl shadow-sm p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-neutral-800">{c.name}</p>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                          {c.city} · {c.planCount || 0} plans · {c.totalParticipants || 0} people · {c.followerCount || 0} followers
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-0.5">
+                          Admin: {c.admin?.name || 'Unknown'} · Moderators: {c.moderators?.length || 0}
+                        </p>
+                        {c.description && (
+                          <p className="text-xs text-neutral-400 mt-1 line-clamp-2">{c.description}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Delete community "${c.name}"? All plans will be unlinked.`)) return;
+                          setDeletingCommunity(c._id);
+                          try {
+                            await api.adminDeleteCommunity(c._id);
+                            setAdminCommunities(prev => prev.filter(x => x._id !== c._id));
+                          } catch { alert('Failed to delete'); }
+                          finally { setDeletingCommunity(null); }
+                        }}
+                        disabled={deletingCommunity === c._id}
+                        className="px-3 py-1.5 text-xs font-semibold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 disabled:opacity-50"
+                      >
+                        {deletingCommunity === c._id ? '...' : 'Delete'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

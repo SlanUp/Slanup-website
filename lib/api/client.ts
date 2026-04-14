@@ -281,6 +281,10 @@ export const api = {
   updateConcern: (id: string, status: string) =>
     apiFetch(`/api/web/admin/concerns/${id}`, { method: 'PUT', body: { status } }),
 
+  // Admin Communities
+  adminDeleteCommunity: (id: string) =>
+    apiFetch(`/api/admin/communities/${id}`, { method: 'DELETE' }),
+
   // Account
   deleteAccount: () =>
     apiFetch('/api/web/account', { method: 'DELETE' }),

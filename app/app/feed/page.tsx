@@ -399,7 +399,7 @@ export default function FeedPage() {
             <Link href={`/app/profile/${(user as Record<string, unknown>)?._id}`} onClick={() => hapticLight()} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Profile">
               <UserIcon className="w-5 h-5 text-neutral-600" />
             </Link>
-            <button onClick={() => { logout(); router.replace("/app"); }} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Sign out">
+            <button onClick={() => { if (confirm('Are you sure you want to sign out?')) { logout(); router.replace("/app"); } }} className="p-2 rounded-xl hover:bg-neutral-100 transition-colors" title="Sign out">
               <LogOut className="w-5 h-5 text-neutral-600" />
             </button>
           </div>
