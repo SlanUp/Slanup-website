@@ -42,51 +42,79 @@ function findParticipantId(name: string, participants: AnyObj[]): string | null 
   return match?._id || null;
 }
 
-// Parse message text and replace @mentions with clickable links
-// Matches full participant names (including spaces/surnames)
+// Parse message text: linkify URLs and @mentions
 function MentionText({ text, participants, isOwn }: { text: string; participants: AnyObj[]; isOwn: boolean }) {
   if (!text) return null;
 
-  const names = participants
-    .filter(p => p.name)
-    .map(p => p.name)
-    .sort((a: string, b: string) => b.length - a.length);
+  // First split by URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlParts = text.split(urlRegex);
 
-  if (names.length === 0 && !text.includes('@everyone')) return <>{text}</>;
+  const renderTextWithMentions = (chunk: string, keyPrefix: number) => {
+    const names = participants
+      .filter(p => p.name)
+      .map(p => p.name)
+      .sort((a: string, b: string) => b.length - a.length);
 
-  const escaped = names.map((n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const allPatterns = ['everyone', ...escaped];
-  const mentionRegex = new RegExp(`(@(?:${allPatterns.join('|')}))`, 'gi');
+    if (names.length === 0 && !chunk.includes('@everyone')) return <span key={keyPrefix}>{chunk}</span>;
 
-  const parts = text.split(mentionRegex);
+    const escaped = names.map((n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const allPatterns = ['everyone', ...escaped];
+    const mentionRegex = new RegExp(`(@(?:${allPatterns.join('|')}))`, 'gi');
+    const parts = chunk.split(mentionRegex);
+
+    return (
+      <span key={keyPrefix}>
+        {parts.map((part, i) => {
+          if (part.startsWith('@')) {
+            if (part.toLowerCase() === '@everyone') {
+              return (
+                <span key={i} className={`font-bold ${isOwn ? 'text-white' : 'text-[var(--brand-green)]'}`}>
+                  @everyone
+                </span>
+              );
+            }
+            const mentionName = part.slice(1);
+            const pId = findParticipantId(mentionName, participants);
+            if (pId) {
+              return (
+                <Link
+                  key={i}
+                  href={`/app/profile/${pId}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="font-bold underline decoration-1 underline-offset-2 hover:opacity-80 transition-opacity"
+                >
+                  {part}
+                </Link>
+              );
+            }
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </span>
+    );
+  };
 
   return (
     <>
-      {parts.map((part, i) => {
-        if (part.startsWith('@')) {
-          if (part.toLowerCase() === '@everyone') {
-            return (
-              <span key={i} className={`font-bold ${isOwn ? 'text-white' : 'text-[var(--brand-green)]'}`}>
-                @everyone
-              </span>
-            );
-          }
-          const mentionName = part.slice(1);
-          const pId = findParticipantId(mentionName, participants);
-          if (pId) {
-            return (
-              <Link
-                key={i}
-                href={`/app/profile/${pId}`}
-                onClick={(e) => e.stopPropagation()}
-                className="font-bold underline decoration-1 underline-offset-2 hover:opacity-80 transition-opacity"
-              >
-                {part}
-              </Link>
-            );
-          }
+      {urlParts.map((part, i) => {
+        if (urlRegex.test(part)) {
+          // Reset lastIndex since we reuse the regex
+          urlRegex.lastIndex = 0;
+          return (
+            <a
+              key={i}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className={`underline decoration-1 underline-offset-2 font-bold break-all ${isOwn ? 'text-white hover:text-white/80' : 'text-[var(--brand-green)] hover:opacity-80'}`}
+            >
+              {part.length > 50 ? part.slice(0, 47) + '...' : part}
+            </a>
+          );
         }
-        return <span key={i}>{part}</span>;
+        return renderTextWithMentions(part, i);
       })}
     </>
   );
@@ -541,9 +569,13 @@ export default function ChatPage() {
             <ArrowLeft className="w-5 h-5 text-neutral-700" />
           </button>
           <div className="min-w-0 flex-1">
-            <Link href={`/app/plan/${conversation?.plan_id?.id || conversation?.plan_id?._id || ''}`}>
-              <h1 className="text-base font-bold text-neutral-800 truncate hover:text-[var(--brand-green)] transition-colors">{planName}</h1>
-            </Link>
+            {conversation?.plan_id?.id || conversation?.plan_id?._id ? (
+              <Link href={`/app/plan/${conversation.plan_id.id || conversation.plan_id._id}`}>
+                <h1 className="text-base font-bold text-neutral-800 truncate hover:text-[var(--brand-green)] transition-colors">{planName}</h1>
+              </Link>
+            ) : (
+              <div className="h-5 w-32 bg-neutral-100 rounded animate-pulse" />
+            )}
             {participants.length > 0 && (
               <p className="text-xs text-neutral-400 truncate">
                 {participants.length} members · {participants.filter(p => typeof p === 'object').map(p => p.name?.split(' ')[0]).join(', ')}
