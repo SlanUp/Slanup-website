@@ -79,7 +79,7 @@ export default function FullMoonPartyPage() {
     
     // Load fonts for Thailand Full Moon Party
     const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Bebas+Neue&family=Permanent+Marker&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
@@ -123,84 +123,74 @@ export default function FullMoonPartyPage() {
     setShowTicketBooking(true);
   };
 
-  // Neon color palette
-  const neonColors = ['#00fff2', '#ff00ff', '#ffff00', '#ff6b00', '#00ff88'];
+  // Gold accent palette
+  const goldAccents = ['#FFD700', '#FFC107', '#F5B800', '#E5A100', '#FFAA00'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-black text-white relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
       
-      {/* ===== ANIMATED BACKGROUND - Thailand Full Moon Party Vibes ===== */}
+      {/* ===== ANIMATED BACKGROUND - Elegant Black & Gold ===== */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         
-        {/* Giant glowing full moon */}
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-44 h-44 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-yellow-100 via-yellow-200 to-amber-100 opacity-25 blur-3xl" />
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-yellow-50 via-yellow-100 to-amber-50 opacity-40 blur-xl" />
+        {/* Subtle dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-neutral-950 to-black" />
+        
+        {/* Golden moon glow */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-44 h-44 md:w-64 md:h-64 rounded-full bg-gradient-to-br from-yellow-400/10 via-amber-300/8 to-yellow-600/5 blur-3xl" />
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-32 h-32 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-yellow-300/15 via-amber-200/10 to-transparent blur-xl" />
         <motion.div
-          className="absolute top-16 left-1/2 -translate-x-1/2 w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-50 to-amber-100 opacity-60"
-          animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.7, 0.5] }}
+          className="absolute top-16 left-1/2 -translate-x-1/2 w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-yellow-300/30 to-amber-400/20"
+          animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 4, repeat: Infinity }}
         />
 
-        {/* Floating sky lanterns (Yi Peng style) */}
-        {isClient && [...Array(8)].map((_, i) => (
+        {/* Floating golden particles */}
+        {isClient && [...Array(20)].map((_, i) => (
           <motion.div
-            key={`lantern-${i}`}
-            className="absolute"
+            key={`particle-${i}`}
+            className="absolute w-1 h-1 rounded-full bg-yellow-400/40"
             animate={{
-              y: [-20, -200 - Math.random() * 300],
-              x: [0, Math.random() * 80 - 40],
-              opacity: [0.7, 0],
+              y: [0, -100 - Math.random() * 200],
+              x: [0, Math.random() * 60 - 30],
+              opacity: [0.2, 0.6, 0],
             }}
             transition={{
-              duration: Math.random() * 15 + 12,
+              duration: Math.random() * 12 + 8,
               repeat: Infinity,
-              delay: Math.random() * 10,
+              delay: Math.random() * 8,
             }}
             style={{
-              left: `${10 + Math.random() * 80}%`,
-              bottom: `${Math.random() * 30}%`,
-            }}
-          >
-            <div className="relative">
-              <div className="w-6 h-8 md:w-8 md:h-10 rounded-t-full bg-gradient-to-b from-amber-300/80 to-orange-400/60 shadow-lg shadow-amber-400/40" />
-              <div className="w-2 h-2 mx-auto bg-amber-200 rounded-full opacity-80 blur-[2px] -mt-3" />
-            </div>
-          </motion.div>
-        ))}
-
-        {/* Neon paint splashes */}
-        {isClient && [...Array(15)].map((_, i) => (
-          <motion.div
-            key={`neon-${i}`}
-            className="absolute rounded-full opacity-20 blur-xl"
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.1, 0.3, 0.1],
-            }}
-            transition={{
-              duration: Math.random() * 8 + 5,
-              repeat: Infinity,
-              delay: Math.random() * 5,
-            }}
-            style={{
-              width: `${Math.random() * 150 + 50}px`,
-              height: `${Math.random() * 150 + 50}px`,
               left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              backgroundColor: neonColors[i % neonColors.length],
+              bottom: `${Math.random() * 40}%`,
+              boxShadow: '0 0 4px rgba(255,215,0,0.4)',
             }}
           />
         ))}
-        
-        {/* Floating emojis - fire, moon, waves, lanterns */}
-        {isClient && ['🌕', '🔥', '🌊', '🏖️', '🪩', '🎑', '🥥', '🌴', '🎶', '🎨'].map((emoji, i) => (
+
+        {/* Subtle gold shimmer lines */}
+        {isClient && [...Array(5)].map((_, i) => (
+          <motion.div
+            key={`shimmer-${i}`}
+            className="absolute h-px w-32 md:w-48"
+            style={{
+              left: `${10 + i * 20}%`,
+              top: `${20 + i * 15}%`,
+              background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent)',
+              transform: `rotate(${-15 + i * 8}deg)`,
+            }}
+            animate={{ opacity: [0, 0.4, 0], x: [-20, 20, -20] }}
+            transition={{ duration: 6 + i * 2, repeat: Infinity, delay: i * 1.5 }}
+          />
+        ))}
+
+        {/* Floating moon emojis — subtle */}
+        {isClient && ['🌕', '✦', '✧', '🌕', '✦'].map((emoji, i) => (
           <motion.div
             key={`emoji-${i}`}
-            className="absolute text-3xl md:text-4xl opacity-20"
+            className="absolute text-2xl md:text-3xl opacity-10"
             animate={{
-              x: [0, Math.random() * 160 - 80],
-              y: [0, Math.random() * 160 - 80],
-              rotate: [0, 360],
+              x: [0, Math.random() * 80 - 40],
+              y: [0, Math.random() * 80 - 40],
             }}
             transition={{
               duration: Math.random() * 25 + 18,
@@ -216,36 +206,11 @@ export default function FullMoonPartyPage() {
           </motion.div>
         ))}
 
-        {/* Neon glow particles */}
-        {isClient && [...Array(30)].map((_, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="absolute w-1.5 h-1.5 rounded-full"
-            animate={{
-              x: [0, Math.random() * 80 - 40],
-              y: [0, Math.random() * 80 - 40],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: Math.random() * 6 + 3,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              backgroundColor: neonColors[i % neonColors.length],
-              boxShadow: `0 0 8px ${neonColors[i % neonColors.length]}`,
-            }}
-          />
-        ))}
-
-        {/* Horizon ocean shimmer */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cyan-900/20 via-indigo-950/10 to-transparent" />
+        {/* Bottom gold gradient line */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"
+          className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-500/20 to-transparent"
           animate={{ opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 3, repeat: Infinity }}
+          transition={{ duration: 4, repeat: Infinity }}
         />
       </div>
 
@@ -262,70 +227,60 @@ export default function FullMoonPartyPage() {
           <div className="flex flex-col items-center">
             {/* Slanup's branding */}
             <motion.p 
-              className="text-2xl md:text-3xl font-semibold mb-2"
+              className="text-sm md:text-base font-medium mb-4 tracking-[0.3em] uppercase"
               style={{ 
                 fontFamily: "'Poppins', sans-serif",
-                color: '#00fff2',
-                textShadow: '0 0 20px rgba(0,255,242,0.5), 0 0 40px rgba(0,255,242,0.3)'
+                color: '#B8860B',
               }}
-              animate={{ textShadow: ['0 0 20px rgba(0,255,242,0.5)', '0 0 40px rgba(0,255,242,0.8)', '0 0 20px rgba(0,255,242,0.5)'] }}
-              transition={{ duration: 2, repeat: Infinity }}
             >
               Slanup&#39;s
             </motion.p>
 
             {/* FULL MOON PARTY title */}
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-0">
               <h1 
-                className="text-6xl md:text-8xl font-bold leading-none"
+                className="text-4xl md:text-6xl font-800 leading-tight tracking-[0.15em] uppercase"
                 style={{ 
-                  fontFamily: "'Bebas Neue', cursive",
-                  letterSpacing: "0.08em",
-                  background: "linear-gradient(135deg, #00fff2 0%, #ff00ff 50%, #ffff00 100%)",
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: 800,
+                  background: "linear-gradient(180deg, #FFD700 0%, #B8860B 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0 0 30px rgba(0,255,242,0.4)) drop-shadow(0 0 60px rgba(255,0,255,0.3))",
+                  filter: "drop-shadow(0 2px 10px rgba(255,215,0,0.2))",
                 }}
               >
-                FULL MOON
+                Full Moon
               </h1>
               <h1 
-                className="text-7xl md:text-9xl font-bold leading-none"
+                className="text-5xl md:text-7xl font-900 leading-tight tracking-[0.2em] uppercase"
                 style={{ 
-                  fontFamily: "'Permanent Marker', cursive",
-                  letterSpacing: "0.04em",
-                  background: "linear-gradient(135deg, #ff00ff 0%, #ffff00 50%, #ff6b00 100%)",
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: 900,
+                  background: "linear-gradient(180deg, #FFF8DC 0%, #FFD700 50%, #B8860B 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  filter: "drop-shadow(0 0 30px rgba(255,0,255,0.4)) drop-shadow(0 0 60px rgba(255,255,0,0.3))",
+                  filter: "drop-shadow(0 2px 15px rgba(255,215,0,0.25))",
                 }}
               >
-                PARTY
+                Party
               </h1>
             </div>
           </div>
           
-          {/* Emoji row */}
-          <motion.div 
-            className="mt-6 text-3xl md:text-4xl"
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            🌕 🔥 🌊 🎨 🪩 🌴
-          </motion.div>
+          {/* Decorative divider */}
+          <div className="flex items-center justify-center mt-5 gap-4">
+            <div className="h-px w-16 md:w-24 bg-gradient-to-r from-transparent to-yellow-600/30" />
+            <span className="text-xl text-yellow-500/60">✦</span>
+            <div className="h-px w-16 md:w-24 bg-gradient-to-l from-transparent to-yellow-600/30" />
+          </div>
 
           {/* Tagline */}
           <motion.p 
-            className="text-xl md:text-2xl mt-4 font-bold"
+            className="text-base md:text-lg mt-4 font-light tracking-[0.15em] uppercase"
             style={{ 
               fontFamily: "'Poppins', sans-serif",
-              color: '#ff00ff',
-              textShadow: '0 0 15px rgba(255,0,255,0.5)'
+              color: '#999',
             }}
-            animate={{ 
-              textShadow: ['0 0 15px rgba(255,0,255,0.5)', '0 0 30px rgba(255,0,255,0.8)', '0 0 15px rgba(255,0,255,0.5)']
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
           >
             One Night. Full Moon. No Rules.
           </motion.p>
@@ -340,38 +295,37 @@ export default function FullMoonPartyPage() {
           className="max-w-md mx-auto mb-16"
         >
           <div 
-            className="backdrop-blur-xl rounded-3xl p-8 border-2 shadow-2xl"
+            className="backdrop-blur-xl rounded-3xl p-8 border shadow-2xl"
             style={{
-              background: 'linear-gradient(135deg, rgba(15,0,40,0.9) 0%, rgba(30,0,60,0.9) 100%)',
-              borderColor: 'rgba(0,255,242,0.3)',
-              boxShadow: '0 0 40px rgba(0,255,242,0.15), 0 0 80px rgba(255,0,255,0.1), inset 0 1px 0 rgba(255,255,255,0.05)',
+              background: 'linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(20,15,5,0.95) 100%)',
+              borderColor: 'rgba(255,215,0,0.2)',
+              boxShadow: '0 0 40px rgba(255,215,0,0.08), 0 0 80px rgba(255,215,0,0.04), inset 0 1px 0 rgba(255,215,0,0.1)',
             }}
           >
             <div className="flex items-center justify-center mb-6">
               <motion.div 
-                className="text-6xl"
+                className="text-4xl"
                 animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0],
+                  scale: [1, 1.08, 1],
                 }}
-                transition={{ duration: 3, repeat: Infinity }}
+                transition={{ duration: 4, repeat: Infinity }}
               >
                 🌕
               </motion.div>
             </div>
             
             <h2 
-              className="text-2xl font-bold text-center mb-2"
+              className="text-lg font-600 text-center mb-2 tracking-[0.1em] uppercase"
               style={{ 
-                color: '#00fff2',
-                textShadow: '0 0 15px rgba(0,255,242,0.5)',
-                fontFamily: "'Poppins', sans-serif"
+                color: '#FFD700',
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 600,
               }}
             >
-              Enter the Full Moon!
+              Enter the Full Moon
             </h2>
-            <p className="text-fuchsia-300 text-center mb-6 text-sm" style={{ textShadow: '0 0 10px rgba(255,0,255,0.3)' }}>
-              Drop your exclusive invite code below:
+            <p className="text-neutral-400 text-center mb-6 text-sm">
+              Drop your exclusive invite code below
             </p>
 
             <div className="space-y-4">
@@ -385,10 +339,10 @@ export default function FullMoonPartyPage() {
                 onKeyPress={(e) => e.key === "Enter" && handleValidateCode()}
                 placeholder="ENTER CODE"
                 disabled={isValidated}
-                className="w-full px-6 py-4 rounded-xl text-center text-lg font-mono tracking-wider focus:outline-none focus:ring-2 transition-all placeholder-cyan-400/40 disabled:opacity-50 text-white"
+                className="w-full px-6 py-4 rounded-xl text-center text-lg font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all placeholder-yellow-600/30 disabled:opacity-50 text-white"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(0,255,242,0.05) 0%, rgba(255,0,255,0.05) 100%)',
-                  border: '2px solid rgba(0,255,242,0.3)',
+                  background: 'rgba(255,215,0,0.03)',
+                  border: '1px solid rgba(255,215,0,0.2)',
                 }}
               />
 
@@ -406,10 +360,10 @@ export default function FullMoonPartyPage() {
                 <button
                   onClick={handleValidateCode}
                   disabled={isCheckingStatus}
-                  className="w-full font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-white text-lg"
+                  className="w-full font-bold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-black text-lg"
                   style={{
-                    background: 'linear-gradient(135deg, #00fff2 0%, #ff00ff 50%, #ffff00 100%)',
-                    boxShadow: '0 0 20px rgba(0,255,242,0.4), 0 0 40px rgba(255,0,255,0.2)',
+                    background: 'linear-gradient(135deg, #FFD700 0%, #F5B800 50%, #E5A100 100%)',
+                    boxShadow: '0 0 20px rgba(255,215,0,0.25), 0 0 40px rgba(255,215,0,0.1)',
                   }}
                 >
                   {isCheckingStatus ? '🌕 Checking...' : '🌕 Unlock the Party'}
@@ -420,7 +374,7 @@ export default function FullMoonPartyPage() {
                   animate={{ scale: 1 }}
                   className="text-center py-2"
                 >
-                  <p className="font-semibold text-xl" style={{ color: '#00fff2', textShadow: '0 0 15px rgba(0,255,242,0.5)' }}>
+                  <p className="font-semibold text-xl" style={{ color: '#FFD700', textShadow: '0 0 15px rgba(255,215,0,0.4)' }}>
                     🌕 Welcome to the Full Moon! 🔥
                   </p>
                 </motion.div>
@@ -428,8 +382,8 @@ export default function FullMoonPartyPage() {
             </div>
 
             {!isValidated && (
-              <p className="text-xs text-purple-300/70 text-center mt-6">
-                Don&#39;t have a code? <a href="https://forms.gle/pcjbWruv6q9cnViW9" target="_blank" rel="noopener noreferrer" className="text-cyan-300 hover:text-cyan-200 underline font-semibold" style={{ textShadow: '0 0 8px rgba(0,255,242,0.3)' }}>Request your invite here!</a> 🌕
+              <p className="text-xs text-neutral-500 text-center mt-6">
+                Don&#39;t have a code? <a href="https://forms.gle/pcjbWruv6q9cnViW9" target="_blank" rel="noopener noreferrer" className="text-yellow-500 hover:text-yellow-400 underline font-semibold">Request your invite here!</a>
               </p>
             )}
           </div>
@@ -449,24 +403,25 @@ export default function FullMoonPartyPage() {
               ) : (
                 <motion.button 
                   onClick={handleBookTickets}
-                  className="font-bold py-5 px-12 rounded-full text-xl transition-all duration-300 transform hover:scale-110 text-white border-2"
+                  className="font-600 py-4 px-10 rounded-full text-base tracking-[0.1em] uppercase transition-all duration-300 transform hover:scale-105 text-black border"
                   style={{
-                    background: 'linear-gradient(135deg, #00fff2 0%, #ff00ff 50%, #ffff00 100%)',
-                    borderColor: 'rgba(255,255,255,0.2)',
-                    boxShadow: '0 0 30px rgba(0,255,242,0.4), 0 0 60px rgba(255,0,255,0.3), 0 0 90px rgba(255,255,0,0.2)',
-                    fontFamily: "'Bebas Neue', cursive",
-                    letterSpacing: '0.05em',
+                    background: 'linear-gradient(135deg, #FFD700 0%, #F5B800 50%, #E5A100 100%)',
+                    borderColor: 'rgba(255,215,0,0.4)',
+                    boxShadow: '0 0 25px rgba(255,215,0,0.2), 0 0 50px rgba(255,215,0,0.1)',
+                    fontFamily: "'Outfit', sans-serif",
+                    fontWeight: 600,
+                    letterSpacing: '0.1em',
                   }}
                   animate={{
                     boxShadow: [
-                      '0 0 30px rgba(0,255,242,0.4), 0 0 60px rgba(255,0,255,0.3)',
-                      '0 0 50px rgba(255,0,255,0.5), 0 0 80px rgba(0,255,242,0.4)',
-                      '0 0 30px rgba(0,255,242,0.4), 0 0 60px rgba(255,0,255,0.3)',
+                      '0 0 25px rgba(255,215,0,0.2), 0 0 50px rgba(255,215,0,0.1)',
+                      '0 0 40px rgba(255,215,0,0.35), 0 0 70px rgba(255,215,0,0.15)',
+                      '0 0 25px rgba(255,215,0,0.2), 0 0 50px rgba(255,215,0,0.1)',
                     ],
                   }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  transition={{ duration: 3, repeat: Infinity }}
                 >
-                  🌕 GRAB YOUR FULL MOON PASS - LET&#39;S GO! 🔥
+                  Grab Your Full Moon Pass
                 </motion.button>
               )}
             </motion.div>
@@ -483,18 +438,18 @@ export default function FullMoonPartyPage() {
           >
             <div className="text-center mb-10">
               <h3 
-                className="text-3xl md:text-4xl font-bold mb-3"
+                className="text-xl md:text-2xl font-700 mb-3 tracking-[0.15em] uppercase"
                 style={{ 
-                  fontFamily: "'Bebas Neue', cursive",
-                  letterSpacing: '0.05em',
-                  background: "linear-gradient(135deg, #00fff2, #ff00ff)",
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: 700,
+                  background: "linear-gradient(180deg, #FFD700, #B8860B)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}
               >
                 WHAT AWAITS YOU
               </h3>
-              <p className="text-purple-300 text-lg" style={{ textShadow: '0 0 10px rgba(168,85,247,0.3)' }}>
+              <p className="text-neutral-500 text-sm md:text-base">
                 Thailand&apos;s legendary Full Moon Party energy, right here in Delhi 🌕
               </p>
             </div>
@@ -516,21 +471,21 @@ export default function FullMoonPartyPage() {
                   whileHover={{ scale: 1.05, y: -5 }}
                   className="rounded-2xl p-5 text-center backdrop-blur-sm border"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(0,255,242,0.05) 0%, rgba(255,0,255,0.05) 100%)',
-                    borderColor: `${neonColors[i % neonColors.length]}33`,
-                    boxShadow: `0 0 20px ${neonColors[i % neonColors.length]}15`,
+                    background: 'linear-gradient(135deg, rgba(255,215,0,0.03) 0%, rgba(0,0,0,0.4) 100%)',
+                    borderColor: 'rgba(255,215,0,0.12)',
+                    boxShadow: '0 0 20px rgba(255,215,0,0.04)',
                   }}
                 >
-                  <div className="text-4xl mb-2">{item.emoji}</div>
-                  <h4 className="font-bold text-white text-sm md:text-base mb-1" style={{ fontFamily: "'Poppins', sans-serif" }}>{item.title}</h4>
-                  <p className="text-purple-300 text-xs md:text-sm">{item.desc}</p>
+                  <div className="text-3xl mb-3">{item.emoji}</div>
+                  <h4 className="font-semibold text-yellow-100/90 text-xs md:text-sm mb-1 tracking-wide uppercase" style={{ fontFamily: "'Outfit', sans-serif" }}>{item.title}</h4>
+                  <p className="text-neutral-600 text-xs">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
           </motion.div>
         )}
 
-        {/* ===== GALLERY SECTION - Always visible when not authenticated ===== */}
+        {/* ===== GALLERY SECTION ===== */}
         {!isValidated && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -539,40 +494,41 @@ export default function FullMoonPartyPage() {
             className="mt-12"
           >
             <div className="text-center mb-12">
-              <div className="flex items-center justify-center mb-4 text-5xl">
-                🔥
+              <div className="flex items-center justify-center mb-4 gap-4">
+                <div className="h-px w-8 md:w-16 bg-gradient-to-r from-transparent to-yellow-500/40" />
                 <h3 
-                  className="text-4xl md:text-5xl font-bold mx-4"
+                  className="text-2xl md:text-3xl font-700 tracking-[0.12em] uppercase"
                   style={{ 
-                    fontFamily: "'Bebas Neue', cursive",
-                    background: "linear-gradient(135deg, #00fff2, #ff00ff, #ffff00)",
+                    fontFamily: "'Outfit', sans-serif",
+                    fontWeight: 700,
+                    background: "linear-gradient(180deg, #FFD700, #B8860B)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
                 >
                   Previous Party Vibes
                 </h3>
-                🌕
+                <div className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-yellow-500/40" />
               </div>
-              <p className="text-purple-300 text-lg" style={{ textShadow: '0 0 10px rgba(168,85,247,0.3)' }}>
+              <p className="text-neutral-500 text-lg">
                 Get ready for the wildest Full Moon Party ever! 🌊
               </p>
             </div>
 
             {/* Gallery Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {GALLERY_ITEMS.map((item, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 + index * 0.05 }}
-                  whileHover={{ scale: 1.05, zIndex: 10 }}
+                  transition={{ delay: 0.4 + index * 0.03 }}
+                  whileHover={{ scale: 1.03, zIndex: 10 }}
                   onClick={() => setSelectedMedia(index)}
-                  className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group shadow-lg"
+                  className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group"
                   style={{
-                    border: `2px solid ${neonColors[index % neonColors.length]}30`,
-                    boxShadow: `0 0 15px ${neonColors[index % neonColors.length]}10`,
+                    border: '1px solid rgba(255,215,0,0.1)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
                   }}
                 >
                   {item.type === "image" ? (
@@ -595,11 +551,9 @@ export default function FullMoonPartyPage() {
                       </div>
                     </>
                   )}
-                  {/* Neon overlay on hover */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-opacity duration-300"
-                    style={{ background: `linear-gradient(135deg, ${neonColors[index % neonColors.length]}40, transparent)` }}
-                  />
+                  {/* Gold overlay on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-yellow-500/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </motion.div>
               ))}
             </div>
@@ -607,15 +561,15 @@ export default function FullMoonPartyPage() {
         )}
 
         {/* ===== FOOTER ===== */}
-        <div className="text-center mt-16 py-8 border-t border-cyan-400/20">
+        <div className="text-center mt-16 py-8 border-t border-yellow-500/10">
           <Link
             href="/terms"
-            className="text-cyan-300/70 hover:text-cyan-200 transition-colors underline text-sm font-medium inline-block mb-4"
+            className="text-yellow-600/70 hover:text-yellow-500 transition-colors underline text-sm font-medium inline-block mb-4"
           >
             Event Terms & Conditions
           </Link>
-          <p className="text-purple-400/50 text-xs">© 2026 Slanup. All rights reserved. 🌕</p>
-          <p className="text-purple-500/40 text-xs mt-1">Social Media Platform for Planning Activities with Nearby People</p>
+          <p className="text-neutral-600 text-xs">© 2026 Slanup. All rights reserved. 🌕</p>
+          <p className="text-neutral-700 text-xs mt-1">Social Media Platform for Planning Activities with Nearby People</p>
         </div>
       </div>
 
@@ -657,7 +611,7 @@ export default function FullMoonPartyPage() {
             {/* Close Button */}
             <button
               onClick={() => setSelectedMedia(null)}
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all z-10 border border-white/20"
+              className="absolute top-4 right-4 bg-neutral-900/80 hover:bg-neutral-800 text-yellow-400 w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all z-10 border border-yellow-500/20"
             >
               ×
             </button>

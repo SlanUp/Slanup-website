@@ -51,17 +51,15 @@ export default function Home() {
             Try Slanup
           </motion.a>
           
-          {/* Full Moon Party button - hidden until launch
           <motion.a
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.25 }}
             href="/full-moon-party"
-            className="bg-gradient-to-r from-cyan-500 via-fuchsia-500 to-yellow-400 hover:from-cyan-600 hover:via-fuchsia-600 hover:to-yellow-500 text-white font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-opacity-50"
+            className="bg-black hover:bg-neutral-900 text-yellow-400 font-semibold py-3 px-8 md:px-10 rounded-full text-base md:text-lg transition-all duration-300 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50 border border-yellow-400/30"
           >
             🌕 Slanup&apos;s Full Moon Party
           </motion.a>
-          */}
         </div>
 
         <motion.div
