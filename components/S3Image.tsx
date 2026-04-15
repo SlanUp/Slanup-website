@@ -1,20 +1,19 @@
 "use client";
 
-// Direct public S3 URL — no signing needed
-// Dev: slanup-dev-content.s3.us-east-1.amazonaws.com
-// Prod: slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com
-const S3_BASE = process.env.NEXT_PUBLIC_S3_BASE_URL || "https://slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com";
+// Images served via CloudFront CDN for edge caching
+// Falls back to direct S3 if env var not set
+const CDN_BASE = process.env.NEXT_PUBLIC_CDN_BASE_URL || "https://d1dtto9m3muhz5.cloudfront.net";
 
 // Extract S3 key from full URL or return as-is
 function toS3Key(value: string): string {
-  const match = value.match(/amazonaws\.com\/(.+)$/);
+  const match = value.match(/amazonaws\.com\/(.+)$/) || value.match(/cloudfront\.net\/(.+)$/);
   return match ? match[1] : value;
 }
 
-// Build a public S3 URL from a file key
+// Build a CDN URL from a file key
 export function getS3Url(fileKey: string): string {
   const key = toS3Key(fileKey);
-  return `${S3_BASE}/${key}`;
+  return `${CDN_BASE}/${key}`;
 }
 
 interface S3ImageProps {
