@@ -458,10 +458,10 @@ export default function FullMoonPartyPage() {
               {[
                 { emoji: '🌕', title: 'Full Moon Magic', desc: 'Under the glow of the moon' },
                 { emoji: '🎨', title: 'Neon Body Paint', desc: 'Free UV paint & glow gear' },
-                { emoji: '🔥', title: 'Fire Performances', desc: 'Mesmerizing fire dancers' },
+                { emoji: '👥', title: 'Curated Crowd', desc: 'Invite-only, handpicked people' },
                 { emoji: '🎧', title: 'Non-Stop Music', desc: 'Pro DJs all night long' },
-                { emoji: '🍹', title: 'Tropical Drinks', desc: 'Thai-inspired cocktails' },
-                { emoji: '🪩', title: 'Dance All Night', desc: 'Beach party vibes' },
+                { emoji: '😈', title: 'Unhinged Rules', desc: 'No boring rules, just vibes' },
+                { emoji: '🎲', title: 'Party Games', desc: 'Wild games all night' },
               ].map((item, i) => (
                 <motion.div
                   key={i}
