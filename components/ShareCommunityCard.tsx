@@ -30,7 +30,7 @@ function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
   ctx.closePath();
 }
 
-function loadImg(src: string, ms = 6000): Promise<HTMLImageElement> {
+function loadImg(src: string, ms = 12000): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -92,7 +92,7 @@ async function renderCommunityCard(community: CommunityData): Promise<Blob> {
 
   // Load cover image
   const coverImg = community.coverImage
-    ? await loadImg(getS3Url(community.coverImage)).catch(() => null)
+    ? await loadImg(getDirectUrl(community.coverImage)).catch(() => null)
     : null;
 
   // Layout
@@ -236,6 +236,16 @@ export default function ShareCommunityCard({ community, onClose }: ShareCommunit
     setGenerating(true);
     setError(null);
     try {
+      // Pre-warm cover image into browser cache
+      if (community.coverImage) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        await new Promise<void>(resolve => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          img.src = getDirectUrl(community.coverImage!);
+        });
+      }
       const blob = await renderCommunityCard(community);
       setShareFile(
         new File([blob], `slanup-community-${community.name.replace(/\s+/g, "-").toLowerCase()}.png`, { type: "image/png" })

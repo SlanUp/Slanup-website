@@ -33,7 +33,7 @@ function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
   ctx.closePath();
 }
 
-function loadImg(src: string, ms = 6000): Promise<HTMLImageElement> {
+function loadImg(src: string, ms = 12000): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -332,6 +332,22 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
     setGenerating(true);
     setError(null);
     try {
+      // Pre-warm images into browser cache before canvas render
+      const imageUrls = [
+        plan.pic_id ? getDirectUrl(plan.pic_id) : null,
+        ...plan.participants.slice(0, 3).map(p => p.image ? getDirectUrl(p.image) : null),
+      ].filter(Boolean) as string[];
+
+      await Promise.all(imageUrls.map(url => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        return new Promise<void>(resolve => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // Don't block on failure
+          img.src = url;
+        });
+      }));
+
       const blob = await renderCard(plan);
       setShareFile(
         new File([blob], `slanup-${plan.name.replace(/\s+/g, "-").toLowerCase()}.png`, { type: "image/png" })
