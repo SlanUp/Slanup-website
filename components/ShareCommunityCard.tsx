@@ -92,7 +92,7 @@ async function renderCommunityCard(community: CommunityData): Promise<Blob> {
 
   // Load cover image
   const coverImg = community.coverImage
-    ? await loadImg(getDirectUrl(community.coverImage)).catch(() => null)
+    ? await loadImg(getDirectUrl(community.coverImage) + '?x-canvas=1').catch(() => null)
     : null;
 
   // Layout
@@ -243,7 +243,7 @@ export default function ShareCommunityCard({ community, onClose }: ShareCommunit
         await new Promise<void>(resolve => {
           img.onload = () => resolve();
           img.onerror = () => resolve();
-          img.src = getDirectUrl(community.coverImage!);
+          img.src = getDirectUrl(community.coverImage!) + '?x-canvas=1';
         });
       }
       const blob = await renderCommunityCard(community);

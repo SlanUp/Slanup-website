@@ -44,12 +44,10 @@ function loadImg(src: string, ms = 12000): Promise<HTMLImageElement> {
   });
 }
 
-// Get direct S3 URL for canvas rendering (bypasses CloudFront CORS issues)
+// Use the original URL as stored in DB — works for both dev and prod buckets
 function getDirectUrl(fileKey: string): string {
   if (!fileKey) return '';
-  // Already a full URL — use as-is
   if (fileKey.startsWith('http')) return fileKey;
-  // Just a key — prepend the prod S3 base
   return `https://slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com/${fileKey}`;
 }
 
@@ -112,13 +110,15 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.fillRect(0, 0, SW, SH);
 
   // Load all images in parallel
+  // Load images with cache-buster to avoid conflict with non-CORS preview cache
+  const cb = '?x-canvas=1';
   const imgLoads: Promise<HTMLImageElement | null>[] = [];
   imgLoads.push(
-    plan.pic_id ? loadImg(getDirectUrl(plan.pic_id)).catch(() => null) : Promise.resolve(null)
+    plan.pic_id ? loadImg(getDirectUrl(plan.pic_id) + cb).catch(() => null) : Promise.resolve(null)
   );
   plan.participants.slice(0, 3).forEach((p) => {
     imgLoads.push(
-      p.image ? loadImg(getDirectUrl(p.image), 8000).catch((e) => { console.warn('[ShareCard] Profile img failed:', p.image, e); return null; }) : Promise.resolve(null)
+      p.image ? loadImg(getDirectUrl(p.image) + cb).catch(() => null) : Promise.resolve(null)
     );
   });
   const [planImg, ...partImgs] = await Promise.all(imgLoads);
@@ -332,10 +332,11 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
     setGenerating(true);
     setError(null);
     try {
-      // Pre-warm images into browser cache before canvas render
+      // Pre-warm images into browser cache with same cache-buster as canvas
+      const cb = '?x-canvas=1';
       const imageUrls = [
-        plan.pic_id ? getDirectUrl(plan.pic_id) : null,
-        ...plan.participants.slice(0, 3).map(p => p.image ? getDirectUrl(p.image) : null),
+        plan.pic_id ? getDirectUrl(plan.pic_id) + cb : null,
+        ...plan.participants.slice(0, 3).map(p => p.image ? getDirectUrl(p.image) + cb : null),
       ].filter(Boolean) as string[];
 
       await Promise.all(imageUrls.map(url => {
