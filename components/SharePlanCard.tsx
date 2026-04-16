@@ -33,14 +33,19 @@ function rrect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h
   ctx.closePath();
 }
 
+// For canvas rendering, use direct S3 to avoid CORS issues with CloudFront
+const S3_DIRECT = "https://slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com";
+
 function loadImg(src: string, ms = 6000): Promise<HTMLImageElement> {
+  // Swap CDN URL back to direct S3 for canvas (S3 has CORS configured)
+  const directSrc = src.replace('d1dtto9m3muhz5.cloudfront.net', 'slanup-user-uploaded-content.s3.eu-north-1.amazonaws.com');
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     const t = setTimeout(() => reject(new Error("timeout")), ms);
     img.onload = () => { clearTimeout(t); resolve(img); };
     img.onerror = () => { clearTimeout(t); reject(new Error("load error")); };
-    img.src = src;
+    img.src = directSrc;
   });
 }
 
@@ -102,14 +107,14 @@ async function renderCard(plan: PlanData): Promise<Blob> {
   ctx.fillStyle = storyBg;
   ctx.fillRect(0, 0, SW, SH);
 
-  // Load all images in parallel (cache-bust to avoid CORS cache conflict)
+  // Load all images in parallel
   const imgLoads: Promise<HTMLImageElement | null>[] = [];
   imgLoads.push(
-    plan.pic_id ? loadImg(getS3Url(plan.pic_id) + "?v=c").catch(() => null) : Promise.resolve(null)
+    plan.pic_id ? loadImg(getS3Url(plan.pic_id)).catch(() => null) : Promise.resolve(null)
   );
   plan.participants.slice(0, 3).forEach((p) => {
     imgLoads.push(
-      p.image ? loadImg(getS3Url(p.image) + "?v=c", 4000).catch(() => null) : Promise.resolve(null)
+      p.image ? loadImg(getS3Url(p.image), 4000).catch(() => null) : Promise.resolve(null)
     );
   });
   const [planImg, ...partImgs] = await Promise.all(imgLoads);
