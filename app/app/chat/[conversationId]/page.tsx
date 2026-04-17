@@ -181,6 +181,7 @@ export default function ChatPage() {
     const lastReadByUser: Record<string, { msgId: string; user: AnyObj }> = {};
 
     for (const msg of msgs) {
+      if (msg.type === 'system') continue;
       if (!msg.readBy || !Array.isArray(msg.readBy)) continue;
       for (const reader of msg.readBy) {
         const readerId = typeof reader === 'object' ? reader._id : reader;
