@@ -154,7 +154,7 @@ export default function ChatPage() {
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const isAutoScrolling = useRef(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(true); // default true to avoid flash
 
@@ -348,7 +348,7 @@ export default function ChatPage() {
   }, [messages, scrollToBottom]);
 
   // @mention handling — supports full names with spaces
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setText(val);
 
@@ -416,6 +416,7 @@ export default function ChatPage() {
     ]);
 
     setText("");
+    if (inputRef.current) inputRef.current.style.height = 'auto';
     setReplyTo(null);
     setShowMentions(false);
     inputRef.current?.focus();
@@ -877,18 +878,27 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="bg-white border-t border-neutral-100 flex-shrink-0 native-bottom-lift">
-        <div className="max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-3 flex items-center gap-2 md:gap-3">
-          <input
+        <div className="max-w-2xl mx-auto px-3 py-2 md:px-4 md:py-3 flex items-end gap-2 md:gap-3">
+          <textarea
             ref={inputRef}
-            type="text"
+            rows={1}
             value={text}
-            onChange={handleTextChange}
+            onChange={(e) => {
+              handleTextChange(e);
+              const el = e.currentTarget;
+              el.style.height = 'auto';
+              el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !showMentions) handleSend();
+              if (e.key === "Enter" && !e.shiftKey && !showMentions) {
+                e.preventDefault();
+                handleSend();
+              }
               if (e.key === "Escape") setShowMentions(false);
             }}
             placeholder="Type a message... use @ to mention"
-            className="flex-1 px-4 py-3 bg-neutral-100 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] text-base"
+            className="flex-1 px-4 py-3 bg-neutral-100 rounded-2xl text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)] text-base resize-none overflow-y-auto leading-snug"
+            style={{ maxHeight: 160 }}
           />
           <button
             onClick={handleSend}
