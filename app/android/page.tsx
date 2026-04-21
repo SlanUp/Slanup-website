@@ -67,9 +67,14 @@ export default function AndroidPage() {
                   className="inline-flex items-center gap-2 text-sm font-medium text-white bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] px-4 py-2 rounded-full transition-colors"
                 >
                   <Users className="w-4 h-4" />
-                  Join group
+                  Open group
                   <ExternalLink className="w-3 h-3" />
                 </a>
+                <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
+                  On the group page, ignore any &quot;you don&apos;t have permission&quot; message and tap the
+                  <span className="font-semibold text-neutral-800"> &quot;Join group&quot; </span>
+                  button at the top right. Make sure you&apos;re signed into Google.
+                </p>
               </div>
             </li>
 
