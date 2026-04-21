@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { LogIn } from "lucide-react";
 
 export default function Header() {
   return (
@@ -17,12 +18,24 @@ export default function Header() {
           beta
         </sup>
       </Link>
-      <Link 
-        href="/events" 
-        className="text-neutral-700 hover:text-[var(--brand-green)] font-semibold text-base md:text-lg transition-colors duration-300 cursor-pointer"
-      >
-        Slanup Events
-      </Link>
+      <div className="flex items-center gap-4 md:gap-6">
+        <Link
+          href="/events"
+          className="text-neutral-700 hover:text-[var(--brand-green)] font-semibold text-base md:text-lg transition-colors duration-300 cursor-pointer"
+        >
+          Slanup Events
+        </Link>
+        <Link
+          href="/app"
+          aria-label="Login"
+          title="Login"
+          className="inline-flex items-center gap-1.5 text-neutral-700 hover:text-[var(--brand-green)] font-semibold text-sm md:text-base transition-colors duration-300 cursor-pointer"
+        >
+          <LogIn className="w-5 h-5" />
+          <span className="hidden sm:inline">Login</span>
+        </Link>
+      </div>
     </header>
   );
 }
+
