@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
 import { getS3Url } from "./S3Image";
 
 interface SharePlanCardProps {
@@ -366,6 +368,18 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
   const handleShare = async () => {
     if (!shareFile) return;
     try {
+      // Android Capacitor WebView doesn't support navigator.share with files
+      // Use Capacitor Share plugin for text+link sharing on Android native
+      if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+        await Share.share({
+          title: plan.name,
+          text: `Check out this plan on Slanup — ${plan.name}`,
+          url: `https://www.slanup.com/app/plan/${plan.id}`,
+          dialogTitle: "Share plan",
+        });
+        return;
+      }
+      // iOS + web: use Web Share API with file (works natively)
       if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
         await navigator.share({
           title: plan.name,
@@ -472,7 +486,7 @@ export default function SharePlanCard({ plan, onClose }: SharePlanCardProps) {
 
         <div className="flex gap-3 w-full max-w-[360px]">
           <button onClick={handleShare} disabled={generating || !shareFile} className="flex-1 bg-white text-neutral-800 font-semibold py-3 rounded-xl text-sm hover:bg-neutral-100 transition-colors disabled:opacity-50">
-            {generating ? "Generating..." : "📤 Share to Story"}
+            {generating ? "Generating..." : "📤 Share"}
           </button>
           <button onClick={handleCopyLink} className="flex-1 bg-white/20 text-white font-semibold py-3 rounded-xl text-sm hover:bg-white/30 transition-colors">
             🔗 Copy Link

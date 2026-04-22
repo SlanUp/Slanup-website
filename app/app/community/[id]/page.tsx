@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, Star, Users, Calendar, Share2, Bell, BellOff, Plus, X, Camera, Search, Edit3 } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Users, Calendar, ArrowUpFromLine, Bell, BellOff, Plus, X, Camera, Search, Edit3 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
@@ -168,12 +168,6 @@ export default function CommunityDetailPage() {
               />
             </label>
           )}
-          <button
-            onClick={handleShare}
-            className="p-2 rounded-full bg-white/90 shadow-sm"
-          >
-            <Share2 className="w-5 h-5 text-neutral-700" />
-          </button>
         </div>
       </div>
 
@@ -332,6 +326,12 @@ export default function CommunityDetailPage() {
                 <Calendar className="w-4 h-4" /> Host a Plan
               </Link>
             )}
+            <button
+              onClick={handleShare}
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-neutral-100 text-neutral-700 font-semibold text-sm hover:bg-neutral-200 transition-colors"
+            >
+              <ArrowUpFromLine className="w-4 h-4" />
+            </button>
             {isModerator && (
               <button
                 onClick={() => {

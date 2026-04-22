@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
 import { getS3Url } from "./S3Image";
 
 export interface ShareCommunityCardProps {
@@ -263,6 +265,17 @@ export default function ShareCommunityCard({ community, onClose }: ShareCommunit
   const handleShare = async () => {
     if (!shareFile) return;
     try {
+      // Android Capacitor WebView doesn't support navigator.share with files
+      if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+        await Share.share({
+          title: community.name,
+          text: `Join ${community.name} on Slanup!`,
+          url: `https://www.slanup.com/app/community/${community._id}`,
+          dialogTitle: "Share community",
+        });
+        return;
+      }
+      // iOS + web: use Web Share API with file
       if (navigator.share && navigator.canShare?.({ files: [shareFile] })) {
         await navigator.share({
           title: community.name,
@@ -347,7 +360,7 @@ export default function ShareCommunityCard({ community, onClose }: ShareCommunit
 
         <div className="flex gap-3 w-full max-w-[360px]">
           <button onClick={handleShare} disabled={generating || !shareFile} className="flex-1 bg-white text-neutral-800 font-semibold py-3 rounded-xl text-sm hover:bg-neutral-100 transition-colors disabled:opacity-50">
-            {generating ? "Generating..." : "📤 Share to Story"}
+            {generating ? "Generating..." : "📤 Share"}
           </button>
           <button onClick={handleCopyLink} className="flex-1 bg-white/20 text-white font-semibold py-3 rounded-xl text-sm hover:bg-white/30 transition-colors">
             🔗 Copy Link

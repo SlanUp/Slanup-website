@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Search, Plus, MapPin, Star, X, Camera } from "lucide-react";
+import { ArrowLeft, Users, Search, Plus, MapPin, Star, X, Camera, ArrowUpFromLine } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
+import ShareCommunityCard, { type ShareCommunityCardProps } from "@/components/ShareCommunityCard";
 import { ALL_CITIES, REGION_GROUP_NAMES } from "@/lib/config/cities";
 import { hapticLight } from "@/lib/native/haptics";
 
@@ -204,52 +205,7 @@ export default function CommunitiesPage() {
         ) : (
           <div className="space-y-4">
             {communities.map((c, i) => (
-              <motion.div key={c._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Link href={`/app/community/${c._id}`}>
-                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                    {c.coverImage && (
-                      <div className="h-32 relative overflow-hidden">
-                        <S3Image fileKey={c.coverImage} alt="" className="object-cover w-full h-full" />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <h3 className="font-bold text-neutral-800 text-lg">{c.name}</h3>
-                      <div className="flex items-center gap-3 text-sm text-neutral-500 mt-1">
-                        <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{c.city}</span>
-                        <span>{c.planCount || 0} plans</span>
-                        <span>{c.totalParticipants || 0} people</span>
-                        <span>{c.followerCount || 0} followers</span>
-                      </div>
-                      {c.description && (
-                        <p className="text-sm text-neutral-600 mt-2 line-clamp-2">{c.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-3">
-                        <div className="flex -space-x-2">
-                          {c.admin?.image ? (
-                            <S3Image fileKey={c.admin.image} alt="" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
-                          ) : (
-                            <div className="w-7 h-7 rounded-full border-2 border-white bg-[var(--brand-green)] flex items-center justify-center text-white text-xs font-bold">
-                              {c.admin?.name?.charAt(0)?.toUpperCase() || '?'}
-                            </div>
-                          )}
-                          {(c.moderators || []).slice(0, 2).map((h: AnyObj) => (
-                            h?.image ? (
-                              <S3Image key={h._id} fileKey={h.image} alt="" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
-                            ) : (
-                              <div key={h._id} className="w-7 h-7 rounded-full border-2 border-white bg-neutral-300 flex items-center justify-center text-white text-xs font-bold">
-                                {h?.name?.charAt(0)?.toUpperCase() || '?'}
-                              </div>
-                            )
-                          ))}
-                        </div>
-                        <span className="text-xs text-neutral-400">
-                          by {c.admin?.name}{c.moderators?.length > 0 ? ` +${c.moderators.length}` : ''}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
+              <CommunityCardItem key={c._id} community={c} index={i} />
             ))}
           </div>
         )}
@@ -393,5 +349,76 @@ export default function CommunitiesPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function CommunityCardItem({ community: c, index: i }: { community: AnyObj; index: number }) {
+  const [showShare, setShowShare] = useState(false);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="relative">
+      <Link href={`/app/community/${c._id}`}>
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+          {c.coverImage && (
+            <div className="h-32 relative overflow-hidden">
+              <S3Image fileKey={c.coverImage} alt="" className="object-cover w-full h-full" />
+            </div>
+          )}
+          <div className="p-4">
+            <h3 className="font-bold text-neutral-800 text-lg">{c.name}</h3>
+            <div className="flex items-center gap-3 text-sm text-neutral-500 mt-1">
+              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{c.city}</span>
+              <span>{c.planCount || 0} plans</span>
+              <span>{c.totalParticipants || 0} people</span>
+              <span>{c.followerCount || 0} followers</span>
+            </div>
+            {c.description && (
+              <p className="text-sm text-neutral-600 mt-2 line-clamp-2">{c.description}</p>
+            )}
+            <div className="flex items-center justify-between mt-3">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  {c.admin?.image ? (
+                    <S3Image fileKey={c.admin.image} alt="" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full border-2 border-white bg-[var(--brand-green)] flex items-center justify-center text-white text-xs font-bold">
+                      {c.admin?.name?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  {(c.moderators || []).slice(0, 2).map((h: AnyObj) => (
+                    h?.image ? (
+                      <S3Image key={h._id} fileKey={h.image} alt="" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
+                    ) : (
+                      <div key={h._id} className="w-7 h-7 rounded-full border-2 border-white bg-neutral-300 flex items-center justify-center text-white text-xs font-bold">
+                        {h?.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                    )
+                  ))}
+                </div>
+                <span className="text-xs text-neutral-400">
+                  by {c.admin?.name}{c.moderators?.length > 0 ? ` +${c.moderators.length}` : ''}
+                </span>
+              </div>
+              <div className="w-9 h-5" />
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowShare(true); }}
+        className="absolute bottom-[14px] right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors z-10"
+        title="Share community"
+      >
+        <ArrowUpFromLine className="w-5 h-5 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
+      </button>
+
+      {showShare && (
+        <ShareCommunityCard
+          community={c as ShareCommunityCardProps['community']}
+          onClose={() => setShowShare(false)}
+        />
+      )}
+    </motion.div>
   );
 }
