@@ -31,7 +31,7 @@ export default function AndroidPage() {
             Slanup on Android
           </h1>
           <p className="text-neutral-500 text-base mb-10">
-            We&apos;re in closed beta on Google Play. Pick your path:
+            Get early access on Google Play — just two quick steps:
           </p>
         </motion.div>
 
@@ -47,7 +47,7 @@ export default function AndroidPage() {
               <Download className="w-5 h-5 text-[var(--brand-green)]" />
             </div>
             <h2 className="text-lg font-semibold text-neutral-900">
-              Get the beta app
+              Try Slanup early
             </h2>
           </div>
 
@@ -58,7 +58,7 @@ export default function AndroidPage() {
               </span>
               <div className="flex-1">
                 <p className="text-sm text-neutral-800 font-medium mb-2">
-                  Join our testers Google Group
+                  Join our early access group
                 </p>
                 <a
                   href={GOOGLE_GROUP_URL}
@@ -84,7 +84,7 @@ export default function AndroidPage() {
               </span>
               <div className="flex-1">
                 <p className="text-sm text-neutral-800 font-medium mb-2">
-                  Become a tester
+                  Get the app from Play Store
                 </p>
                 <a
                   href={PLAY_OPTIN_URL}
@@ -92,35 +92,12 @@ export default function AndroidPage() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-800 px-4 py-2 rounded-full transition-colors"
                 >
-                  Become tester
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-                <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                  Sign in with the same Google account you used for the group.
-                </p>
-              </div>
-            </li>
-
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-neutral-900 text-white text-xs font-semibold flex items-center justify-center">
-                3
-              </span>
-              <div className="flex-1">
-                <p className="text-sm text-neutral-800 font-medium mb-2">
-                  Install from Play Store
-                </p>
-                <a
-                  href={PLAY_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-white bg-neutral-900 hover:bg-neutral-800 px-4 py-2 rounded-full transition-colors"
-                >
                   <Download className="w-4 h-4" />
-                  Open Play Store
+                  Download Slanup
                   <ExternalLink className="w-3 h-3" />
                 </a>
-                <p className="text-xs text-neutral-400 mt-2 leading-relaxed">
-                  May take a few minutes to appear after opting in.
+                <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
+                  Use the same Google account from step 1. Accept early access, then install.
                 </p>
               </div>
             </li>
