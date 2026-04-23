@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.slanup.app",
+      "sha256_cert_fingerprints": [
+        "94:F5:C7:C3:76:B3:08:35:95:6B:4E:65:9B:BC:11:7F:42:29:CE:D8:6C:23:DA:1F:47:9C:1F:4D:CF:0C:3F:B6"
+      ]
+    }
+  }
+]

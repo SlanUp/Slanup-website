@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, Star, Users, Calendar, ArrowUpFromLine, Bell, BellOff, Plus, X, Camera, Search, Edit3 } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Users, Calendar, ArrowUpFromLine, Bell, BellOff, Plus, X, Camera, Search, Edit3, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
@@ -579,6 +579,19 @@ export default function CommunityDetailPage() {
 
       {showShare && community && (
         <ShareCommunityCard community={community as ShareCommunityCardProps['community']} onClose={() => setShowShare(false)} />
+      )}
+
+      {!isLoggedIn && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
+          <div className="max-w-2xl mx-auto flex gap-3">
+            <Link
+              href="/app"
+              className="flex-1 font-semibold py-3 md:py-3.5 rounded-2xl transition-colors flex items-center justify-center gap-2 bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white"
+            >
+              <LogIn className="w-5 h-5" /> Log in to Follow
+            </Link>
+          </div>
+        </div>
       )}
     </div>
   );

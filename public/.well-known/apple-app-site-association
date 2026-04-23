@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "BSV5Z75H2P.com.slanup.app",
+        "paths": [
+          "/app/plan/*",
+          "/app/community/*"
+        ]
+      }
+    ]
+  }
+}
