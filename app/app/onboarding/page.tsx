@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Camera, ArrowRight, Loader2, Instagram, MapPin, Bell, X } from "lucide-react";
+import { Camera, ArrowRight, Loader2, Instagram, MapPin, Bell, X, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, imageUrl } from "@/lib/api/client";
@@ -128,6 +128,14 @@ export default function OnboardingPage() {
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold tracking-tight text-neutral-800">slanup</span>
           <span className="font-[family-name:var(--font-display)] text-2xl md:text-3xl font-bold text-[var(--brand-green)] -ml-0.5">&apos;</span>
         </Link>
+        <button
+          onClick={() => { logout(); router.replace("/app"); }}
+          className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-red-500 transition-colors"
+          title="Sign out"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="hidden sm:inline">Sign out</span>
+        </button>
       </header>
 
       <main className="flex-grow flex items-center justify-center px-4 py-4 md:py-8">
