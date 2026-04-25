@@ -106,7 +106,7 @@ function PlanCard({ plan, userId, onLikeToggle, ended }: { plan: Plan; userId?: 
               </div>
               <div>
                 <p className="text-sm">
-                  <span className="font-bold">{plan.host_id?.name || plan.creator_id?.name}</span>
+                  <span className="font-bold">{(plan.host_id?.name || plan.creator_id?.name)?.split(' ')[0]}</span>
                   <span className="text-neutral-500"> shared a Plan</span>
                 </p>
                 <p className="text-xs text-neutral-400">{formatDate(plan.createdAt)}</p>
