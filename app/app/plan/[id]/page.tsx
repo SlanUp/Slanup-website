@@ -1771,17 +1771,19 @@ export default function PlanDetailPage() {
 
           {/* Comment Input */}
           {isLoggedIn && (
-            <div className="flex gap-2 mb-4 items-start">
+            <div className="flex gap-2 mb-4 items-end">
               <Avatar image={(user as AnyObj)?.image} name={(user as AnyObj)?.name} size={36} />
-              <div className="flex-1 min-w-0 flex gap-2">
-                <input
-                  type="text"
+              <div className="flex-1 min-w-0 flex gap-2 items-end">
+                <textarea
                   value={commentText}
                   onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handlePostComment()}
-                  placeholder="Ask a question or leave a comment..."
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePostComment(); } }}
+                  placeholder="Write a comment..."
                   maxLength={2000}
-                  className="flex-1 min-w-0 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-neutral-300"
+                  rows={1}
+                  className="flex-1 min-w-0 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-neutral-300 resize-none overflow-y-auto"
+                  style={{ maxHeight: '4.5rem' }}
+                  onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 72) + 'px'; }}
                 />
                 <button
                   onClick={handlePostComment}
@@ -1853,15 +1855,17 @@ export default function PlanDetailPage() {
                               exit={{ height: 0, opacity: 0 }}
                               className="overflow-hidden"
                             >
-                              <div className="flex gap-2 mt-2">
-                                <input
-                                  type="text"
+                              <div className="flex gap-2 mt-2 items-end">
+                                <textarea
                                   value={replyText}
                                   onChange={e => setReplyText(e.target.value)}
-                                  onKeyDown={e => e.key === 'Enter' && handlePostReply(comment._id)}
+                                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handlePostReply(comment._id); } }}
                                   placeholder="Write a reply..."
                                   maxLength={2000}
-                                  className="flex-1 min-w-0 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-neutral-300"
+                                  rows={1}
+                                  className="flex-1 min-w-0 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-neutral-300 resize-none overflow-y-auto"
+                                  style={{ maxHeight: '4.5rem' }}
+                                  onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 72) + 'px'; }}
                                   autoFocus
                                 />
                                 <button
