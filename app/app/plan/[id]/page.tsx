@@ -1758,9 +1758,9 @@ export default function PlanDetailPage() {
 
           {/* Comment Input */}
           {isLoggedIn && (
-            <div className="flex gap-3 mb-4">
+            <div className="flex gap-2 mb-4 items-start">
               <Avatar image={(user as AnyObj)?.image} name={(user as AnyObj)?.name} size={36} />
-              <div className="flex-1 flex gap-2">
+              <div className="flex-1 min-w-0 flex gap-2">
                 <input
                   type="text"
                   value={commentText}
@@ -1768,12 +1768,12 @@ export default function PlanDetailPage() {
                   onKeyDown={e => e.key === 'Enter' && handlePostComment()}
                   placeholder="Ask a question or leave a comment..."
                   maxLength={2000}
-                  className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  className="flex-1 min-w-0 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
                 />
                 <button
                   onClick={handlePostComment}
                   disabled={!commentText.trim() || postingComment}
-                  className="px-3 py-2 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-40"
+                  className="shrink-0 px-3 py-2 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-40"
                 >
                   {postingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </button>
@@ -1848,13 +1848,13 @@ export default function PlanDetailPage() {
                                   onKeyDown={e => e.key === 'Enter' && handlePostReply(comment._id)}
                                   placeholder="Write a reply..."
                                   maxLength={2000}
-                                  className="flex-1 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30"
+                                  className="flex-1 min-w-0 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30"
                                   autoFocus
                                 />
                                 <button
                                   onClick={() => handlePostReply(comment._id)}
                                   disabled={!replyText.trim() || postingReply}
-                                  className="px-2.5 py-1.5 bg-[var(--brand-green)] text-white rounded-lg text-xs font-semibold disabled:opacity-40"
+                                  className="shrink-0 px-2.5 py-1.5 bg-[var(--brand-green)] text-white rounded-lg text-xs font-semibold disabled:opacity-40"
                                 >
                                   {postingReply ? '...' : 'Reply'}
                                 </button>
