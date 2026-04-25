@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, Users, SlidersHorizontal, X, Tag, MessageCircle, Bell, ArrowUpFromLine, Compass } from "lucide-react";import Link from "next/link";
+import { Search, Plus, MapPin, Calendar, LogOut, User as UserIcon, Users, SlidersHorizontal, X, Tag, MessageCircle, Bell, ArrowUpFromLine, Compass, Heart } from "lucide-react";import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api, getStoredToken } from "@/lib/api/client";
 import { io, Socket } from "socket.io-client";
@@ -31,6 +31,7 @@ interface Plan {
   creator_id: { _id: string; name: string; image?: string; instagramHandle?: string };
   host_id?: { _id: string; name: string; image?: string; instagramHandle?: string };
   communityId?: { _id: string; name: string } | string;
+  commentCount?: number;
   createdAt: string;
 }
 
@@ -40,15 +41,47 @@ function formatDate(date: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({ plan, userId, onLikeToggle, ended }: { plan: Plan; userId?: string; onLikeToggle?: (planId: string, liked: boolean) => void; ended?: boolean }) {
   const slotsLeft = plan.max_people - plan.participants.length;
   const startDate = new Date(plan.start);
   const [showShare, setShowShare] = useState(false);
+  const [liked, setLiked] = useState(userId ? (plan.likes || []).includes(userId) : false);
+  const [likeCount, setLikeCount] = useState(plan.likes?.length || 0);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  // Sync local state when plan.likes updates from socket events
+  useEffect(() => {
+    setLiked(userId ? (plan.likes || []).includes(userId) : false);
+    setLikeCount(plan.likes?.length || 0);
+  }, [plan.likes, userId]);
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowShare(true);
+  };
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!userId || likeLoading) return;
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikeCount(prev => wasLiked ? prev - 1 : prev + 1);
+    hapticLight();
+    setLikeLoading(true);
+    try {
+      if (wasLiked) {
+        await api.unlikePlan(plan.id);
+      } else {
+        await api.likePlan(plan.id);
+      }
+      onLikeToggle?.(plan.id, !wasLiked);
+    } catch {
+      setLiked(wasLiked);
+      setLikeCount(prev => wasLiked ? prev + 1 : prev - 1);
+    }
+    setLikeLoading(false);
   };
 
   return (
@@ -61,7 +94,7 @@ function PlanCard({ plan }: { plan: Plan }) {
           transition={{ duration: 0.3 }}
           className="bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer"
         >
-          {/* Creator */}
+          {/* Creator + Slots */}
           <div className="flex items-center justify-between p-3">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--brand-green)] to-green-600 flex items-center justify-center text-white text-sm font-semibold overflow-hidden">
@@ -79,6 +112,13 @@ function PlanCard({ plan }: { plan: Plan }) {
                 <p className="text-xs text-neutral-400">{formatDate(plan.createdAt)}</p>
               </div>
             </div>
+            {!ended && (slotsLeft > 0 ? (
+              <span className="text-xs font-medium text-red-500 whitespace-nowrap">
+                {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
+              </span>
+            ) : (
+              <span className="text-xs font-medium text-neutral-400">Full</span>
+            ))}
           </div>
 
           {/* Image */}
@@ -129,7 +169,7 @@ function PlanCard({ plan }: { plan: Plan }) {
               </div>
             </div>
 
-            {/* Participants + Slots + Share */}
+            {/* Participants + Like/Comment/Share */}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100">
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
@@ -148,29 +188,33 @@ function PlanCard({ plan }: { plan: Plan }) {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
-                {slotsLeft > 0 ? (
-                  <span className="text-xs font-medium text-red-500">
-                    {slotsLeft} slot{slotsLeft !== 1 ? 's' : ''} left
-                  </span>
-                ) : (
-                  <span className="text-xs font-medium text-neutral-400">Full</span>
-                )}
-                <div className="w-9 h-5" /> {/* spacer for share button */}
+              <div className="flex items-center gap-1">
+                {/* Like */}
+                <button
+                  onClick={handleLikeClick}
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-neutral-50 transition-colors"
+                >
+                  <Heart className={`w-4 h-4 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-neutral-400'}`} />
+                  {likeCount > 0 && <span className={`text-xs ${liked ? 'text-red-500' : 'text-neutral-400'}`}>{likeCount}</span>}
+                </button>
+                {/* Comment — navigates to plan */}
+                <span className="flex items-center gap-1 px-2 py-1.5 text-neutral-400">
+                  <MessageCircle className="w-4 h-4" />
+                  {(plan.commentCount || 0) > 0 && <span className="text-xs">{plan.commentCount}</span>}
+                </span>
+                {/* Share */}
+                <button
+                  onClick={handleShareClick}
+                  className="flex items-center px-2 py-1.5 rounded-full hover:bg-neutral-50 transition-colors text-neutral-400"
+                  title="Share this plan"
+                >
+                  <ArrowUpFromLine className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>
         </motion.div>
       </Link>
-
-      {/* Share button — positioned outside Link to prevent navigation */}
-      <button
-        onClick={handleShareClick}
-        className="absolute bottom-[14px] right-4 p-2 rounded-full hover:bg-neutral-100 transition-colors z-10"
-        title="Share this plan"
-      >
-        <ArrowUpFromLine className="w-5 h-5 text-neutral-400 hover:text-[var(--brand-green)] transition-colors" />
-      </button>
 
       {showShare && (
         <SharePlanCard
@@ -186,33 +230,36 @@ export default function FeedPage() {
   const router = useRouter();
   const { user, isLoggedIn, isLoading, isNewUser, logout } = useAuth();
 
-  // Initialize from cache synchronously to prevent white flash on back navigation
-  const cachedFeed = typeof window !== 'undefined' ? (() => {
-    try {
-      const c = sessionStorage.getItem('feed_cache');
-      return c ? JSON.parse(c) : null;
-    } catch { return null; }
-  })() : null;
-
-  const [plans, setPlans] = useState<Plan[]>(cachedFeed?.plans || []);
-  const [recentPlans, setRecentPlans] = useState<Plan[]>(cachedFeed?.recentPlans || []);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [recentPlans, setRecentPlans] = useState<Plan[]>([]);
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [tagFilters, setTagFilters] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [citySearch, setCitySearch] = useState("");
-  const [loading, setLoading] = useState(!cachedFeed?.plans?.length);
+  const [loading, setLoading] = useState(true);
   const [unreadChats, setUnreadChats] = useState(0);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
   const socketRef = useRef<Socket | null>(null);
-  const hasCachedData = useRef(!!cachedFeed?.plans?.length);
+  const hasCachedData = useRef(false);
 
-  // Restore scroll position on mount (data already initialized above)
+  // Hydrate from sessionStorage cache after mount to avoid SSR mismatch
   useEffect(() => {
-    if (cachedFeed?.scroll) {
-      setTimeout(() => window.scrollTo(0, cachedFeed.scroll), 50);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    try {
+      const c = sessionStorage.getItem('feed_cache');
+      if (c) {
+        const cached = JSON.parse(c);
+        if (cached?.plans?.length) {
+          setPlans(cached.plans);
+          setRecentPlans(cached.recentPlans || []);
+          setLoading(false);
+          hasCachedData.current = true;
+        }
+        if (cached?.scroll) {
+          requestAnimationFrame(() => window.scrollTo(0, cached.scroll));
+        }
+      }
+    } catch { /* ignore */ }
   }, []);
 
   // Save scroll position when leaving page
@@ -255,7 +302,7 @@ export default function FeedPage() {
 
     api.getNotifications().then((res: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data = res as { data?: { incoming?: { status: string; createdAt?: string }[]; plansToRate?: any[] } };
+      const data = res as { data?: { incoming?: { status: string; createdAt?: string }[]; plansToRate?: any[]; activity?: { read?: boolean; createdAt?: string }[] } };
       const lastSeen = parseInt(localStorage.getItem('lastNotifSeenAt') || '0', 10);
       // Count pending requests that arrived after last seen
       const pending = (data.data?.incoming || []).filter((r) => 
@@ -266,7 +313,11 @@ export default function FeedPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (p: any) => new Date(p.end).getTime() > lastSeen
       ).length;
-      setUnreadNotifs(pending + newRateCount);
+      // Count unread activity notifications
+      const newActivityCount = (data.data?.activity || []).filter(
+        (a) => !a.read && (!lastSeen || new Date(a.createdAt || 0).getTime() > lastSeen)
+      ).length;
+      setUnreadNotifs(pending + newRateCount + newActivityCount);
     }).catch(() => {});
 
     // Socket connection for realtime badge updates
@@ -280,6 +331,34 @@ export default function FeedPage() {
 
     socket.on("connect", () => {
       console.log("[Feed] Socket connected, listening for badge updates");
+      // Join plan rooms for all visible plans to get real-time like updates
+      const allPlansOnFeed = [...plans, ...recentPlans];
+      allPlansOnFeed.forEach(p => {
+        socket.emit('joinPlan', p.id || p._id);
+      });
+    });
+
+    // Real-time like updates on feed cards
+    socket.on("planLiked", ({ planId, userId: likerId }) => {
+      const updateLikes = (prev: Plan[]) => prev.map(p => {
+        if ((p.id === planId || p._id === planId) && !(p.likes || []).includes(likerId)) {
+          return { ...p, likes: [...(p.likes || []), likerId] };
+        }
+        return p;
+      });
+      setPlans(updateLikes);
+      setRecentPlans(updateLikes);
+    });
+
+    socket.on("planUnliked", ({ planId, userId: unlikerId }) => {
+      const updateLikes = (prev: Plan[]) => prev.map(p => {
+        if (p.id === planId || p._id === planId) {
+          return { ...p, likes: (p.likes || []).filter(id => id !== unlikerId) };
+        }
+        return p;
+      });
+      setPlans(updateLikes);
+      setRecentPlans(updateLikes);
     });
 
     // conversationUpdated fires on every new message (emitted to personal room)
@@ -325,7 +404,7 @@ export default function FeedPage() {
       if (document.visibilityState === 'visible' && isLoggedIn) {
         api.getNotifications().then((res: unknown) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const data = res as { data?: { incoming?: { status: string; createdAt?: string }[]; plansToRate?: any[] } };
+          const data = res as { data?: { incoming?: { status: string; createdAt?: string }[]; plansToRate?: any[]; activity?: { read?: boolean; createdAt?: string }[] } };
           const lastSeen = parseInt(localStorage.getItem('lastNotifSeenAt') || '0', 10);
           const pending = (data.data?.incoming || []).filter((r) =>
             r.status === 'pending' && (!lastSeen || new Date(r.createdAt || 0).getTime() > lastSeen)
@@ -334,7 +413,10 @@ export default function FeedPage() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (p: any) => new Date(p.end).getTime() > lastSeen
           ).length;
-          setUnreadNotifs(pending + newRateCount);
+          const newActivityCount = (data.data?.activity || []).filter(
+            (a) => !a.read && (!lastSeen || new Date(a.createdAt || 0).getTime() > lastSeen)
+          ).length;
+          setUnreadNotifs(pending + newRateCount + newActivityCount);
         }).catch(() => {});
       }
     };
@@ -369,6 +451,12 @@ export default function FeedPage() {
           plans: res.data.plans, recentPlans: rp, scroll: 0
         }));
       } catch { /* ignore quota errors */ }
+      // Join plan rooms for real-time like updates
+      if (socketRef.current?.connected) {
+        [...res.data.plans, ...rp].forEach(p => {
+          socketRef.current?.emit('joinPlan', p.id || p._id);
+        });
+      }
     } catch {
       // Ignore
     } finally {
@@ -672,7 +760,7 @@ export default function FeedPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {plans.map((plan, i) => (
                   <motion.div key={plan.id || plan._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                    <PlanCard plan={plan} />
+                    <PlanCard plan={plan} userId={user?._id as string | undefined} />
                   </motion.div>
                 ))}
               </div>
@@ -707,7 +795,7 @@ export default function FeedPage() {
                         <div className="absolute top-3 right-3 z-10 bg-neutral-800/70 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
                           Ended
                         </div>
-                        <PlanCard plan={plan} />
+                        <PlanCard plan={plan} userId={user?._id as string | undefined} ended />
                       </div>
                     </motion.div>
                   ))}

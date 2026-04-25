@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Bell, BellOff, Check, X, Loader2, MapPin, Calendar, ShieldCheck, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft, Bell, BellOff, Check, X, Loader2, MapPin, Calendar, ShieldCheck, ArrowRightLeft, MessageCircle, Heart, Reply } from "lucide-react";
 import { useAuth } from "@/lib/context/AuthContext";
 import { api } from "@/lib/api/client";
 import S3Image from "@/components/S3Image";
@@ -46,7 +46,7 @@ interface NearbyPlan {
   creator_id?: UserInfo | null;
 }
 
-type Tab = "activity" | "nearby";
+type Tab = "activity" | "nearby" | "ratings";
 
 function relativeTime(dateStr: string): string {
   const now = Date.now();
@@ -124,6 +124,8 @@ export default function NotificationsPage() {
   const [hostTransfers, setHostTransfers] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [recentRatings, setRecentRatings] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activity, setActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -133,7 +135,7 @@ export default function NotificationsPage() {
       const res = await api.getNotifications() as {
         success: boolean;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[]; hostTransfers?: any[]; recentRatings?: any[] };
+        data: { incoming: NotificationItem[]; outgoing: NotificationItem[]; nearbyPlans: NearbyPlan[]; plansToRate?: any[]; hostTransfers?: any[]; recentRatings?: any[]; activity?: any[] };
       };
       if (res.success) {
         setIncoming(res.data.incoming);
@@ -142,6 +144,7 @@ export default function NotificationsPage() {
         setPlansToRate(res.data.plansToRate || []);
         setHostTransfers(res.data.hostTransfers || []);
         setRecentRatings(res.data.recentRatings || []);
+        setActivity(res.data.activity || []);
       }
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
@@ -206,8 +209,9 @@ export default function NotificationsPage() {
         {/* Tabs */}
         <div className="flex gap-2 mb-5">
           {([
-            { key: "activity" as Tab, label: "Activity", count: allActivity.length },
+            { key: "activity" as Tab, label: "Activity", count: allActivity.length + activity.length },
             { key: "nearby" as Tab, label: "New Plans", count: nearbyPlans.length },
+            { key: "ratings" as Tab, label: "Ratings", count: recentRatings.length + plansToRate.length },
           ]).map(({ key, label, count }) => {
             const isActive = tab === key;
             const pendingCount = key === "activity" ? incoming.filter((n) => n.status === "pending").length : 0;
@@ -245,35 +249,6 @@ export default function NotificationsPage() {
           </div>
         ) : tab === "activity" ? (
           <>
-            {/* Plans to rate — for women after plan completion */}
-            {plansToRate.length > 0 && (
-              <div className="mb-4 space-y-3">
-                {plansToRate.map((plan) => (
-                  <motion.div key={plan._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Link href={`/app/plan/${plan.id || plan._id}`}>
-                      <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl shadow-sm p-4 border border-emerald-100 hover:shadow-md transition-shadow">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                            <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-neutral-800">
-                              🎉 You completed &quot;{plan.name}&quot;!
-                            </p>
-                            <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
-                              Mark the kind ones as Safe 🛡️ and flag anyone who made you uncomfortable ⚠️ — your feedback is 100% anonymous and helps make Slanup a safer space for all women.
-                            </p>
-                            <span className="inline-block mt-2 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
-                              Share Your Experience →
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
-              </div>
-            )}
             {/* Host transfer requests */}
             {hostTransfers.length > 0 && (
               <div className="mb-4 space-y-3">
@@ -303,44 +278,52 @@ export default function NotificationsPage() {
                 ))}
               </div>
             )}
-            {/* Recent Ratings on my plans */}
-            {recentRatings.length > 0 && (
+            {/* Activity — comments, replies, follow-up messages */}
+            {activity.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2 px-1">Ratings on your plans</p>
+                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2 px-1">Comments & Messages</p>
                 <div className="space-y-3">
-                  {recentRatings.map((r) => (
-                    <motion.div key={r._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                      <Link href={`/app/plan/${r.planFrontendId || r.planId}`}>
-                        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl shadow-sm p-4 border border-amber-100 hover:shadow-md transition-shadow">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 overflow-hidden">
-                              {r.userId?.image ? (
-                                <S3Image fileKey={r.userId.image} alt="" width={40} height={40} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-amber-600 font-bold text-sm">{r.userId?.name?.charAt(0)?.toUpperCase() || '?'}</span>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-neutral-800">
-                                {r.userId?.name || 'Someone'} rated &quot;{r.planName}&quot;
-                              </p>
-                              <p className="text-sm mt-1">{'⭐'.repeat(r.score)}</p>
-                              {r.review && (
-                                <p className="text-xs text-neutral-500 mt-1 italic">&quot;{r.review}&quot;</p>
-                              )}
-                              <p className="text-xs text-neutral-400 mt-1">
-                                {new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </p>
+                  {activity.map((n) => {
+                    const icon = n.type === 'comment_reply' ? <Reply className="w-4 h-4 text-blue-500" /> :
+                                 n.type === 'request_followup' ? <MessageCircle className="w-4 h-4 text-purple-500" /> :
+                                 <MessageCircle className="w-4 h-4 text-[var(--brand-green)]" />;
+                    const label = n.type === 'plan_comment' ? 'commented on' :
+                                  n.type === 'comment_reply' ? 'replied to your comment on' :
+                                  'sent a follow-up about';
+                    const planName = n.planId?.name || 'a plan';
+                    const planUrl = `/app/plan/${n.planUuid || n.planId?.id || n.planId?._id}`;
+                    return (
+                      <motion.div key={n._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                        <Link href={planUrl}>
+                          <div className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
+                                <Avatar image={n.actorId?.image} name={n.actorId?.name} size={40} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  {icon}
+                                  <p className="text-sm text-neutral-700 leading-snug">
+                                    <span className="font-semibold text-neutral-900">{n.actorId?.name || 'Someone'}</span>{' '}
+                                    {label}{' '}
+                                    <span className="font-semibold text-neutral-900">&quot;{planName}&quot;</span>
+                                  </p>
+                                </div>
+                                {n.message && (
+                                  <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">&quot;{n.message}&quot;</p>
+                                )}
+                                <p className="text-xs text-neutral-400 mt-1">{relativeTime(n.createdAt)}</p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             )}
-            {allActivity.length === 0 && plansToRate.length === 0 && hostTransfers.length === 0 && recentRatings.length === 0 ? (
+            {allActivity.length === 0 && hostTransfers.length === 0 && activity.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
               <BellOff className="w-12 h-12 mb-3 stroke-[1.5]" />
               <p className="text-sm font-medium">No activity yet</p>
@@ -418,7 +401,7 @@ export default function NotificationsPage() {
             </div>
           ) : null}
           </>
-        ) : (
+        ) : tab === "nearby" ? (
           nearbyPlans.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
               <MapPin className="w-12 h-12 mb-3 stroke-[1.5]" />
@@ -465,6 +448,82 @@ export default function NotificationsPage() {
                 </motion.div>
               ))}
             </div>
+          )
+        ) : (
+          /* Ratings tab */
+          plansToRate.length === 0 && recentRatings.length === 0 ? (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-neutral-400">
+              <ShieldCheck className="w-12 h-12 mb-3 stroke-[1.5]" />
+              <p className="text-sm font-medium">No ratings yet</p>
+              <p className="text-xs mt-1">Ratings on your plans will appear here</p>
+            </motion.div>
+          ) : (
+            <>
+              {/* Plans to rate */}
+              {plansToRate.length > 0 && (
+                <div className="mb-4 space-y-3">
+                  {plansToRate.map((plan) => (
+                    <motion.div key={plan._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                      <Link href={`/app/plan/${plan.id || plan._id}`}>
+                        <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl shadow-sm p-4 border border-emerald-100 hover:shadow-md transition-shadow">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-neutral-800">
+                                🎉 You completed &quot;{plan.name}&quot;!
+                              </p>
+                              <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                                Mark the kind ones as Safe 🛡️ and flag anyone who made you uncomfortable ⚠️ — your feedback is 100% anonymous and helps make Slanup a safer space for all women.
+                              </p>
+                              <span className="inline-block mt-2 text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                                Share Your Experience →
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+              {/* Recent ratings received */}
+              {recentRatings.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide px-1">Ratings on your plans</p>
+                  {recentRatings.map((r) => (
+                    <motion.div key={r._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                      <Link href={`/app/plan/${r.planFrontendId || r.planId}`}>
+                        <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl shadow-sm p-4 border border-amber-100 hover:shadow-md transition-shadow">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 overflow-hidden">
+                              {r.userId?.image ? (
+                                <S3Image fileKey={r.userId.image} alt="" width={40} height={40} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-amber-600 font-bold text-sm">{r.userId?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-neutral-800">
+                                {r.userId?.name || 'Someone'} rated &quot;{r.planName}&quot;
+                              </p>
+                              <p className="text-sm mt-1">{'⭐'.repeat(r.score)}</p>
+                              {r.review && (
+                                <p className="text-xs text-neutral-500 mt-1 italic">&quot;{r.review}&quot;</p>
+                              )}
+                              <p className="text-xs text-neutral-400 mt-1">
+                                {new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </>
           )
         )}
       </div>

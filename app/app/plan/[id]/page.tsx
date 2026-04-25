@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft, MessageSquareText, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Check, X, Send, MessageCircle, Instagram, CheckCircle, Pencil, Trash2, ArrowUpFromLine, LogIn, DoorOpen, ShieldCheck, Upload, ImageIcon, ArrowRightLeft, MessageSquareText, Loader2, Heart } from "lucide-react";
+import { io, Socket } from "socket.io-client";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -13,6 +14,7 @@ import SharePlanCard from "@/components/SharePlanCard";
 import { PLAN_CITIES, PLAN_TAGS, REGION_GROUPS } from "@/lib/config/cities";
 import { hapticLight, hapticMedium, hapticWarning, hapticSuccess } from "@/lib/native/haptics";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://d2oulqfcyna7a4.cloudfront.net';
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
@@ -33,6 +35,20 @@ function toTimeInputValue(d: string) {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   return `${hours}:${minutes}`;
+}
+
+function timeAgo(date: string) {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w`;
+  return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function Avatar({ image, name, size = 40 }: { image?: string; name?: string; size?: number }) {
@@ -185,6 +201,39 @@ export default function PlanDetailPage() {
   const [showRatingForm, setShowRatingForm] = useState(false);
   const [submittingRating, setSubmittingRating] = useState(false);
 
+  // Likes
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [likeAnimating, setLikeAnimating] = useState(false);
+
+  // Comments
+  const [comments, setComments] = useState<AnyObj[]>([]);
+  const [commentText, setCommentText] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+  const [commentsTotal, setCommentsTotal] = useState(0);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState<Record<string, AnyObj[]>>({});
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [postingReply, setPostingReply] = useState(false);
+
+  // Request follow-up
+  const [userRequestData, setUserRequestData] = useState<AnyObj | null>(null);
+  const [showRequestChat, setShowRequestChat] = useState(false);
+  const [requestMessages, setRequestMessages] = useState<AnyObj[]>([]);
+  const [requestMsgText, setRequestMsgText] = useState('');
+  const [sendingRequestMsg, setSendingRequestMsg] = useState(false);
+  const [loadingRequestMsgs, setLoadingRequestMsgs] = useState(false);
+
+  // Host request follow-up
+  const [hostRequestMessages, setHostRequestMessages] = useState<Record<string, AnyObj[]>>({});
+  const [hostMsgText, setHostMsgText] = useState<Record<string, string>>({});
+  const [sendingHostMsg, setSendingHostMsg] = useState<string | null>(null);
+
+  // Socket
+  const socketRef = useRef<Socket | null>(null);
+
   const userId = (user as AnyObj)?._id;
   const userGender = (user as AnyObj)?.gender;
   const isHost = !!userId && (plan?.host_id?._id === userId || (!plan?.host_id && plan?.creator_id?._id === userId));
@@ -197,11 +246,18 @@ export default function PlanDetailPage() {
   const fetchPlan = useCallback(async () => {
     try {
       setLoading(true);
-      const res = (await api.getPlan(planId)) as { data: { plan: AnyObj; userRequestStatus?: string } };
+      const res = (await api.getPlan(planId)) as { data: { plan: AnyObj; userRequestStatus?: string; userRequestData?: AnyObj } };
       setPlan(res.data.plan);
       if (res.data.userRequestStatus) {
         setHasRequested(true);
       }
+      if (res.data.userRequestData) {
+        setUserRequestData(res.data.userRequestData);
+      }
+      // Set likes state
+      const planData = res.data.plan;
+      setLikesCount(planData.likes?.length || 0);
+      setLiked(planData.likes?.some((l: AnyObj) => (l._id || l) === userId) || false);
     } catch {
       // plan not found
     } finally {
@@ -244,6 +300,136 @@ export default function PlanDetailPage() {
       }).catch(() => {});
     }
   }, [planId, userId]);
+
+  // Fetch comments
+  useEffect(() => {
+    if (!plan) return;
+    const fetchComments = async () => {
+      setLoadingComments(true);
+      try {
+        const res = await api.getPlanComments(planId, 1);
+        setComments(res.comments as AnyObj[]);
+        setCommentsTotal(res.total);
+        setCommentsPage(1);
+      } catch { /* ignore */ }
+      setLoadingComments(false);
+    };
+    fetchComments();
+  }, [plan?._id, planId]);
+
+  // Socket.IO for real-time plan updates
+  useEffect(() => {
+    if (!plan?.id && !plan?._id || !isLoggedIn) return;
+
+    const token = localStorage.getItem('slanup_token');
+    if (!token) return;
+
+    const effectivePlanId = plan.id || plan._id;
+
+    const socket = io(API_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+    });
+
+    socket.on('connect', () => {
+      socket.emit('joinPlan', effectivePlanId);
+    });
+
+    // Like events
+    socket.on('planLiked', (data: { planId: string; userId: string; likesCount: number }) => {
+      if (data.planId === effectivePlanId) {
+        setLikesCount(data.likesCount);
+        if (data.userId === userId) setLiked(true);
+      }
+    });
+    socket.on('planUnliked', (data: { planId: string; userId: string; likesCount: number }) => {
+      if (data.planId === effectivePlanId) {
+        setLikesCount(data.likesCount);
+        if (data.userId === userId) setLiked(false);
+      }
+    });
+
+    // Comment events
+    socket.on('newPlanComment', (data: { planId: string; comment: AnyObj }) => {
+      if (data.planId === effectivePlanId) {
+        setComments(prev => [data.comment, ...prev]);
+        setCommentsTotal(prev => prev + 1);
+      }
+    });
+    socket.on('newPlanReply', (data: { planId: string; parentId: string; reply: AnyObj }) => {
+      if (data.planId === effectivePlanId) {
+        setExpandedReplies(prev => ({
+          ...prev,
+          [data.parentId]: [...(prev[data.parentId] || []), data.reply],
+        }));
+        setComments(prev => prev.map(c =>
+          c._id === data.parentId ? { ...c, replyCount: (c.replyCount || 0) + 1 } : c
+        ));
+      }
+    });
+    socket.on('planCommentDeleted', (data: { planId: string; commentId: string; parentId: string | null }) => {
+      if (data.planId === effectivePlanId) {
+        if (data.parentId) {
+          const pid = data.parentId;
+          setExpandedReplies(prev => ({
+            ...prev,
+            [pid]: (prev[pid] || []).filter((r: AnyObj) => r._id !== data.commentId),
+          }));
+          setComments(prev => prev.map(c =>
+            c._id === pid ? { ...c, replyCount: Math.max(0, (c.replyCount || 0) - 1) } : c
+          ));
+        } else {
+          setComments(prev => prev.filter(c => c._id !== data.commentId));
+          setCommentsTotal(prev => prev - 1);
+        }
+      }
+    });
+    socket.on('planCommentLiked', (data: { planId: string; commentId: string; userId: string; likes: string[] }) => {
+      if (data.planId === effectivePlanId) {
+        const updateLikes = (list: AnyObj[]) =>
+          list.map(c => c._id === data.commentId ? { ...c, likes: data.likes } : c);
+        setComments(updateLikes);
+        setExpandedReplies(prev => {
+          const updated: Record<string, AnyObj[]> = {};
+          for (const key in prev) updated[key] = updateLikes(prev[key]);
+          return updated;
+        });
+      }
+    });
+    socket.on('planCommentUnliked', (data: { planId: string; commentId: string; userId: string; likes: string[] }) => {
+      if (data.planId === effectivePlanId) {
+        const updateLikes = (list: AnyObj[]) =>
+          list.map(c => c._id === data.commentId ? { ...c, likes: data.likes } : c);
+        setComments(updateLikes);
+        setExpandedReplies(prev => {
+          const updated: Record<string, AnyObj[]> = {};
+          for (const key in prev) updated[key] = updateLikes(prev[key]);
+          return updated;
+        });
+      }
+    });
+
+    // Request follow-up messages
+    socket.on('newRequestMessage', (data: { requestId: string; message: AnyObj }) => {
+      // User side
+      if (userRequestData && data.requestId === userRequestData._id) {
+        setRequestMessages(prev => [...prev, data.message]);
+      }
+      // Host side
+      setHostRequestMessages(prev => ({
+        ...prev,
+        [data.requestId]: [...(prev[data.requestId] || []), data.message],
+      }));
+    });
+
+    socketRef.current = socket;
+
+    return () => {
+      socket.emit('leavePlan', effectivePlanId);
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [plan?._id, plan?.id, isLoggedIn, userId, userRequestData?._id]);
 
   const handleRatePlan = async () => {
     if (!myRating) return;
@@ -548,6 +734,143 @@ export default function PlanDetailPage() {
     } finally {
       setRespondingTransfer(false);
     }
+  };
+
+  // Like/unlike handler
+  const handleLikeToggle = async () => {
+    if (!isLoggedIn) return;
+    // Optimistic update
+    const wasLiked = liked;
+    setLiked(!wasLiked);
+    setLikesCount(prev => wasLiked ? prev - 1 : prev + 1);
+    setLikeAnimating(true);
+    try {
+      if (wasLiked) {
+        await api.unlikePlan(planId);
+      } else {
+        await api.likePlan(planId);
+      }
+    } catch {
+      // Revert on failure
+      setLiked(wasLiked);
+      setLikesCount(prev => wasLiked ? prev + 1 : prev - 1);
+    }
+    setTimeout(() => setLikeAnimating(false), 300);
+  };
+
+  // Comment handlers
+  const handlePostComment = async () => {
+    if (!commentText.trim() || postingComment) return;
+    setPostingComment(true);
+    try {
+      await api.postPlanComment(planId, commentText.trim());
+      setCommentText('');
+    } catch {
+      alert('Failed to post comment');
+    }
+    setPostingComment(false);
+  };
+
+  const handleLoadMoreComments = async () => {
+    const nextPage = commentsPage + 1;
+    setLoadingComments(true);
+    try {
+      const res = await api.getPlanComments(planId, nextPage);
+      setComments(prev => [...prev, ...(res.comments as AnyObj[])]);
+      setCommentsPage(nextPage);
+    } catch { /* ignore */ }
+    setLoadingComments(false);
+  };
+
+  const handleToggleReplies = async (commentId: string) => {
+    if (expandedReplies[commentId]) {
+      setExpandedReplies(prev => {
+        const next = { ...prev };
+        delete next[commentId];
+        return next;
+      });
+      return;
+    }
+    try {
+      const res = await api.getCommentReplies(commentId);
+      setExpandedReplies(prev => ({ ...prev, [commentId]: res.replies as AnyObj[] }));
+    } catch { /* ignore */ }
+  };
+
+  const handlePostReply = async (parentId: string) => {
+    if (!replyText.trim() || postingReply) return;
+    setPostingReply(true);
+    try {
+      await api.postCommentReply(parentId, replyText.trim());
+      setReplyText('');
+      setReplyingTo(null);
+    } catch {
+      alert('Failed to post reply');
+    }
+    setPostingReply(false);
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Delete this comment?')) return;
+    try {
+      await api.deletePlanComment(commentId);
+    } catch {
+      alert('Failed to delete comment');
+    }
+  };
+
+  const handleCommentLike = async (commentId: string, isLiked: boolean) => {
+    // Optimistic update
+    const updateLikes = (list: AnyObj[]) =>
+      list.map(c => {
+        if (c._id !== commentId) return c;
+        const likes = c.likes || [];
+        return {
+          ...c,
+          likes: isLiked
+            ? likes.filter((l: AnyObj) => (l._id || l) !== userId)
+            : [...likes, userId],
+        };
+      });
+    setComments(updateLikes);
+    setExpandedReplies(prev => {
+      const updated: Record<string, AnyObj[]> = {};
+      for (const key in prev) updated[key] = updateLikes(prev[key]);
+      return updated;
+    });
+    try {
+      if (isLiked) {
+        await api.unlikeComment(commentId);
+      } else {
+        await api.likeComment(commentId);
+      }
+    } catch {
+      // Revert — refetch would be heavy, socket will correct
+    }
+  };
+
+  // Request follow-up handlers
+  const handleOpenRequestChat = async () => {
+    if (!userRequestData?._id) return;
+    setShowRequestChat(true);
+    setLoadingRequestMsgs(true);
+    try {
+      const res = await api.getRequestMessages(userRequestData._id);
+      setRequestMessages(res.messages as AnyObj[]);
+    } catch { /* ignore */ }
+    setLoadingRequestMsgs(false);
+  };
+
+  const handleSendRequestMsg = async () => {
+    if (!requestMsgText.trim() || sendingRequestMsg || !userRequestData?._id) return;
+    setSendingRequestMsg(true);
+    try {
+      await api.postRequestMessage(userRequestData._id, requestMsgText.trim());
+      setRequestMsgText('');
+    } catch {
+      alert('Failed to send message');
+    }
+    setSendingRequestMsg(false);
   };
 
   // Fetch global felt-safe ratings and flags for current user
@@ -864,6 +1187,16 @@ export default function PlanDetailPage() {
                 </div>
                 <div className="flex gap-1.5 flex-shrink-0">
                   <button
+                    onClick={handleLikeToggle}
+                    className="flex items-center gap-1 px-2 h-8 rounded-full hover:bg-red-50 transition-colors"
+                    title={liked ? 'Unlike' : 'Like'}
+                  >
+                    <motion.div animate={likeAnimating ? { scale: [1, 1.3, 1] } : {}} transition={{ duration: 0.3 }}>
+                      <Heart className={`w-4 h-4 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-neutral-400'}`} />
+                    </motion.div>
+                    {likesCount > 0 && <span className="text-xs text-neutral-500 font-medium">{likesCount}</span>}
+                  </button>
+                  <button
                     onClick={() => setShowShare(true)}
                     className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
                     title="Share plan"
@@ -1124,15 +1457,22 @@ export default function PlanDetailPage() {
                               </div>
                             </Link>
                             <div className="flex items-center gap-1.5">
-                              {req.note && (
-                                <button
-                                  onClick={() => setNoteExpanded(noteExpanded === req._id ? null : req._id)}
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${noteExpanded === req._id ? 'bg-[var(--brand-green)]/10 text-[var(--brand-green)]' : 'hover:bg-neutral-100 text-neutral-400'}`}
-                                  title="View note"
-                                >
-                                  <MessageSquareText className="w-4 h-4" />
-                                </button>
-                              )}
+                              <button
+                                onClick={async () => {
+                                  const isOpen = noteExpanded === req._id;
+                                  setNoteExpanded(isOpen ? null : req._id);
+                                  if (!isOpen && !hostRequestMessages[req._id]) {
+                                    try {
+                                      const res = await api.getRequestMessages(req._id);
+                                      setHostRequestMessages(prev => ({ ...prev, [req._id]: res.messages as AnyObj[] }));
+                                    } catch { /* ignore */ }
+                                  }
+                                }}
+                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${noteExpanded === req._id ? 'bg-[var(--brand-green)]/10 text-[var(--brand-green)]' : 'hover:bg-neutral-100 text-neutral-400'}`}
+                                title="Messages"
+                              >
+                                <MessageSquareText className="w-4 h-4" />
+                              </button>
                               <button
                                 onClick={() => handleRequestAction(req._id, "accepted")}
                                 disabled={actionLoading === req._id}
@@ -1150,15 +1490,76 @@ export default function PlanDetailPage() {
                             </div>
                           </div>
                           <AnimatePresence>
-                            {noteExpanded === req._id && req.note && (
-                              <motion.p
+                            {noteExpanded === req._id && (
+                              <motion.div
                                 initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
+                                animate={{ height: 'auto', opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
-                                className="text-xs text-neutral-600 mt-2 ml-[52px] bg-white p-2.5 rounded-lg border border-neutral-100 leading-relaxed overflow-hidden"
+                                className="overflow-hidden mt-2 ml-[52px]"
                               >
-                                &ldquo;{req.note}&rdquo;
-                              </motion.p>
+                                {req.note && (
+                                  <div className="bg-white p-2.5 rounded-lg border border-neutral-100 mb-2">
+                                    <p className="text-[10px] text-neutral-400 mb-0.5">Their note</p>
+                                    <p className="text-xs text-neutral-700 leading-relaxed">&ldquo;{req.note}&rdquo;</p>
+                                  </div>
+                                )}
+                                {/* Follow-up messages */}
+                                {(hostRequestMessages[req._id] || []).length > 0 && (
+                                  <div className="space-y-1.5 mb-2 max-h-32 overflow-y-auto">
+                                    {(hostRequestMessages[req._id] || []).map((msg: AnyObj) => {
+                                      const isMine = msg.senderId?._id === userId || msg.senderId === userId;
+                                      return (
+                                        <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                          <div className={`rounded-lg px-2.5 py-1.5 max-w-[80%] ${
+                                            isMine ? 'bg-[var(--brand-green)] text-white' : 'bg-neutral-100 text-neutral-700'
+                                          }`}>
+                                            <p className="text-xs">{msg.content}</p>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                {/* Input for host follow-up */}
+                                <div className="flex gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={hostMsgText[req._id] || ''}
+                                    onChange={e => setHostMsgText(prev => ({ ...prev, [req._id]: e.target.value }))}
+                                    onKeyDown={async e => {
+                                      if (e.key === 'Enter') {
+                                        const text = (hostMsgText[req._id] || '').trim();
+                                        if (!text || sendingHostMsg) return;
+                                        setSendingHostMsg(req._id);
+                                        try {
+                                          await api.postRequestMessage(req._id, text);
+                                          setHostMsgText(prev => ({ ...prev, [req._id]: '' }));
+                                        } catch { /* ignore */ }
+                                        setSendingHostMsg(null);
+                                      }
+                                    }}
+                                    placeholder="Ask a follow-up..."
+                                    maxLength={500}
+                                    className="flex-1 px-2.5 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[var(--brand-green)]/30"
+                                  />
+                                  <button
+                                    onClick={async () => {
+                                      const text = (hostMsgText[req._id] || '').trim();
+                                      if (!text || sendingHostMsg) return;
+                                      setSendingHostMsg(req._id);
+                                      try {
+                                        await api.postRequestMessage(req._id, text);
+                                        setHostMsgText(prev => ({ ...prev, [req._id]: '' }));
+                                      } catch { /* ignore */ }
+                                      setSendingHostMsg(null);
+                                    }}
+                                    disabled={!(hostMsgText[req._id] || '').trim() || sendingHostMsg === req._id}
+                                    className="px-2.5 py-1.5 bg-[var(--brand-green)] text-white rounded-lg text-xs font-semibold disabled:opacity-40"
+                                  >
+                                    Send
+                                  </button>
+                                </div>
+                              </motion.div>
                             )}
                           </AnimatePresence>
                         </div>
@@ -1347,6 +1748,200 @@ export default function PlanDetailPage() {
             )}
           </div>
         )}
+
+        {/* Comments Section */}
+        <div className="bg-white rounded-2xl shadow-sm p-5 mt-4">
+          <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2 mb-4">
+            <MessageCircle className="w-5 h-5" /> Comments
+            {commentsTotal > 0 && <span className="text-sm font-normal text-neutral-400">({commentsTotal})</span>}
+          </h3>
+
+          {/* Comment Input */}
+          {isLoggedIn && (
+            <div className="flex gap-3 mb-4">
+              <Avatar image={(user as AnyObj)?.image} name={(user as AnyObj)?.name} size={36} />
+              <div className="flex-1 flex gap-2">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={e => setCommentText(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handlePostComment()}
+                  placeholder="Ask a question or leave a comment..."
+                  maxLength={2000}
+                  className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                />
+                <button
+                  onClick={handlePostComment}
+                  disabled={!commentText.trim() || postingComment}
+                  className="px-3 py-2 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--brand-green-dark)] transition-colors disabled:opacity-40"
+                >
+                  {postingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Comments List */}
+          {comments.length === 0 && !loadingComments ? (
+            <p className="text-neutral-400 text-sm text-center py-4">No comments yet. Be the first to comment!</p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {comments.map((comment) => {
+                const commentLiked = comment.likes?.some((l: AnyObj) => (l._id || l) === userId);
+                const replies = expandedReplies[comment._id];
+                return (
+                  <div key={comment._id} className="group">
+                    <div className="flex gap-3">
+                      <Link href={`/app/profile/${comment.userId?._id}`}>
+                        <Avatar image={comment.userId?.image} name={comment.userId?.name} size={32} />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Link href={`/app/profile/${comment.userId?._id}`} className="text-sm font-semibold text-neutral-800 hover:underline">
+                            {comment.userId?.name}
+                          </Link>
+                          <span className="text-[11px] text-neutral-400">{timeAgo(comment.createdAt)}</span>
+                        </div>
+                        <p className="text-sm text-neutral-700 mt-0.5 whitespace-pre-wrap break-words">{comment.content}</p>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          {isLoggedIn && (
+                            <button
+                              onClick={() => handleCommentLike(comment._id, commentLiked)}
+                              className="flex items-center gap-1 text-xs text-neutral-400 hover:text-red-500 transition-colors"
+                            >
+                              <Heart className={`w-3.5 h-3.5 ${commentLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                              {comment.likes?.length > 0 && <span>{comment.likes.length}</span>}
+                            </button>
+                          )}
+                          {isLoggedIn && (
+                            <button
+                              onClick={() => { setReplyingTo(replyingTo === comment._id ? null : comment._id); setReplyText(''); }}
+                              className="text-xs text-neutral-400 hover:text-[var(--brand-green)] transition-colors font-medium"
+                            >
+                              Reply
+                            </button>
+                          )}
+                          {(comment.userId?._id === userId || isHost) && (
+                            <button
+                              onClick={() => handleDeleteComment(comment._id)}
+                              className="text-xs text-neutral-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Reply Input */}
+                        <AnimatePresence>
+                          {replyingTo === comment._id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="flex gap-2 mt-2">
+                                <input
+                                  type="text"
+                                  value={replyText}
+                                  onChange={e => setReplyText(e.target.value)}
+                                  onKeyDown={e => e.key === 'Enter' && handlePostReply(comment._id)}
+                                  placeholder="Write a reply..."
+                                  maxLength={2000}
+                                  className="flex-1 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30"
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={() => handlePostReply(comment._id)}
+                                  disabled={!replyText.trim() || postingReply}
+                                  className="px-2.5 py-1.5 bg-[var(--brand-green)] text-white rounded-lg text-xs font-semibold disabled:opacity-40"
+                                >
+                                  {postingReply ? '...' : 'Reply'}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Replies toggle */}
+                        {comment.replyCount > 0 && (
+                          <button
+                            onClick={() => handleToggleReplies(comment._id)}
+                            className="text-xs text-[var(--brand-green)] font-medium mt-1.5 hover:underline"
+                          >
+                            {replies ? 'Hide replies' : `View ${comment.replyCount} ${comment.replyCount === 1 ? 'reply' : 'replies'}`}
+                          </button>
+                        )}
+
+                        {/* Replies list */}
+                        <AnimatePresence>
+                          {replies && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="flex flex-col gap-3 mt-2 ml-2 pl-3 border-l-2 border-neutral-100">
+                                {replies.map((reply: AnyObj) => {
+                                  const replyLiked = reply.likes?.some((l: AnyObj) => (l._id || l) === userId);
+                                  return (
+                                    <div key={reply._id} className="flex gap-2 group/reply">
+                                      <Link href={`/app/profile/${reply.userId?._id}`}>
+                                        <Avatar image={reply.userId?.image} name={reply.userId?.name} size={24} />
+                                      </Link>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                          <Link href={`/app/profile/${reply.userId?._id}`} className="text-xs font-semibold text-neutral-800 hover:underline">
+                                            {reply.userId?.name}
+                                          </Link>
+                                          <span className="text-[10px] text-neutral-400">{timeAgo(reply.createdAt)}</span>
+                                        </div>
+                                        <p className="text-xs text-neutral-700 mt-0.5 whitespace-pre-wrap break-words">{reply.content}</p>
+                                        <div className="flex items-center gap-3 mt-1">
+                                          {isLoggedIn && (
+                                            <button
+                                              onClick={() => handleCommentLike(reply._id, replyLiked)}
+                                              className="flex items-center gap-1 text-[11px] text-neutral-400 hover:text-red-500 transition-colors"
+                                            >
+                                              <Heart className={`w-3 h-3 ${replyLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                                              {reply.likes?.length > 0 && <span>{reply.likes.length}</span>}
+                                            </button>
+                                          )}
+                                          {(reply.userId?._id === userId || isHost) && (
+                                            <button
+                                              onClick={() => handleDeleteComment(reply._id)}
+                                              className="text-[11px] text-neutral-300 hover:text-red-500 transition-colors opacity-0 group-hover/reply:opacity-100"
+                                            >
+                                              Delete
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {comments.length < commentsTotal && (
+                <button
+                  onClick={handleLoadMoreComments}
+                  disabled={loadingComments}
+                  className="text-sm text-[var(--brand-green)] font-medium hover:underline disabled:opacity-50 text-center"
+                >
+                  {loadingComments ? 'Loading...' : 'Load more comments'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </main>
       {!isLoggedIn && (new Date(plan.end) > new Date()) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
@@ -1361,9 +1956,17 @@ export default function PlanDetailPage() {
         </div>
       )}
 
-      {isLoggedIn && !isHost && !isParticipant && slotsLeft > 0 && new Date(plan.end) > new Date() && (
+      {isLoggedIn && !isHost && !isParticipant && (slotsLeft > 0 || hasRequested) && new Date(plan.end) > new Date() && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 p-4 z-50 native-bottom-lift">
           <div className="max-w-2xl mx-auto flex gap-3">
+            {hasRequested && userRequestData && (
+              <button
+                onClick={() => { hapticLight(); handleOpenRequestChat(); }}
+                className="px-4 py-3 md:py-3.5 border-2 border-neutral-200 text-neutral-600 font-semibold rounded-2xl transition-colors hover:bg-neutral-50 flex items-center gap-2"
+              >
+                <MessageSquareText className="w-5 h-5" />
+              </button>
+            )}
             <button
               onClick={() => { hapticMedium(); setShowJoinModal(true); }}
               disabled={requesting || hasRequested}
@@ -1731,6 +2334,95 @@ export default function PlanDetailPage() {
                   </div>
                 </>
               )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Request Follow-up Chat Modal */}
+      <AnimatePresence>
+        {showRequestChat && userRequestData && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
+            onClick={() => setShowRequestChat(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={e => e.stopPropagation()}
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-xl max-h-[70vh] flex flex-col"
+            >
+              <div className="p-4 border-b border-neutral-100 flex items-center justify-between flex-shrink-0">
+                <div>
+                  <h3 className="font-bold text-neutral-800">Your Request</h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    {userRequestData.status === 'pending' ? 'Waiting for host response' : userRequestData.status === 'accepted' ? 'Accepted' : 'Declined'}
+                  </p>
+                </div>
+                <button onClick={() => setShowRequestChat(false)} className="w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center">
+                  <X className="w-4 h-4 text-neutral-500" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {/* Original note */}
+                {userRequestData.note && (
+                  <div className="flex justify-end">
+                    <div className="bg-[var(--brand-green)]/10 border border-[var(--brand-green)]/20 rounded-2xl rounded-br-md px-3 py-2 max-w-[80%]">
+                      <p className="text-xs text-neutral-400 mb-0.5">Your note</p>
+                      <p className="text-sm text-neutral-800">{userRequestData.note}</p>
+                    </div>
+                  </div>
+                )}
+
+                {loadingRequestMsgs ? (
+                  <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-neutral-300" /></div>
+                ) : (
+                  requestMessages.map((msg) => {
+                    const isMine = msg.senderId?._id === userId || msg.senderId === userId;
+                    return (
+                      <div key={msg._id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`rounded-2xl px-3 py-2 max-w-[80%] ${
+                          isMine
+                            ? 'bg-[var(--brand-green)] text-white rounded-br-md'
+                            : 'bg-neutral-100 text-neutral-800 rounded-bl-md'
+                        }`}>
+                          {!isMine && <p className="text-xs font-semibold mb-0.5">{msg.senderId?.name || 'Host'}</p>}
+                          <p className="text-sm">{msg.content}</p>
+                          <p className={`text-[10px] mt-0.5 ${isMine ? 'text-white/60' : 'text-neutral-400'}`}>
+                            {timeAgo(msg.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Message input */}
+              <div className="p-4 border-t border-neutral-100 flex gap-2 flex-shrink-0">
+                <input
+                  type="text"
+                  value={requestMsgText}
+                  onChange={e => setRequestMsgText(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendRequestMsg()}
+                  placeholder="Send a message..."
+                  maxLength={500}
+                  className="flex-1 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30"
+                />
+                <button
+                  onClick={handleSendRequestMsg}
+                  disabled={!requestMsgText.trim() || sendingRequestMsg}
+                  className="px-3 py-2 bg-[var(--brand-green)] text-white rounded-xl text-sm font-semibold disabled:opacity-40"
+                >
+                  {sendingRequestMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

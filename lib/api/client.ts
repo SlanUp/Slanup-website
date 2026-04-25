@@ -321,6 +321,34 @@ export const api = {
   getProfileRating: (userId: string) =>
     apiFetch<{ success: boolean; data: { avgScore: string | null; totalRatings: number } }>('/api/web/profile/' + userId + '/rating', { noAuth: true }),
 
+  // Plan Likes
+  likePlan: (planId: string) =>
+    apiFetch('/api/web/plans/' + planId + '/like', { method: 'POST' }),
+  unlikePlan: (planId: string) =>
+    apiFetch('/api/web/plans/' + planId + '/unlike', { method: 'POST' }),
+
+  // Plan Comments
+  getPlanComments: (planId: string, page = 1) =>
+    apiFetch<{ success: boolean; comments: Record<string, unknown>[]; total: number; page: number; totalPages: number }>('/api/web/plans/' + planId + '/comments?page=' + page, { noAuth: true }),
+  postPlanComment: (planId: string, content: string) =>
+    apiFetch('/api/web/plans/' + planId + '/comments', { method: 'POST', body: { content } }),
+  getCommentReplies: (commentId: string, page = 1) =>
+    apiFetch<{ success: boolean; replies: Record<string, unknown>[]; total: number }>('/api/web/plans/comments/' + commentId + '/replies?page=' + page, { noAuth: true }),
+  postCommentReply: (commentId: string, content: string, boardId?: string) =>
+    apiFetch('/api/web/plans/comments/' + commentId + '/replies', { method: 'POST', body: { content, boardId } }),
+  deletePlanComment: (commentId: string) =>
+    apiFetch('/api/web/plans/comments/' + commentId, { method: 'DELETE' }),
+  likeComment: (commentId: string) =>
+    apiFetch('/api/web/plans/comments/' + commentId + '/like', { method: 'POST' }),
+  unlikeComment: (commentId: string) =>
+    apiFetch('/api/web/plans/comments/' + commentId + '/unlike', { method: 'POST' }),
+
+  // Request Follow-up Messages
+  getRequestMessages: (requestId: string) =>
+    apiFetch<{ success: boolean; messages: Record<string, unknown>[]; note: string }>('/api/web/requests/' + requestId + '/messages'),
+  postRequestMessage: (requestId: string, content: string) =>
+    apiFetch('/api/web/requests/' + requestId + '/messages', { method: 'POST', body: { content } }),
+
   // Communities
   getCommunities: (city?: string, search?: string) =>
     apiFetch(`/api/web/communities?${city ? `city=${encodeURIComponent(city)}&` : ''}${search ? `search=${encodeURIComponent(search)}` : ''}`),
