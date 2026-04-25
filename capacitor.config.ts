@@ -10,6 +10,10 @@ const config: CapacitorConfig = {
     cleartext: false,
   },
   plugins: {
+    Keyboard: {
+      resize: 'none',
+      scrollPadding: false,
+    },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
@@ -31,6 +35,7 @@ const config: CapacitorConfig = {
     preferredContentMode: 'mobile',
     allowsLinkPreview: false,
     scrollEnabled: true,
+    webContentsDebuggingEnabled: false,
   },
   android: {
     backgroundColor: '#FFFFFF',
