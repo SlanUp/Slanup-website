@@ -281,17 +281,61 @@ export default function NotificationsPage() {
             {/* Activity — comments, replies, follow-up messages */}
             {activity.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2 px-1">Comments & Messages</p>
+                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-2 px-1">Comments, Likes & Messages</p>
                 <div className="space-y-3">
                   {activity.map((n) => {
                     const icon = n.type === 'comment_reply' ? <Reply className="w-4 h-4 text-blue-500" /> :
                                  n.type === 'request_followup' ? <MessageCircle className="w-4 h-4 text-purple-500" /> :
+                                 n.type === 'plan_like' ? <Heart className="w-4 h-4 text-red-500 fill-red-500" /> :
                                  <MessageCircle className="w-4 h-4 text-[var(--brand-green)]" />;
+                    const planName = n.planId?.name || 'a plan';
+                    const planUrl = `/app/plan/${n.planUuid || n.planId?.id || n.planId?._id}`;
+
+                    // Aggregated like display
+                    if (n.type === 'plan_like' && n.actorIds?.length > 0) {
+                      const actors = n.actorIds as { _id: string; name?: string; image?: string }[];
+                      const first = actors[actors.length - 1]; // most recent liker
+                      const second = actors.length > 1 ? actors[actors.length - 2] : null;
+                      const othersCount = actors.length - (second ? 2 : 1);
+                      let nameStr = first?.name || 'Someone';
+                      if (second) nameStr += `, ${second.name || 'someone'}`;
+                      if (othersCount > 0) nameStr += ` and ${othersCount} other${othersCount > 1 ? 's' : ''}`;
+                      return (
+                        <motion.div key={n._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                          <Link href={planUrl}>
+                            <div className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-start gap-3">
+                                <div className="relative shrink-0" style={{ width: actors.length > 1 ? 48 : 40, height: 40 }}>
+                                  <div className="w-10 h-10 rounded-xl overflow-hidden">
+                                    <Avatar image={first?.image} name={first?.name} size={40} />
+                                  </div>
+                                  {second && (
+                                    <div className="absolute -right-1 -bottom-1 w-7 h-7 rounded-lg overflow-hidden border-2 border-white">
+                                      <Avatar image={second.image} name={second.name} size={28} />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    {icon}
+                                    <p className="text-sm text-neutral-700 leading-snug">
+                                      <span className="font-semibold text-neutral-900">{nameStr}</span>{' '}
+                                      liked{' '}
+                                      <span className="font-semibold text-neutral-900">&quot;{planName}&quot;</span>
+                                    </p>
+                                  </div>
+                                  <p className="text-xs text-neutral-400 mt-1">{relativeTime(n.createdAt)}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      );
+                    }
+
                     const label = n.type === 'plan_comment' ? 'commented on' :
                                   n.type === 'comment_reply' ? 'replied to your comment on' :
                                   'sent a follow-up about';
-                    const planName = n.planId?.name || 'a plan';
-                    const planUrl = `/app/plan/${n.planUuid || n.planId?.id || n.planId?._id}`;
                     return (
                       <motion.div key={n._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                         <Link href={planUrl}>
