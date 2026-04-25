@@ -1584,34 +1584,13 @@ export default function PlanDetailPage() {
                   </span>
                 )}
               </h3>
-              {isLoggedIn && (isParticipant || isHost) && !showRatingForm && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowRatingForm(true)}
-                    className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
-                  >
-                    {myRating ? 'Edit Rating' : 'Rate Plan'}
-                  </button>
-                  {myRating > 0 && (
-                    <button
-                      onClick={async () => {
-                        if (!confirm('Delete your rating?')) return;
-                        try {
-                          await api.deletePlanRating(planId);
-                          setMyRating(0);
-                          setMyReview('');
-                          const res = await api.getPlanRatings(planId);
-                          setRatings(res.data.ratings);
-                          setAvgScore(res.data.avgScore);
-                          setRatingCount(res.data.count);
-                        } catch { alert('Failed to delete'); }
-                      }}
-                      className="text-xs text-red-400 hover:text-red-600"
-                    >
-                      Delete
-                    </button>
-                  )}
-                </div>
+              {isLoggedIn && (isParticipant || isHost) && !showRatingForm && !myRating && (
+                <button
+                  onClick={() => setShowRatingForm(true)}
+                  className="text-sm font-semibold text-[var(--brand-green)] hover:text-[var(--brand-green-dark)]"
+                >
+                  Rate Plan
+                </button>
               )}
             </div>
 
@@ -1662,7 +1641,10 @@ export default function PlanDetailPage() {
             {/* Rating List */}
             {ratings.length > 0 ? (
               <div className="space-y-3">
-                {ratings.slice(0, 5).map((rating: Record<string, unknown>, idx: number) => (
+                {ratings.slice(0, 5).map((rating: Record<string, unknown>, idx: number) => {
+                  const ratingUserId = (rating.userId as Record<string, unknown>)?._id as string;
+                  const isMyRating = ratingUserId === userId;
+                  return (
                   <div key={idx} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-[var(--brand-green)]/10 flex items-center justify-center text-sm font-semibold text-[var(--brand-green)]">
                       {((rating.userId as Record<string, unknown>)?.name as string)?.charAt(0)?.toUpperCase() || '?'}
@@ -1671,17 +1653,48 @@ export default function PlanDetailPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-neutral-800">
                           {(rating.userId as Record<string, unknown>)?.name as string}
+                          {isMyRating && <span className="text-neutral-400 font-normal"> (You)</span>}
                         </span>
                         <span className="text-xs text-neutral-400">
                           {'⭐'.repeat(rating.score as number)}
                         </span>
+                        {isMyRating && !showRatingForm && (
+                          <div className="flex items-center gap-1 ml-auto">
+                            <button
+                              onClick={() => setShowRatingForm(true)}
+                              className="w-6 h-6 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors"
+                              title="Edit rating"
+                            >
+                              <Pencil className="w-3 h-3 text-neutral-400" />
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Delete your rating?')) return;
+                                try {
+                                  await api.deletePlanRating(planId);
+                                  setMyRating(0);
+                                  setMyReview('');
+                                  const res = await api.getPlanRatings(planId);
+                                  setRatings(res.data.ratings);
+                                  setAvgScore(res.data.avgScore);
+                                  setRatingCount(res.data.count);
+                                } catch { alert('Failed to delete'); }
+                              }}
+                              className="w-6 h-6 rounded-full hover:bg-red-50 flex items-center justify-center transition-colors"
+                              title="Delete rating"
+                            >
+                              <Trash2 className="w-3 h-3 text-red-400" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                       {typeof rating.review === 'string' && rating.review && (
                         <p className="text-sm text-neutral-600 mt-0.5">{rating.review}</p>
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 {ratings.length > 5 && (
                   <p className="text-xs text-neutral-400 text-center">+{ratings.length - 5} more ratings</p>
                 )}
