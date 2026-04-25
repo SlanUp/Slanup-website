@@ -1839,7 +1839,7 @@ export default function PlanDetailPage() {
                           {(comment.userId?._id === userId || isHost) && (
                             <button
                               onClick={() => handleDeleteComment(comment._id)}
-                              className="text-xs text-neutral-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                              className="text-xs text-neutral-400 hover:text-red-500 transition-colors"
                             >
                               Delete
                             </button>
@@ -1928,7 +1928,7 @@ export default function PlanDetailPage() {
                                           {(reply.userId?._id === userId || isHost) && (
                                             <button
                                               onClick={() => handleDeleteComment(reply._id)}
-                                              className="text-[11px] text-neutral-300 hover:text-red-500 transition-colors opacity-0 group-hover/reply:opacity-100"
+                                              className="text-[11px] text-neutral-400 hover:text-red-500 transition-colors"
                                             >
                                               Delete
                                             </button>
