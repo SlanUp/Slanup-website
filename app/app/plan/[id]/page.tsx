@@ -1781,7 +1781,7 @@ export default function PlanDetailPage() {
                   onKeyDown={e => e.key === 'Enter' && handlePostComment()}
                   placeholder="Ask a question or leave a comment..."
                   maxLength={2000}
-                  className="flex-1 min-w-0 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30 focus:border-[var(--brand-green)]"
+                  className="flex-1 min-w-0 px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-neutral-300"
                 />
                 <button
                   onClick={handlePostComment}
@@ -1861,7 +1861,7 @@ export default function PlanDetailPage() {
                                   onKeyDown={e => e.key === 'Enter' && handlePostReply(comment._id)}
                                   placeholder="Write a reply..."
                                   maxLength={2000}
-                                  className="flex-1 min-w-0 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/30"
+                                  className="flex-1 min-w-0 px-3 py-1.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm focus:outline-none focus:border-neutral-300"
                                   autoFocus
                                 />
                                 <button
