@@ -67,6 +67,21 @@ export default function Home() {
               <span>Google Play</span>
             </motion.a>
           </div>
+
+          {/* Full Moon Party CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25 }}
+            className="w-full"
+          >
+            <Link
+              href="/full-moon-party"
+              className="block w-full bg-black hover:bg-neutral-900 text-yellow-400 font-bold py-3 px-6 rounded-full text-sm md:text-base transition-all duration-300 shadow-md hover:shadow-lg text-center tracking-wide"
+            >
+              🌕 Full Moon Party
+            </Link>
+          </motion.div>
         </div>
 
         <motion.div
