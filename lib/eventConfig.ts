@@ -140,8 +140,8 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
   'full-moon-party': {
     id: 'full-moon-party',
     name: "Slanup's Full Moon Party",
-    date: new Date('2026-03-28'),
-    venue: "Delhi",
+    date: new Date('2026-05-16'),
+    venue: "Gurgaon",
     referencePrefix: 'FMP',
     galleryCode: 'FMP2026',
     googleDriveFolderId: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '',
@@ -162,7 +162,7 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
         id: 'ultimate',
         name: 'FULL MOON PARTY EXPERIENCE',
         price: 2499,
-        description: 'The most INSANE Full Moon Party experience in Delhi! 🌕🔥',
+        description: 'The most INSANE Full Moon Party experience in Gurgaon! 🌕🔥',
         benefits: [
           '🍽️ UNLIMITED Food & Beverages',
           '🎲 Crazy Rules & Games (Prepare to get WASTED!)',
@@ -173,7 +173,6 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
           '🎧 Professional DJ All Night Long',
           '🎨 Free Neon Body Paint & UV Gear',
           '🎯 Exclusive Game Booths & Setups',
-          '🍹 Complimentary Welcome Cocktail/Mocktail',
           '📍 Location details will be shared one day prior to the event',
           '📸 Instagram-Worthy Photo Opportunities',
           '🎊 Unforgettable Memories Guaranteed'

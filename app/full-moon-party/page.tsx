@@ -450,7 +450,7 @@ export default function FullMoonPartyPage() {
                 WHAT AWAITS YOU
               </h3>
               <p className="text-neutral-500 text-sm md:text-base">
-                Thailand&apos;s legendary Full Moon Party energy, right here in Delhi 🌕
+                Thailand&apos;s legendary Full Moon Party energy, right here in Gurgaon 🌕
               </p>
             </div>
 
