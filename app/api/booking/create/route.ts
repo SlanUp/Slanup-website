@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if invite code is valid and not used
-    const inviteStatus = await getInviteCodeStatus(inviteCode);
+    const inviteStatus = await getInviteCodeStatus(inviteCode, eventConfig.name);
     
     if (!inviteStatus.isValid) {
       return NextResponse.json(

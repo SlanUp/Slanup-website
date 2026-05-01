@@ -135,7 +135,7 @@ export async function createBooking(data: {
   eventPrefix?: string; // Optional reference prefix
 }): Promise<Booking> {
   // Check for existing expired bookings and clean them up
-  const existingBooking = await db.getBookingByInviteCode(data.inviteCode.trim().toUpperCase());
+  const existingBooking = await db.getBookingByInviteCode(data.inviteCode.trim().toUpperCase(), data.eventName);
   if (existingBooking && isBookingExpired(existingBooking)) {
     console.log(`🗑️ Deleting expired booking ${existingBooking.id} for invite code ${data.inviteCode}`);
     await db.deleteBooking(existingBooking.id);

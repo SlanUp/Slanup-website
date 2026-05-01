@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getInviteCodeStatus } from '@/lib/bookingManager';
 import { validateInviteCode } from '@/lib/validation';
+import { getEventConfig } from '@/lib/eventConfig';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +21,13 @@ export async function POST(request: NextRequest) {
     }
     
     const inviteCode = validation.data;
-    const status = await getInviteCodeStatus(inviteCode);
+    // Resolve event name for filtering
+    let eventName: string | undefined;
+    if (body.eventName) {
+      const config = getEventConfig(body.eventName);
+      eventName = config?.name || body.eventName;
+    }
+    const status = await getInviteCodeStatus(inviteCode, eventName);
 
     return NextResponse.json({
       success: true,
@@ -38,6 +45,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const inviteCodeParam = searchParams.get('inviteCode');
+  const eventNameParam = searchParams.get('eventName');
 
   // Validate invite code
   const validation = validateInviteCode(inviteCodeParam);
@@ -54,8 +62,15 @@ export async function GET(request: NextRequest) {
   
   const inviteCode = validation.data;
 
+  // Resolve event name for filtering
+  let eventName: string | undefined;
+  if (eventNameParam) {
+    const config = getEventConfig(eventNameParam);
+    eventName = config?.name || eventNameParam;
+  }
+
   try {
-    const status = await getInviteCodeStatus(inviteCode);
+    const status = await getInviteCodeStatus(inviteCode, eventName);
 
     return NextResponse.json({
       success: true,
