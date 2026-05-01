@@ -153,7 +153,7 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
       accentColor: 'yellow',
       emoji: '🌕',
       fontFamily: {
-        title: "'Bebas Neue', cursive",
+        title: "'Outfit', sans-serif",
         subtitle: "'Poppins', sans-serif"
       }
     },
