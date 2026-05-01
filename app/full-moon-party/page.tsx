@@ -98,7 +98,7 @@ export default function FullMoonPartyPage() {
       const response = await fetch('/api/invite/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inviteCode: code })
+        body: JSON.stringify({ inviteCode: code, eventName: 'full-moon-party' })
       });
       
       const status = await response.json();

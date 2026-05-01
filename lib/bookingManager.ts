@@ -88,7 +88,7 @@ export function isBookingExpired(booking: Booking): boolean {
 }
 
 // Get booking status for an invite code
-export async function getInviteCodeStatus(code: string): Promise<InviteCodeStatus> {
+export async function getInviteCodeStatus(code: string, eventName?: string): Promise<InviteCodeStatus> {
   const normalizedCode = code.trim().toUpperCase();
   const isValid = await isValidInviteCode(normalizedCode);
   
@@ -100,7 +100,7 @@ export async function getInviteCodeStatus(code: string): Promise<InviteCodeStatu
     };
   }
   
-  const existingBooking = await db.getBookingByInviteCode(normalizedCode);
+  const existingBooking = await db.getBookingByInviteCode(normalizedCode, eventName);
   
   // If booking exists but is expired and pending, treat as available
   if (existingBooking && isBookingExpired(existingBooking)) {

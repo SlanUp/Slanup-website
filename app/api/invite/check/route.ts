@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getInviteCodeStatus } from '@/lib/bookingManager';
 import { validateInviteCode } from '@/lib/validation';
+import { getEventConfig } from '@/lib/eventConfig';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,7 +21,13 @@ export async function POST(request: NextRequest) {
     }
     
     const inviteCode = validation.data;
-    const status = await getInviteCodeStatus(inviteCode);
+    // Resolve event config key to actual event name stored in DB
+    let eventName: string | undefined;
+    if (body.eventName) {
+      const config = getEventConfig(body.eventName);
+      eventName = config?.name || body.eventName;
+    }
+    const status = await getInviteCodeStatus(inviteCode, eventName);
     
     return NextResponse.json(status);
   } catch (error) {

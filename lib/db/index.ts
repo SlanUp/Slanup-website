@@ -126,16 +126,25 @@ export async function getBookingById(id: string): Promise<Booking | null> {
 }
 
 // Get booking by invite code (checks both completed and pending)
-export async function getBookingByInviteCode(inviteCode: string): Promise<Booking | null> {
+export async function getBookingByInviteCode(inviteCode: string, eventName?: string): Promise<Booking | null> {
   try {
     // First check for completed bookings
-    const completedResult = await sql`
-      SELECT * FROM bookings 
-      WHERE invite_code = ${inviteCode} 
-      AND payment_status = 'completed'
-      ORDER BY created_at DESC
-      LIMIT 1
-    `;
+    const completedResult = eventName
+      ? await sql`
+          SELECT * FROM bookings 
+          WHERE invite_code = ${inviteCode} 
+          AND payment_status = 'completed'
+          AND event_name = ${eventName}
+          ORDER BY created_at DESC
+          LIMIT 1
+        `
+      : await sql`
+          SELECT * FROM bookings 
+          WHERE invite_code = ${inviteCode} 
+          AND payment_status = 'completed'
+          ORDER BY created_at DESC
+          LIMIT 1
+        `;
     
     if (completedResult.rows.length > 0) {
       const row = completedResult.rows[0];
@@ -163,13 +172,22 @@ export async function getBookingByInviteCode(inviteCode: string): Promise<Bookin
     }
     
     // If no completed booking, check for pending bookings (for expiry logic)
-    const pendingResult = await sql`
-      SELECT * FROM bookings 
-      WHERE invite_code = ${inviteCode} 
-      AND payment_status = 'pending'
-      ORDER BY created_at DESC
-      LIMIT 1
-    `;
+    const pendingResult = eventName
+      ? await sql`
+          SELECT * FROM bookings 
+          WHERE invite_code = ${inviteCode} 
+          AND payment_status = 'pending'
+          AND event_name = ${eventName}
+          ORDER BY created_at DESC
+          LIMIT 1
+        `
+      : await sql`
+          SELECT * FROM bookings 
+          WHERE invite_code = ${inviteCode} 
+          AND payment_status = 'pending'
+          ORDER BY created_at DESC
+          LIMIT 1
+        `;
     
     if (pendingResult.rows.length === 0) return null;
     
