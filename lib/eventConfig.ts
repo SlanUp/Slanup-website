@@ -146,7 +146,7 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
     galleryCode: 'FMP2026',
     googleDriveFolderId: process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID || '',
     theme: {
-      background: 'from-indigo-950 via-purple-950 to-black',
+      background: 'from-black via-neutral-950 to-black',
       textColor: 'text-white',
       primaryColor: 'cyan',
       secondaryColor: 'fuchsia',

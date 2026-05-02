@@ -153,7 +153,7 @@ function PaymentSuccessContent() {
     return (
       <div className={`min-h-screen ${getSuccessPageBackground()} ${getSuccessPageTextColor()} flex items-center justify-center`}>
         <div className="text-center">
-          <Loader2 className={`w-16 h-16 animate-spin ${theme.primaryColor === 'teal' ? 'text-amber-600' : 'text-[var(--brand-green)]'} mx-auto mb-4`} />
+          <Loader2 className={`w-16 h-16 animate-spin ${theme.primaryColor === 'teal' ? 'text-amber-600' : theme.primaryColor === 'cyan' ? 'text-yellow-500' : 'text-[var(--brand-green)]'} mx-auto mb-4`} />
           <h2 className={`text-2xl font-bold mb-2 ${getSuccessPageTextColor()}`}>Processing Payment...</h2>
           <p className={`${getSuccessPageTextColor()} opacity-70`}>Please wait while we confirm your payment</p>
         </div>
@@ -174,7 +174,7 @@ function PaymentSuccessContent() {
           </p>
           <button
             onClick={handleBackToEvent}
-            className={`inline-flex items-center ${theme.primaryColor === 'teal' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-white/80 hover:bg-white text-neutral-800'} font-semibold py-3 px-6 rounded-xl transition-all shadow-lg`}
+            className={`inline-flex items-center ${theme.primaryColor === 'teal' ? 'bg-amber-500 hover:bg-amber-600 text-white' : theme.primaryColor === 'cyan' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black' : 'bg-white/80 hover:bg-white text-neutral-800'} font-semibold py-3 px-6 rounded-xl transition-all shadow-lg`}
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to {eventConfig.name.replace("Slanup's ", "").split(" -")[0]} Page
@@ -242,7 +242,7 @@ function PaymentSuccessContent() {
         >
           <button
             onClick={handleBackToEvent}
-            className={`inline-flex items-center ${theme.primaryColor === 'teal' ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-white/80 hover:bg-white text-neutral-800'} font-semibold py-3 px-6 rounded-xl transition-all shadow-lg`}
+            className={`inline-flex items-center ${theme.primaryColor === 'teal' ? 'bg-amber-500 hover:bg-amber-600 text-white' : theme.primaryColor === 'cyan' ? 'bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-black' : 'bg-white/80 hover:bg-white text-neutral-800'} font-semibold py-3 px-6 rounded-xl transition-all shadow-lg`}
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to {eventConfig.name.replace("Slanup's ", "").split(" -")[0]} Page

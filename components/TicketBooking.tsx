@@ -268,7 +268,7 @@ export default function TicketBooking({ inviteCode, eventConfig, onClose }: Tick
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || 'Something went wrong');
+        alert(data.error + (data.details ? `: ${data.details}` : '') || 'Something went wrong');
         return;
       }
 

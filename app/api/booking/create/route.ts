@@ -117,8 +117,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error creating booking:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: errorMessage },
       { status: 500 }
     );
   }
