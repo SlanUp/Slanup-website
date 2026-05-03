@@ -160,22 +160,18 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
     ticketTypes: [
       {
         id: 'ultimate',
-        name: 'FULL MOON PARTY EXPERIENCE',
+        name: 'Full Moon Party Pass',
         price: 2499,
-        description: 'The most INSANE Full Moon Party experience in Gurgaon! 🌕🔥',
+        description: 'Single-entry pass to the Slanup Full Moon Party — a themed recreation evening in Gurgaon.',
         benefits: [
-          '🍽️ UNLIMITED Food & Beverages',
-          '🎲 Crazy Rules & Games (Prepare to get WASTED!)',
-          '🌕 Breathtaking Full Moon Themed Decor',
-          '🔥 Fire Performances & UV Neon Setup',
-          '🏛️ Premium Luxurious Venue',
-          '👫 Perfect Balanced Crowd Ratio',
-          '🎧 Professional DJ All Night Long',
-          '🎨 Free Neon Body Paint & UV Gear',
-          '🎯 Exclusive Game Booths & Setups',
-          '📍 Location details will be shared one day prior to the event',
-          '📸 Instagram-Worthy Photo Opportunities',
-          '🎊 Unforgettable Memories Guaranteed'
+          '🌕 Full Moon themed decor and ambience',
+          '🎲 Indoor social and party games',
+          '🎯 Group activity stations',
+          '🎧 Curated music throughout the evening',
+          '🏛️ Comfortable indoor venue',
+          '👥 Curated, invite-only group',
+          '📍 Venue details shared one day prior to the event',
+          '📸 Group photo opportunities'
         ],
         available: true,
         maxQuantity: 1

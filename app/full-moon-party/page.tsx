@@ -10,6 +10,9 @@ import { InviteCodeStatus } from "@/lib/types";
 import { getEventConfig } from "@/lib/eventConfig";
 
 
+// Feature flag: set to true to re-enable the past-events gallery section
+const SHOW_GALLERY = false;
+
 // Previous party gallery items from best parties
 const GALLERY_ITEMS = [
   { type: "image", url: "/Gallery/best-parties/1.JPG", title: "Party Vibes" },
@@ -282,7 +285,7 @@ export default function FullMoonPartyPage() {
               color: '#999',
             }}
           >
-            One Night. Full Moon. No Rules.
+            One Night. Full Moon. Good Times.
           </motion.p>
 
         </motion.div>
@@ -450,18 +453,18 @@ export default function FullMoonPartyPage() {
                 WHAT AWAITS YOU
               </h3>
               <p className="text-neutral-500 text-sm md:text-base">
-                Thailand&apos;s legendary Full Moon Party energy, right here in Gurgaon 🌕
+                A Full Moon themed evening of games and good company in Gurgaon 🌕
               </p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {[
-                { emoji: '🌕', title: 'Full Moon Magic', desc: 'Under the glow of the moon' },
-                { emoji: '🎨', title: 'Neon Body Paint', desc: 'Free UV paint & glow gear' },
-                { emoji: '👥', title: 'Curated Crowd', desc: 'Invite-only, handpicked people' },
-                { emoji: '🎧', title: 'Non-Stop Music', desc: 'Pro DJs all night long' },
-                { emoji: '😈', title: 'Unhinged Rules', desc: 'No boring rules, just vibes' },
-                { emoji: '🎲', title: 'Party Games', desc: 'Wild games all night' },
+                { emoji: '🌕', title: 'Full Moon Theme', desc: 'Themed decor and ambience' },
+                { emoji: '🎲', title: 'Social Games', desc: 'Indoor and group games' },
+                { emoji: '👥', title: 'Curated Group', desc: 'Invite-only, handpicked guests' },
+                { emoji: '🎧', title: 'Curated Music', desc: 'Music throughout the evening' },
+                { emoji: '🎯', title: 'Activity Stations', desc: 'Group activity setups' },
+                { emoji: '📸', title: 'Photo Moments', desc: 'Group photo opportunities' },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -486,7 +489,7 @@ export default function FullMoonPartyPage() {
         )}
 
         {/* ===== GALLERY SECTION ===== */}
-        {!isValidated && (
+        {SHOW_GALLERY && !isValidated && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -511,7 +514,7 @@ export default function FullMoonPartyPage() {
                 <div className="h-px w-8 md:w-16 bg-gradient-to-l from-transparent to-yellow-500/40" />
               </div>
               <p className="text-neutral-500 text-lg">
-                Get ready for the wildest Full Moon Party ever! 🌊
+                A glimpse from past Slanup events 🌕
               </p>
             </div>
 
@@ -575,7 +578,7 @@ export default function FullMoonPartyPage() {
 
       {/* ===== MEDIA LIGHTBOX ===== */}
       <AnimatePresence>
-        {selectedMedia !== null && (
+        {SHOW_GALLERY && selectedMedia !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
