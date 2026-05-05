@@ -3,6 +3,7 @@ import { getInviteCodeStatus, generateReferenceNumber, generateTransactionId } f
 import { validateInviteCode } from '@/lib/validation';
 import { getEventConfig } from '@/lib/eventConfig';
 import { updateGoogleSheet } from '@/lib/googleSheetsUpdate';
+import { sendTicketEmail } from '@/lib/emailService';
 import * as db from '@/lib/db';
 import { getLatestGuest } from '@/lib/offlyn';
 import type { Booking } from '@/lib/types';
@@ -115,6 +116,13 @@ export async function POST(request: NextRequest) {
     }).catch((err) => {
       console.error('[Offlyn Confirm] Sheet update failed (non-fatal):', err);
     });
+
+    // Send ticket email if we have a real email address (non-blocking)
+    if (buyerEmail && buyerEmail !== 'see-offlyn-dashboard' && buyerEmail.includes('@')) {
+      sendTicketEmail(booking).catch((err) => {
+        console.error('[Offlyn Confirm] Ticket email failed (non-fatal):', err);
+      });
+    }
 
     return NextResponse.json({
       success: true,

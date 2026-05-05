@@ -11,8 +11,8 @@ import { InviteCodeStatus } from "@/lib/types";
 import { getEventConfig } from "@/lib/eventConfig";
 
 // === Offlyn integration ===
-const OFFLYN_TICKET_URL = "https://offlyn.life/e/NBeeaOM";
-const OFFLYN_EXPERIENCE_ID = "69f9d99a43a1d6e0212e1d7f";
+const OFFLYN_TICKET_URL = "https://offlyn.life/e/tVA4OMX";
+const OFFLYN_EXPERIENCE_ID = "69fa4d4779ec172a6239b648";
 const OFFLYN_EVENT_KEY = "full-moon-party";
 
 

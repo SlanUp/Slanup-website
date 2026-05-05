@@ -23,7 +23,9 @@ export async function sendTicketEmail(booking: Booking): Promise<boolean> {
 
     // Get event config from booking eventName
     let eventName = 'diwali'; // default
-    if (booking.eventName.toLowerCase().includes('mafia') || booking.eventName.toLowerCase().includes('soiree')) {
+    if (booking.eventName.toLowerCase().includes('full') && booking.eventName.toLowerCase().includes('moon')) {
+      eventName = 'full-moon-party';
+    } else if (booking.eventName.toLowerCase().includes('mafia') || booking.eventName.toLowerCase().includes('soiree')) {
       eventName = 'mafia-soiree';
     } else if (booking.eventName.toLowerCase().includes('luau')) {
       eventName = 'luau';
@@ -407,7 +409,7 @@ async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: stri
             </tr>
             <tr class="detail-row">
               <td class="detail-label">Amount Paid:</td>
-              <td class="detail-value" style="color: #636B50; font-weight: bold;">${formatCurrency(booking.totalAmount)}</td>
+              <td class="detail-value" style="color: #636B50; font-weight: bold;">${booking.paymentMethod === 'offlyn' ? '₹2,499' : formatCurrency(booking.totalAmount)}</td>
             </tr>
             <tr class="detail-row">
               <td class="detail-label">Status:</td>
@@ -458,7 +460,7 @@ async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: stri
             ` : `
             <li><strong>Bring Valid Photo ID</strong> and your party energy 🔥</li>
             <li><strong>Show this email</strong> or QR code at entrance ✨</li>
-            <li><strong>BYOB</strong> - Bring your own booze 🍾</li>
+            <li><strong>Get your best fits out</strong> for the event 🔥</li>
             <li><strong>All mixers and sides provided</strong> by us 🥤</li>
             <li><strong>Unlimited food and beverages</strong> included 🍽️</li>
             <li><strong>Games and DJ</strong> all night long 🎲</li>
