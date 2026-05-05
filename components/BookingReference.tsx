@@ -223,7 +223,7 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
             </div>
             <div className="flex justify-between font-semibold">
               <span className={textSecondaryColor}>Total Amount:</span>
-              <span className={isLuau ? 'text-neutral-800' : 'text-amber-400'}>{formatCurrency(booking.totalAmount)}</span>
+              <span className={isLuau ? 'text-neutral-800' : 'text-amber-400'}>{booking.paymentMethod === 'offlyn' ? '₹2,499' : formatCurrency(booking.totalAmount)}</span>
             </div>
           </div>
         </div>
