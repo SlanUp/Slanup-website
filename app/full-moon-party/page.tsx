@@ -6,8 +6,14 @@ import { Play, Download, ChevronLeft, ChevronRight, MessageCircle, Instagram, Fo
 import Link from "next/link";
 import TicketBooking from "@/components/TicketBooking";
 import BookingReference from "@/components/BookingReference";
+import OfflynBookingModal from "@/components/OfflynBookingModal";
 import { InviteCodeStatus } from "@/lib/types";
 import { getEventConfig } from "@/lib/eventConfig";
+
+// === Offlyn integration ===
+const OFFLYN_TICKET_URL = "https://offlyn.life/e/NBeeaOM";
+const OFFLYN_EXPERIENCE_ID = "69f9d99a43a1d6e0212e1d7f";
+const OFFLYN_EVENT_KEY = "full-moon-party";
 
 
 // Feature flag: set to true to re-enable the past-events gallery section
@@ -124,6 +130,24 @@ export default function FullMoonPartyPage() {
   const handleBookTickets = () => {
     if (inviteCodeStatus?.isUsed) return;
     setShowTicketBooking(true);
+  };
+
+  // After offlyn payment confirmed, refresh invite code status so the
+  // page swaps from iframe to BookingReference.
+  const handleOfflynConfirmed = async () => {
+    try {
+      const res = await fetch('/api/invite/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode, eventName: 'full-moon-party' }),
+      });
+      if (res.ok) {
+        const fresh = await res.json();
+        setInviteCodeStatus(fresh);
+      }
+    } catch (e) {
+      console.error('Refetch after confirm failed:', e);
+    }
   };
 
   // Gold accent palette
@@ -625,11 +649,23 @@ export default function FullMoonPartyPage() {
       {/* ===== TICKET BOOKING MODAL ===== */}
       <AnimatePresence>
         {showTicketBooking && eventConfig && (
-          <TicketBooking
-            inviteCode={inviteCode}
-            eventConfig={eventConfig}
-            onClose={() => setShowTicketBooking(false)}
-          />
+          OFFLYN_TICKET_URL ? (
+            <OfflynBookingModal
+              ticketUrl={OFFLYN_TICKET_URL}
+              experienceId={OFFLYN_EXPERIENCE_ID}
+              inviteCode={inviteCode}
+              eventName={OFFLYN_EVENT_KEY}
+              displayName="Full Moon Party — Get Tickets"
+              onClose={() => setShowTicketBooking(false)}
+              onConfirmed={handleOfflynConfirmed}
+            />
+          ) : (
+            <TicketBooking
+              inviteCode={inviteCode}
+              eventConfig={eventConfig}
+              onClose={() => setShowTicketBooking(false)}
+            />
+          )
         )}
       </AnimatePresence>
     </div>

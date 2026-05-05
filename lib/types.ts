@@ -10,7 +10,7 @@ export interface Booking {
   ticketCount: number;
   totalAmount: number;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
-  paymentMethod: 'cashfree' | 'payu' | 'cash' | 'complimentary';
+  paymentMethod: 'cashfree' | 'payu' | 'cash' | 'complimentary' | 'offlyn';
   payuTransactionId?: string;
   payuPaymentId?: string;
   cashfreeOrderId?: string;
