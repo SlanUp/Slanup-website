@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, ExternalLink, CheckCircle2 } from "lucide-react";
+import { X, CheckCircle2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface OfflynBookingModalProps {
@@ -290,15 +290,6 @@ export default function OfflynBookingModal({
             </h2>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <a
-              href={ticketUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-amber-400/80 hover:text-amber-400 p-2 rounded-full hover:bg-amber-500/10 transition-colors"
-              title="Open in new tab"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </a>
             <button
               onClick={onClose}
               className="text-neutral-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition-colors"

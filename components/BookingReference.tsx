@@ -259,7 +259,7 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
             isLuau ? 'Save this reference number - it\'s your GOLDEN TICKET! 🎫' : 'Save this reference number - it\'s your GOLDEN TICKET! 🎫',
             isLuau ? 'Show this reference at entrance for VIP treatment ✨' : 'Show this reference at entrance for VIP treatment ✨',
             isLuau ? `Bring valid photo ID + your party energy 🌊` : `Bring valid photo ID + your party energy 🔥`,
-            isLuau ? 'Get your best tropical fits out for the event 🏝️' : 'BYOB - Bring your favorite booze 🍾',
+            isLuau ? 'Get your best tropical fits out for the event 🏝️' : 'Get your best fits out for the event 🔥',
             isLuau ? 'Prepare for a night you\'re gonna smile while dreaming of 💭' : 'We provide all mixers & sides 🥤',
             isLuau ? 'Please schedule your return cab 1 hour prior 🚗' : 'Get ready for UNLIMITED food & drinks 🍽️',
             isLuau ? 'Drink safely, because playing with the rules and games is gonna get you a lot wasted, so be careful ⚠️' : 'Prepare for the craziest games ever! 🎲',
