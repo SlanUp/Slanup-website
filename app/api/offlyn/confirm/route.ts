@@ -104,24 +104,28 @@ export async function POST(request: NextRequest) {
         `(ref: ${referenceNumber}, buyer: ${buyerName})`,
     );
 
-    // Update Google Sheet (non-blocking)
-    updateGoogleSheet({
-      inviteCode,
-      email: buyerEmail,
-      phone: buyerPhone,
-      paymentStatus: `OFFLYN_PAID (${source})`,
-      referenceNumber,
-      transactionId: offlynTxnId || booking.id,
-      bookingDate: now.toISOString(),
-    }).catch((err) => {
-      console.error('[Offlyn Confirm] Sheet update failed (non-fatal):', err);
-    });
-
-    // Send ticket email if we have a real email address (non-blocking)
-    if (buyerEmail && buyerEmail !== 'see-offlyn-dashboard' && buyerEmail.includes('@')) {
-      sendTicketEmail(booking).catch((err) => {
-        console.error('[Offlyn Confirm] Ticket email failed (non-fatal):', err);
+    // Update Google Sheet
+    try {
+      await updateGoogleSheet({
+        inviteCode,
+        email: buyerEmail,
+        phone: buyerPhone,
+        paymentStatus: `OFFLYN_PAID (${source})`,
+        referenceNumber,
+        transactionId: offlynTxnId || booking.id,
+        bookingDate: now.toISOString(),
       });
+    } catch (err) {
+      console.error('[Offlyn Confirm] Sheet update failed (non-fatal):', err);
+    }
+
+    // Send ticket email if we have a real email address
+    if (buyerEmail && buyerEmail !== 'see-offlyn-dashboard' && buyerEmail.includes('@')) {
+      try {
+        await sendTicketEmail(booking);
+      } catch (err) {
+        console.error('[Offlyn Confirm] Ticket email failed (non-fatal):', err);
+      }
     }
 
     return NextResponse.json({
