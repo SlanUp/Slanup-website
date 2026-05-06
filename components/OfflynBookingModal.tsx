@@ -9,6 +9,7 @@ interface OfflynBookingModalProps {
   experienceId?: string;
   inviteCode: string;
   eventName?: string;
+  holderName?: string;
   displayName?: string;
   onClose: () => void;
   onConfirmed?: () => void;
@@ -21,6 +22,7 @@ export default function OfflynBookingModal({
   experienceId,
   inviteCode,
   eventName,
+  holderName,
   displayName = "Get Your Tickets",
   onClose,
   onConfirmed,
@@ -126,7 +128,7 @@ export default function OfflynBookingModal({
     }
   }, [experienceId]);
 
-  // Verify that a new guest exists since baseline (confirms real payment)
+  // Verify that a new guest exists since baseline AND matches the holder's name
   const verifyNewGuest = useCallback(async (): Promise<boolean> => {
     if (!experienceId) return false;
     try {
@@ -136,6 +138,7 @@ export default function OfflynBookingModal({
         body: JSON.stringify({
           experienceId,
           baselineTimestamp: baselineTimestampRef.current,
+          expectedName: holderName || undefined,
         }),
       });
       const data = await res.json();
@@ -143,7 +146,7 @@ export default function OfflynBookingModal({
     } catch {
       return false;
     }
-  }, [experienceId]);
+  }, [experienceId, holderName]);
 
   // ── PRIMARY SIGNAL: iframe load event + guest-list verification ────
   //

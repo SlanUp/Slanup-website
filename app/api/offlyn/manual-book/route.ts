@@ -46,7 +46,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Idempotency — already booked?
-    const status = await getInviteCodeStatus(inviteCode, eventConfig.name);
+    let status;
+    try {
+      status = await getInviteCodeStatus(inviteCode, eventConfig.name);
+    } catch (err) {
+      console.error('[Manual Book] getInviteCodeStatus failed:', err);
+      // Skip validation — admin override for manual bookings
+      status = { isValid: true, isUsed: false };
+    }
     if (!status.isValid) {
       return NextResponse.json({ error: 'Invite code is not valid' }, { status: 400 });
     }

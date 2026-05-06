@@ -82,6 +82,7 @@ export default function FullMoonPartyPage() {
   const [showTicketBooking, setShowTicketBooking] = useState(false);
   const [inviteCodeStatus, setInviteCodeStatus] = useState<InviteCodeStatus | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [holderName, setHolderName] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -116,6 +117,15 @@ export default function FullMoonPartyPage() {
       if (status.isValid) {
         setIsValidated(true);
         setError("");
+        // Fetch holder's name for fuzzy matching during payment detection
+        fetch('/api/invite/lookup-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inviteCode: code }),
+        })
+          .then((r) => r.json())
+          .then((d) => { if (d.name) setHolderName(d.name); })
+          .catch(() => {});
       } else {
         setError("Invalid invite code. Please try again.");
       }
@@ -655,6 +665,7 @@ export default function FullMoonPartyPage() {
               experienceId={OFFLYN_EXPERIENCE_ID}
               inviteCode={inviteCode}
               eventName={OFFLYN_EVENT_KEY}
+              holderName={holderName}
               displayName="Full Moon Party — Get Tickets"
               onClose={() => setShowTicketBooking(false)}
               onConfirmed={handleOfflynConfirmed}
