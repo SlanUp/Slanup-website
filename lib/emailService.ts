@@ -462,7 +462,7 @@ async function generateTicketEmailHTML(booking: Booking, eventConfig: { id: stri
             <li><strong>Show this email</strong> or QR code at entrance ✨</li>
             <li><strong>Get your best fits out</strong> for the event 🔥</li>
             <li><strong>All mixers and sides provided</strong> by us 🥤</li>
-            <li><strong>Unlimited food and beverages</strong> included 🍽️</li>
+            <li><strong>Unlimited food</strong> included 🍽️</li>
             <li><strong>Games and DJ</strong> all night long 🎲</li>
             <li><strong>Photo setups</strong> available 📸</li>
             `}

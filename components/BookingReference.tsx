@@ -261,7 +261,7 @@ export default function BookingReference({ booking, eventConfig }: BookingRefere
             isLuau ? `Bring valid photo ID + your party energy 🌊` : `Bring valid photo ID + your party energy 🔥`,
             isLuau ? 'Get your best tropical fits out for the event 🏝️' : 'Get your best fits out for the event 🔥',
             isLuau ? 'Prepare for a night you\'re gonna smile while dreaming of 💭' : 'We provide all mixers & sides 🥤',
-            isLuau ? 'Please schedule your return cab 1 hour prior 🚗' : 'Get ready for UNLIMITED food & drinks 🍽️',
+            isLuau ? 'Please schedule your return cab 1 hour prior 🚗' : 'Get ready for UNLIMITED food 🍽️',
             isLuau ? 'Drink safely, because playing with the rules and games is gonna get you a lot wasted, so be careful ⚠️' : 'Prepare for the craziest games ever! 🎲',
             ...(booking.paymentStatus === 'pending' ? [isLuau ? 'Complete payment to secure your spot 💳' : 'Complete payment to secure your spot 💳'] : [])
           ].map((item, index) => (
