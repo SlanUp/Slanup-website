@@ -128,6 +128,26 @@ export default function OfflynBookingModal({
     }
   }, [experienceId]);
 
+  // Log detection attempt (matched or not) for traceability
+  const logDetection = useCallback(
+    (guest: { name?: string; email?: string; phone?: string } | null, matched: boolean, source: string) => {
+      fetch("/api/offlyn/log-detection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inviteCode,
+          holderName: holderName || "",
+          guestName: guest?.name || "",
+          guestEmail: guest?.email || "",
+          guestPhone: guest?.phone || "",
+          matched,
+          source,
+        }),
+      }).catch(() => {});
+    },
+    [inviteCode, holderName],
+  );
+
   // Verify that a new guest exists since baseline AND matches the holder's name
   const verifyNewGuest = useCallback(async (): Promise<boolean> => {
     if (!experienceId) return false;
@@ -142,11 +162,25 @@ export default function OfflynBookingModal({
         }),
       });
       const data = await res.json();
-      return data?.hasNewGuest === true;
+
+      if (data?.hasNewGuest) {
+        logDetection(data.latestGuest, true, "verify");
+        return true;
+      }
+
+      // Log failed match so we can trace it later
+      if (data?.nameMatchFailed && data?.unmatchedGuest) {
+        logDetection(data.unmatchedGuest, false, "name-mismatch");
+        console.warn(
+          `[Offlyn] Name mismatch: holder="${holderName}" vs guest="${data.unmatchedGuest.name}"`,
+        );
+      }
+
+      return false;
     } catch {
       return false;
     }
-  }, [experienceId, holderName]);
+  }, [experienceId, holderName, logDetection]);
 
   // ── PRIMARY SIGNAL: iframe load event + guest-list verification ────
   //

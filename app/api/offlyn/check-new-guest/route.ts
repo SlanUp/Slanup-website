@@ -128,11 +128,15 @@ export async function POST(request: NextRequest) {
       console.log(
         `[check-new-guest] ⚠️ No name match for "${expectedName}" among ${newGuests.length} new guest(s): ${newGuests.map((g) => g.userDetails?.name).join(', ')}`,
       );
+      const unmatchedGuest = newGuests[0].userDetails;
       return NextResponse.json({
         hasNewGuest: false,
         guestCount: guests.length,
         latestTimestamp: latestTime,
         nameMatchFailed: true,
+        unmatchedGuest: unmatchedGuest
+          ? { name: unmatchedGuest.name, email: unmatchedGuest.email, phone: unmatchedGuest.phone }
+          : null,
       });
     }
 
