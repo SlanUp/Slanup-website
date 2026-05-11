@@ -117,15 +117,19 @@ export default function FullMoonPartyPage() {
       if (status.isValid) {
         setIsValidated(true);
         setError("");
-        // Fetch holder's name for fuzzy matching during payment detection
-        fetch('/api/invite/lookup-name', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inviteCode: code }),
-        })
-          .then((r) => r.json())
-          .then((d) => { if (d.name) setHolderName(d.name); })
-          .catch(() => {});
+        // Fetch holder's name for fuzzy matching — await it before allowing booking
+        try {
+          const nameRes = await fetch('/api/invite/lookup-name', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inviteCode: code }),
+          });
+          const nameData = await nameRes.json();
+          if (nameData.name) setHolderName(nameData.name);
+        } catch {
+          // Non-fatal — holderName stays empty, confirm will still work
+          // but without name matching (logged as fallback)
+        }
       } else {
         setError("Invalid invite code. Please try again.");
       }
@@ -412,7 +416,7 @@ export default function FullMoonPartyPage() {
                   className="text-center py-2"
                 >
                   <p className="font-semibold text-xl" style={{ color: '#FFD700', textShadow: '0 0 15px rgba(255,215,0,0.4)' }}>
-                    🌕 Welcome to the Full Moon! 🔥
+                    🌕 Welcome to the Full Moon{holderName ? `, ${holderName.split(' ')[0]}` : ''}! 🔥
                   </p>
                 </motion.div>
               )}

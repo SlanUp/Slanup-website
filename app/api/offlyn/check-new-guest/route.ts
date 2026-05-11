@@ -140,13 +140,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // No expectedName — fall back to any-new-guest check (legacy behavior)
+    // No expectedName — cannot verify ownership. Reject and log.
+    console.log(
+      `[check-new-guest] ⚠️ No expectedName provided — rejecting to prevent cross-confirmation`,
+    );
+    const fallbackGuest = newGuests[0].userDetails;
     return NextResponse.json({
-      hasNewGuest: true,
+      hasNewGuest: false,
       guestCount: guests.length,
       latestTimestamp: latestTime,
-      latestGuest: newGuests[0].userDetails
-        ? { name: newGuests[0].userDetails.name, email: newGuests[0].userDetails.email, phone: newGuests[0].userDetails.phone }
+      nameMatchFailed: true,
+      noExpectedName: true,
+      unmatchedGuest: fallbackGuest
+        ? { name: fallbackGuest.name, email: fallbackGuest.email, phone: fallbackGuest.phone }
         : null,
     });
   } catch (error) {
