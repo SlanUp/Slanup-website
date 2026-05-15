@@ -161,7 +161,7 @@ export const EVENT_CONFIGS: Record<string, EventConfig> = {
       {
         id: 'ultimate',
         name: 'Full Moon Party Pass',
-        price: 2499,
+        price: 1999,
         description: 'Single-entry pass to the Slanup Full Moon Party — a themed recreation evening in Gurgaon.',
         benefits: [
           '🌕 Full Moon themed decor and ambience',

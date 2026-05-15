@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       customerPhone: phone,
       ticketType: 'standard',
       ticketCount: 1,
-      totalAmount: 2499,
+      totalAmount: 1999,
       paymentStatus: 'completed',
       paymentMethod: 'offlyn',
       referenceNumber,
