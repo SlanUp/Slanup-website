@@ -156,13 +156,30 @@ export default function GeneralTermsPage() {
 
             {/* 11. Contact */}
             <section>
-              <h2 className="text-2xl font-bold text-green-400 mb-4">11. Contact Information</h2>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">12. Contact Information</h2>
               <p className="text-gray-300 leading-relaxed mb-4">
                 For questions about these Terms and Conditions, please contact us:
               </p>
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-white mb-2"><strong>Email:</strong> <a href="mailto:hello@slanup.com" className="text-green-400 hover:text-green-300 underline">hello@slanup.com</a></p>
                 <p className="text-white"><strong>Website:</strong> <a href="https://slanup.com" className="text-green-400 hover:text-green-300 underline">slanup.com</a></p>
+              </div>
+            </section>
+
+            {/* Event Ticket Pricing */}
+            <section>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">11. Event Ticket Pricing</h2>
+              <div className="bg-gradient-to-r from-yellow-400/10 to-yellow-600/10 border border-yellow-400/30 rounded-xl p-6">
+                <p className="text-gray-300 leading-relaxed mb-4">
+                  The current price of the <strong className="text-white">Full Moon Party Pass</strong> is <strong className="text-white">₹1,999</strong>.
+                </p>
+                <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
+                  <li>If you have already paid <strong className="text-white">₹2,499</strong> for a pass, <strong className="text-white">₹500 is your cover charge</strong> at the venue — no additional cover will be charged at entry.</li>
+                  <li>If you purchase the pass at the current price of <strong className="text-white">₹1,999</strong>, this is the standard entry pass with no cover included.</li>
+                </ul>
+                <p className="text-gray-400 text-sm mt-4">
+                  All ticket sales are final. Please refer to our <Link href="/refund-policy" className="text-green-400 hover:text-green-300 underline">Refund Policy</Link> for more details.
+                </p>
               </div>
             </section>
 
