@@ -156,7 +156,7 @@ export default function GeneralTermsPage() {
 
             {/* 11. Contact */}
             <section>
-              <h2 className="text-2xl font-bold text-green-400 mb-4">12. Contact Information</h2>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">14. Contact Information</h2>
               <p className="text-gray-300 leading-relaxed mb-4">
                 For questions about these Terms and Conditions, please contact us:
               </p>
@@ -181,6 +181,16 @@ export default function GeneralTermsPage() {
                   All ticket sales are final. Please refer to our <Link href="/refund-policy" className="text-green-400 hover:text-green-300 underline">Refund Policy</Link> for more details.
                 </p>
               </div>
+            </section>
+
+            {/* Group Approval & Refund Policy */}
+            <section>
+              <h2 className="text-2xl font-bold text-green-400 mb-4">13. Group Approval & Refund on Denial</h2>
+              <ul className="list-disc list-inside text-gray-300 space-y-2 ml-4">
+                <li>If you were approved to attend the event as part of a group and any member(s) of that group bail out, <strong className="text-white">your continued acceptance is entirely at the discretion of the host</strong>.</li>
+                <li>The host reserves the right to revoke your approval if the group composition changes significantly.</li>
+                <li>In the event your entry is denied due to group members bailing out, <strong className="text-white">a full automatic refund will be initiated</strong> for your ticket — no action is required from your side.</li>
+              </ul>
             </section>
 
             {/* Agreement */}
